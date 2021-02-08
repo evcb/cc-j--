@@ -1,0 +1,953 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>jminusminus.Type (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Type.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Copyright 2013 Bill Campbell, Swami Iyer and Bahar Akbal-Delibas
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Package">package</FONT> jminusminus;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.lang.reflect.Array;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.lang.reflect.Modifier;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> java.util.Arrays;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> java.util.Hashtable;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * For representing j-- types. All types are represented underneath (in the
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * classRep field) by Java objects of type {@code Class}. These objects 
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * represent types in Java, so this should ease our interfacing with existing 
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * Java classes.
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * &lt;p&gt;
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * Class types (reference types that are represented by the identifiers
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * introduced in class declarations) are represented using {@link TypeName}. So 
+<FONT ID="LN">20  </FONT><A NAME="20"></A> * for now, every TypeName represents a class. In the future, TypeName could be 
+<FONT ID="LN">21  </FONT><A NAME="21"></A> * extended to represent interfaces or enumerations.
+<FONT ID="LN">22  </FONT><A NAME="22"></A> * &lt;p&gt;
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * IdentifierTypes must be "resolved" at some point, so that all Types having
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * the same name refer to the same Type object. The {@code resolve} method does 
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * this.
+<FONT ID="LN">26  </FONT><A NAME="26"></A> */</FONT>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Class">class</FONT> Type {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    <FONT ID="FormalComment">/** The Type's internal (Java) representation. * */</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="Private">private</FONT> Class&lt;?&gt; classRep;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="FormalComment">/** Maps type names to their Type representations. */</FONT>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> Hashtable&lt;String, <A HREF="../jminusminus/Type.java.html">Type</A>&gt; types = <FONT ID="New">new</FONT> Hashtable&lt;String, <A HREF="../jminusminus/Type.java.html">Type</A>&gt;();
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="FormalComment">/** The primitive type, int. */</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> INT = typeFor(<FONT ID="Int">int</FONT>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    <FONT ID="FormalComment">/** The primitive type, char. */</FONT>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> CHAR = typeFor(<FONT ID="Char">char</FONT>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="FormalComment">/** The primitive type, boolean. */</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> BOOLEAN = typeFor(<FONT ID="Boolean">boolean</FONT>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="FormalComment">/** java.lang.Integer. */</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> BOXED_INT = typeFor(java.lang.Integer.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="FormalComment">/** java.lang.Character. */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> BOXED_CHAR = typeFor(java.lang.Character.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="FormalComment">/** java.lang.Boolean. */</FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> BOXED_BOOLEAN = typeFor(java.lang.Boolean.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="FormalComment">/** The type java.lang.String. */</FONT>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> STRING = typeFor(java.lang.String.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="FormalComment">/** The type java.lang.Object. */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> OBJECT = typeFor(java.lang.Object.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="FormalComment">/** The void type. */</FONT>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> VOID = typeFor(<FONT ID="Void">void</FONT>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">62  </FONT><A NAME="62"></A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="FormalComment">/** The null void. */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> NULLTYPE = <FONT ID="New">new</FONT> <A HREF="../jminusminus/Type.java.html">Type</A>(java.lang.Object.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">67  </FONT><A NAME="67"></A>     * A type marker indicating a constructor (having no return type).
+<FONT ID="LN">68  </FONT><A NAME="68"></A>     */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> CONSTRUCTOR = <FONT ID="New">new</FONT> <A HREF="../jminusminus/Type.java.html">Type</A>(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="FormalComment">/** The "any" type (denotes wild expressions). */</FONT>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> ANY = <FONT ID="New">new</FONT> <A HREF="../jminusminus/Type.java.html">Type</A>(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">75  </FONT><A NAME="75"></A>     * Constructs a Type representation for a type from its Java (Class)
+<FONT ID="LN">76  </FONT><A NAME="76"></A>     * representation. Use typeFor() -- that maps types having like classReps to
+<FONT ID="LN">77  </FONT><A NAME="77"></A>     * like Types.
+<FONT ID="LN">78  </FONT><A NAME="78"></A>     * 
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     * @param classRep
+<FONT ID="LN">80  </FONT><A NAME="80"></A>     *            the Java representation.
+<FONT ID="LN">81  </FONT><A NAME="81"></A>     */</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="Private">private</FONT> Type(Class&lt;?&gt; classRep) {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        <FONT ID="This">this</FONT>.classRep = classRep;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="FormalComment">/** This constructor is to keep the compiler happy. */</FONT>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Protected">protected</FONT> Type() {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        <FONT ID="Super">super</FONT>();
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>     * Constructs a Type representation for a type from its (Java) Class
+<FONT ID="LN">95  </FONT><A NAME="95"></A>     * representation. Make sure there is a unique Type for each unique type.
+<FONT ID="LN">96  </FONT><A NAME="96"></A>     * 
+<FONT ID="LN">97  </FONT><A NAME="97"></A>     * @param classRep
+<FONT ID="LN">98  </FONT><A NAME="98"></A>     *            the Java representation.
+<FONT ID="LN">99  </FONT><A NAME="99"></A>     * @return the Type representation of this classRep.
+<FONT ID="LN">100 </FONT><A NAME="100"></A>     */</FONT>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> typeFor(Class&lt;?&gt; classRep) {
+<FONT ID="LN">103 </FONT><A NAME="103"></A>        <FONT ID="If">if</FONT> (types.get(descriptorFor(classRep)) == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>            types.put(descriptorFor(classRep), <FONT ID="New">new</FONT> <A HREF="../jminusminus/Type.java.html">Type</A>(classRep));
+<FONT ID="LN">105 </FONT><A NAME="105"></A>        }
+<FONT ID="LN">106 </FONT><A NAME="106"></A>        <FONT ID="Return">return</FONT> types.get(descriptorFor(classRep));
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">110 </FONT><A NAME="110"></A>     * Returns the class representation for a type, appropriate for dealing with
+<FONT ID="LN">111 </FONT><A NAME="111"></A>     * the Java reflection API.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>     * 
+<FONT ID="LN">113 </FONT><A NAME="113"></A>     * @return the Class representation for this type.
+<FONT ID="LN">114 </FONT><A NAME="114"></A>     */</FONT>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Public">public</FONT> Class&lt;?&gt; classRep() {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>        <FONT ID="Return">return</FONT> classRep;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">121 </FONT><A NAME="121"></A>     * This setter is used by {@link JCompilationUnit#preAnalyze()} to set this
+<FONT ID="LN">122 </FONT><A NAME="122"></A>     * {@code classRep} to the specified partial class, computed during 
+<FONT ID="LN">123 </FONT><A NAME="123"></A>     * pre-analysis.
+<FONT ID="LN">124 </FONT><A NAME="124"></A>     * 
+<FONT ID="LN">125 </FONT><A NAME="125"></A>     * @param classRep
+<FONT ID="LN">126 </FONT><A NAME="126"></A>     *            the partial class.
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     */</FONT>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setClassRep(Class&lt;?&gt; classRep) {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        <FONT ID="This">this</FONT>.classRep = classRep;
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">134 </FONT><A NAME="134"></A>     * Type equality is based on the equality of descriptors.
+<FONT ID="LN">135 </FONT><A NAME="135"></A>     * 
+<FONT ID="LN">136 </FONT><A NAME="136"></A>     * @param that
+<FONT ID="LN">137 </FONT><A NAME="137"></A>     *            the other Type.
+<FONT ID="LN">138 </FONT><A NAME="138"></A>     * @return {@code true} iff the two types are equal; 
+<FONT ID="LN">139 </FONT><A NAME="139"></A>     *         {@code false} otherwise.
+<FONT ID="LN">140 </FONT><A NAME="140"></A>     */</FONT>
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(<A HREF="../jminusminus/Type.java.html">Type</A> that) {
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.toDescriptor().equals(that.toDescriptor());
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    }
+<FONT ID="LN">145 </FONT><A NAME="145"></A>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">147 </FONT><A NAME="147"></A>     * Is this an Array type?
+<FONT ID="LN">148 </FONT><A NAME="148"></A>     * 
+<FONT ID="LN">149 </FONT><A NAME="149"></A>     * @return true or false.
+<FONT ID="LN">150 </FONT><A NAME="150"></A>     */</FONT>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isArray() {
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        <FONT ID="Return">return</FONT> classRep.isArray();
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    }
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">157 </FONT><A NAME="157"></A>     * An array type's component type. Meaningful only for array types.
+<FONT ID="LN">158 </FONT><A NAME="158"></A>     * 
+<FONT ID="LN">159 </FONT><A NAME="159"></A>     * @return the component type.
+<FONT ID="LN">160 </FONT><A NAME="160"></A>     */</FONT>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> componentType() {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        <FONT ID="Return">return</FONT> typeFor(classRep.getComponentType());
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    }
+<FONT ID="LN">165 </FONT><A NAME="165"></A>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">167 </FONT><A NAME="167"></A>     * Returns the Type's super type (or {@code null} if there is none). 
+<FONT ID="LN">168 </FONT><A NAME="168"></A>     * Meaningful only to class {@code Types}.
+<FONT ID="LN">169 </FONT><A NAME="169"></A>     * 
+<FONT ID="LN">170 </FONT><A NAME="170"></A>     * @return the super type or {@code null} if there is no super type.
+<FONT ID="LN">171 </FONT><A NAME="171"></A>     */</FONT>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> superClass() {
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        <FONT ID="Return">return</FONT> classRep == <FONT ID="Null">null</FONT> || classRep.getSuperclass() == <FONT ID="Null">null</FONT> ? <FONT ID="Null">null</FONT>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>                : typeFor(classRep.getSuperclass());
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    }
+<FONT ID="LN">177 </FONT><A NAME="177"></A>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">179 </FONT><A NAME="179"></A>     * Is this a primitive type?
+<FONT ID="LN">180 </FONT><A NAME="180"></A>     * 
+<FONT ID="LN">181 </FONT><A NAME="181"></A>     * @return true or false.
+<FONT ID="LN">182 </FONT><A NAME="182"></A>     */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isPrimitive() {
+<FONT ID="LN">185 </FONT><A NAME="185"></A>        <FONT ID="Return">return</FONT> classRep.isPrimitive();
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">189 </FONT><A NAME="189"></A>     * Is this an interface type?
+<FONT ID="LN">190 </FONT><A NAME="190"></A>     * 
+<FONT ID="LN">191 </FONT><A NAME="191"></A>     * @return true or false.
+<FONT ID="LN">192 </FONT><A NAME="192"></A>     */</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isInterface() {
+<FONT ID="LN">195 </FONT><A NAME="195"></A>        <FONT ID="Return">return</FONT> classRep.isInterface();
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    }
+<FONT ID="LN">197 </FONT><A NAME="197"></A>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">199 </FONT><A NAME="199"></A>     * Is this a reference type?
+<FONT ID="LN">200 </FONT><A NAME="200"></A>     * 
+<FONT ID="LN">201 </FONT><A NAME="201"></A>     * @return true or false.
+<FONT ID="LN">202 </FONT><A NAME="202"></A>     */</FONT>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isReference() {
+<FONT ID="LN">205 </FONT><A NAME="205"></A>        <FONT ID="Return">return</FONT> !isPrimitive();
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">209 </FONT><A NAME="209"></A>     * Is this type declared final?
+<FONT ID="LN">210 </FONT><A NAME="210"></A>     * 
+<FONT ID="LN">211 </FONT><A NAME="211"></A>     * @return true or false.
+<FONT ID="LN">212 </FONT><A NAME="212"></A>     */</FONT>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isFinal() {
+<FONT ID="LN">215 </FONT><A NAME="215"></A>        <FONT ID="Return">return</FONT> Modifier.isFinal(classRep.getModifiers());
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    }
+<FONT ID="LN">217 </FONT><A NAME="217"></A>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">219 </FONT><A NAME="219"></A>     * Is this type declared abstract?
+<FONT ID="LN">220 </FONT><A NAME="220"></A>     * 
+<FONT ID="LN">221 </FONT><A NAME="221"></A>     * @return true or false.
+<FONT ID="LN">222 </FONT><A NAME="222"></A>     */</FONT>
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isAbstract() {
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        <FONT ID="Return">return</FONT> Modifier.isAbstract(classRep.getModifiers());
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    }
+<FONT ID="LN">227 </FONT><A NAME="227"></A>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">229 </FONT><A NAME="229"></A>     * Is this a supertype of that?
+<FONT ID="LN">230 </FONT><A NAME="230"></A>     * 
+<FONT ID="LN">231 </FONT><A NAME="231"></A>     * @param that
+<FONT ID="LN">232 </FONT><A NAME="232"></A>     *            the candidate subtype.
+<FONT ID="LN">233 </FONT><A NAME="233"></A>     * @return {@code true} iff this is a supertype of that; 
+<FONT ID="LN">234 </FONT><A NAME="234"></A>     *         {@code false} otherwise.
+<FONT ID="LN">235 </FONT><A NAME="235"></A>     */</FONT>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isJavaAssignableFrom(<A HREF="../jminusminus/Type.java.html">Type</A> that) {
+<FONT ID="LN">238 </FONT><A NAME="238"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.classRep.isAssignableFrom(that.classRep);
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     * Returns a list of this class' abstract methods.
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     * 
+<FONT ID="LN">244 </FONT><A NAME="244"></A>     * It has abstract methods if:
+<FONT ID="LN">245 </FONT><A NAME="245"></A>     * &lt;ol&gt;
+<FONT ID="LN">246 </FONT><A NAME="246"></A>     *   &lt;li&gt;Any method declared in the class is abstract or 
+<FONT ID="LN">247 </FONT><A NAME="247"></A>     *   &lt;li&gt;its superclass has an abstract method which is not overridden here.
+<FONT ID="LN">248 </FONT><A NAME="248"></A>     * &lt;/ol&gt;
+<FONT ID="LN">249 </FONT><A NAME="249"></A>     * 
+<FONT ID="LN">250 </FONT><A NAME="250"></A>     * @return a list of abstract methods.
+<FONT ID="LN">251 </FONT><A NAME="251"></A>     */</FONT>
+<FONT ID="LN">252 </FONT><A NAME="252"></A>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;Method&gt; abstractMethods() {
+<FONT ID="LN">254 </FONT><A NAME="254"></A>        ArrayList&lt;Method&gt; inheritedAbstractMethods = superClass() == <FONT ID="Null">null</FONT> ? <FONT ID="New">new</FONT> ArrayList&lt;Method&gt;()
+<FONT ID="LN">255 </FONT><A NAME="255"></A>                : superClass().abstractMethods();
+<FONT ID="LN">256 </FONT><A NAME="256"></A>        ArrayList&lt;Method&gt; abstractMethods = <FONT ID="New">new</FONT> ArrayList&lt;Method&gt;();
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        ArrayList&lt;Method&gt; declaredConcreteMethods = declaredConcreteMethods();
+<FONT ID="LN">258 </FONT><A NAME="258"></A>        ArrayList&lt;Method&gt; declaredAbstractMethods = declaredAbstractMethods();
+<FONT ID="LN">259 </FONT><A NAME="259"></A>        abstractMethods.addAll(declaredAbstractMethods);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>        <FONT ID="For">for</FONT> (Method method : inheritedAbstractMethods) {
+<FONT ID="LN">261 </FONT><A NAME="261"></A>            <FONT ID="If">if</FONT> (!declaredConcreteMethods.contains(method)
+<FONT ID="LN">262 </FONT><A NAME="262"></A>                    &amp;&amp; !declaredAbstractMethods.contains(method)) {
+<FONT ID="LN">263 </FONT><A NAME="263"></A>                abstractMethods.add(method);
+<FONT ID="LN">264 </FONT><A NAME="264"></A>            }
+<FONT ID="LN">265 </FONT><A NAME="265"></A>        }
+<FONT ID="LN">266 </FONT><A NAME="266"></A>        <FONT ID="Return">return</FONT> abstractMethods;
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    }
+<FONT ID="LN">268 </FONT><A NAME="268"></A>
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">270 </FONT><A NAME="270"></A>     * Returns a list of this class' declared abstract methods.
+<FONT ID="LN">271 </FONT><A NAME="271"></A>     * 
+<FONT ID="LN">272 </FONT><A NAME="272"></A>     * @return a list of declared abstract methods.
+<FONT ID="LN">273 </FONT><A NAME="273"></A>     */</FONT>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    <FONT ID="Private">private</FONT> ArrayList&lt;Method&gt; declaredAbstractMethods() {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>        ArrayList&lt;Method&gt; declaredAbstractMethods = <FONT ID="New">new</FONT> ArrayList&lt;Method&gt;();
+<FONT ID="LN">277 </FONT><A NAME="277"></A>        <FONT ID="For">for</FONT> (java.lang.reflect.Method method : classRep.getDeclaredMethods()) {
+<FONT ID="LN">278 </FONT><A NAME="278"></A>            <FONT ID="If">if</FONT> (Modifier.isAbstract(method.getModifiers())) {
+<FONT ID="LN">279 </FONT><A NAME="279"></A>                declaredAbstractMethods.add(<FONT ID="New">new</FONT> Method(method));
+<FONT ID="LN">280 </FONT><A NAME="280"></A>            }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>        }
+<FONT ID="LN">282 </FONT><A NAME="282"></A>        <FONT ID="Return">return</FONT> declaredAbstractMethods;
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    }
+<FONT ID="LN">284 </FONT><A NAME="284"></A>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">286 </FONT><A NAME="286"></A>     * Returns a list of this class' declared concrete methods.
+<FONT ID="LN">287 </FONT><A NAME="287"></A>     * 
+<FONT ID="LN">288 </FONT><A NAME="288"></A>     * @return a list of declared concrete methods.
+<FONT ID="LN">289 </FONT><A NAME="289"></A>     */</FONT>
+<FONT ID="LN">290 </FONT><A NAME="290"></A>
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    <FONT ID="Private">private</FONT> ArrayList&lt;Method&gt; declaredConcreteMethods() {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>        ArrayList&lt;Method&gt; declaredConcreteMethods = <FONT ID="New">new</FONT> ArrayList&lt;Method&gt;();
+<FONT ID="LN">293 </FONT><A NAME="293"></A>        <FONT ID="For">for</FONT> (java.lang.reflect.Method method : classRep.getDeclaredMethods()) {
+<FONT ID="LN">294 </FONT><A NAME="294"></A>            <FONT ID="If">if</FONT> (!Modifier.isAbstract(method.getModifiers())) {
+<FONT ID="LN">295 </FONT><A NAME="295"></A>                declaredConcreteMethods.add(<FONT ID="New">new</FONT> Method(method));
+<FONT ID="LN">296 </FONT><A NAME="296"></A>            }
+<FONT ID="LN">297 </FONT><A NAME="297"></A>        }
+<FONT ID="LN">298 </FONT><A NAME="298"></A>        <FONT ID="Return">return</FONT> declaredConcreteMethods;
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    }
+<FONT ID="LN">300 </FONT><A NAME="300"></A>
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">302 </FONT><A NAME="302"></A>     * An assertion that this type matches one of the specified types. If there
+<FONT ID="LN">303 </FONT><A NAME="303"></A>     * is no match, an error message is returned.
+<FONT ID="LN">304 </FONT><A NAME="304"></A>     * 
+<FONT ID="LN">305 </FONT><A NAME="305"></A>     * @param line
+<FONT ID="LN">306 </FONT><A NAME="306"></A>     *            the line near which the mismatch occurs.
+<FONT ID="LN">307 </FONT><A NAME="307"></A>     * @param expectedTypes
+<FONT ID="LN">308 </FONT><A NAME="308"></A>     *            expected types.
+<FONT ID="LN">309 </FONT><A NAME="309"></A>     */</FONT>
+<FONT ID="LN">310 </FONT><A NAME="310"></A>
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> mustMatchOneOf(<FONT ID="Int">int</FONT> line, <A HREF="../jminusminus/Type.java.html">Type</A>... expectedTypes) {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>        <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT> == Type.ANY)
+<FONT ID="LN">313 </FONT><A NAME="313"></A>            <FONT ID="Return">return</FONT>;
+<FONT ID="LN">314 </FONT><A NAME="314"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; expectedTypes.length; i++) {
+<FONT ID="LN">315 </FONT><A NAME="315"></A>            <FONT ID="If">if</FONT> (matchesExpected(expectedTypes[i])) {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>                <FONT ID="Return">return</FONT>;
+<FONT ID="LN">317 </FONT><A NAME="317"></A>            }
+<FONT ID="LN">318 </FONT><A NAME="318"></A>        }
+<FONT ID="LN">319 </FONT><A NAME="319"></A>        JAST.compilationUnit.reportSemanticError(line,
+<FONT ID="LN">320 </FONT><A NAME="320"></A>                <FONT ID="StringLiteral">"Type %s doesn't match any of the expected types %s"</FONT>, <FONT ID="This">this</FONT>,
+<FONT ID="LN">321 </FONT><A NAME="321"></A>                Arrays.toString(expectedTypes));
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    }
+<FONT ID="LN">323 </FONT><A NAME="323"></A>
+<FONT ID="LN">324 </FONT><A NAME="324"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">325 </FONT><A NAME="325"></A>     * An assertion that this type matches the specified type. If there is no
+<FONT ID="LN">326 </FONT><A NAME="326"></A>     * match, an error message is written.
+<FONT ID="LN">327 </FONT><A NAME="327"></A>     * 
+<FONT ID="LN">328 </FONT><A NAME="328"></A>     * @param line
+<FONT ID="LN">329 </FONT><A NAME="329"></A>     *            the line near which the mismatch occurs.
+<FONT ID="LN">330 </FONT><A NAME="330"></A>     * @param expectedType
+<FONT ID="LN">331 </FONT><A NAME="331"></A>     *            type with which to match.
+<FONT ID="LN">332 </FONT><A NAME="332"></A>     */</FONT>
+<FONT ID="LN">333 </FONT><A NAME="333"></A>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> mustMatchExpected(<FONT ID="Int">int</FONT> line, <A HREF="../jminusminus/Type.java.html">Type</A> expectedType) {
+<FONT ID="LN">335 </FONT><A NAME="335"></A>        <FONT ID="If">if</FONT> (!matchesExpected(expectedType)) {
+<FONT ID="LN">336 </FONT><A NAME="336"></A>            JAST.compilationUnit.reportSemanticError(line,
+<FONT ID="LN">337 </FONT><A NAME="337"></A>                    <FONT ID="StringLiteral">"Type %s doesn't match type %s"</FONT>, <FONT ID="This">this</FONT>, expectedType);
+<FONT ID="LN">338 </FONT><A NAME="338"></A>        }
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    }
+<FONT ID="LN">340 </FONT><A NAME="340"></A>
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">342 </FONT><A NAME="342"></A>     * Does this type match the expected type? For now, "matches" means
+<FONT ID="LN">343 </FONT><A NAME="343"></A>     * "equals".
+<FONT ID="LN">344 </FONT><A NAME="344"></A>     * 
+<FONT ID="LN">345 </FONT><A NAME="345"></A>     * @param expected
+<FONT ID="LN">346 </FONT><A NAME="346"></A>     *            the type that this might match.
+<FONT ID="LN">347 </FONT><A NAME="347"></A>     * @return true or false.
+<FONT ID="LN">348 </FONT><A NAME="348"></A>     */</FONT>
+<FONT ID="LN">349 </FONT><A NAME="349"></A>
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> matchesExpected(<A HREF="../jminusminus/Type.java.html">Type</A> expected) {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT> == Type.ANY || expected == Type.ANY
+<FONT ID="LN">352 </FONT><A NAME="352"></A>                || (<FONT ID="This">this</FONT> == Type.NULLTYPE &amp;&amp; expected.isReference())
+<FONT ID="LN">353 </FONT><A NAME="353"></A>                || <FONT ID="This">this</FONT>.equals(expected);
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    }
+<FONT ID="LN">355 </FONT><A NAME="355"></A>
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">357 </FONT><A NAME="357"></A>     * Do argument types match? A helper used for finding candidate methods and
+<FONT ID="LN">358 </FONT><A NAME="358"></A>     * constructors.
+<FONT ID="LN">359 </FONT><A NAME="359"></A>     * 
+<FONT ID="LN">360 </FONT><A NAME="360"></A>     * @param argTypes1
+<FONT ID="LN">361 </FONT><A NAME="361"></A>     *            arguments (classReps) of one method.
+<FONT ID="LN">362 </FONT><A NAME="362"></A>     * @param argTypes2
+<FONT ID="LN">363 </FONT><A NAME="363"></A>     *            arguments (classReps) of another method.
+<FONT ID="LN">364 </FONT><A NAME="364"></A>     * @return {@code true} iff all corresponding types of argTypes1 and 
+<FONT ID="LN">365 </FONT><A NAME="365"></A>     *         argTypes2 match; {@code false} otherwise.
+<FONT ID="LN">366 </FONT><A NAME="366"></A>     */</FONT>
+<FONT ID="LN">367 </FONT><A NAME="367"></A>
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> argTypesMatch(Class&lt;?&gt;[] argTypes1,
+<FONT ID="LN">369 </FONT><A NAME="369"></A>            Class&lt;?&gt;[] argTypes2) {
+<FONT ID="LN">370 </FONT><A NAME="370"></A>        <FONT ID="If">if</FONT> (argTypes1.length != argTypes2.length) {
+<FONT ID="LN">371 </FONT><A NAME="371"></A>            <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">372 </FONT><A NAME="372"></A>        }
+<FONT ID="LN">373 </FONT><A NAME="373"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; argTypes1.length; i++) {
+<FONT ID="LN">374 </FONT><A NAME="374"></A>            <FONT ID="If">if</FONT> (!Type.descriptorFor(argTypes1[i]).equals(
+<FONT ID="LN">375 </FONT><A NAME="375"></A>                    Type.descriptorFor(argTypes2[i]))) {
+<FONT ID="LN">376 </FONT><A NAME="376"></A>                <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">377 </FONT><A NAME="377"></A>            }
+<FONT ID="LN">378 </FONT><A NAME="378"></A>        }
+<FONT ID="LN">379 </FONT><A NAME="379"></A>        <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    }
+<FONT ID="LN">381 </FONT><A NAME="381"></A>
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">383 </FONT><A NAME="383"></A>     * Returns the simple (unqualified) name for this Type. For example, String 
+<FONT ID="LN">384 </FONT><A NAME="384"></A>     * in place of java.lang.String.
+<FONT ID="LN">385 </FONT><A NAME="385"></A>     * 
+<FONT ID="LN">386 </FONT><A NAME="386"></A>     * @return the simple name.
+<FONT ID="LN">387 </FONT><A NAME="387"></A>     */</FONT>
+<FONT ID="LN">388 </FONT><A NAME="388"></A>
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    <FONT ID="Public">public</FONT> String simpleName() {
+<FONT ID="LN">390 </FONT><A NAME="390"></A>        <FONT ID="Return">return</FONT> classRep.getSimpleName();
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    }
+<FONT ID="LN">392 </FONT><A NAME="392"></A>
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">394 </FONT><A NAME="394"></A>     * A printable (j--) string representation of this type. For example, int[],
+<FONT ID="LN">395 </FONT><A NAME="395"></A>     * java.lang.String.
+<FONT ID="LN">396 </FONT><A NAME="396"></A>     * 
+<FONT ID="LN">397 </FONT><A NAME="397"></A>     * @return the string representation.
+<FONT ID="LN">398 </FONT><A NAME="398"></A>     */</FONT>
+<FONT ID="LN">399 </FONT><A NAME="399"></A>
+<FONT ID="LN">400 </FONT><A NAME="400"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">401 </FONT><A NAME="401"></A>        <FONT ID="Return">return</FONT> toJava(<FONT ID="This">this</FONT>.classRep);
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    }
+<FONT ID="LN">403 </FONT><A NAME="403"></A>
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">405 </FONT><A NAME="405"></A>     * The JVM descriptor for this type. For example, Ljava/lang/String; for
+<FONT ID="LN">406 </FONT><A NAME="406"></A>     * java.lang.String, [[Z for boolean[][].
+<FONT ID="LN">407 </FONT><A NAME="407"></A>     * 
+<FONT ID="LN">408 </FONT><A NAME="408"></A>     * @return the descriptor.
+<FONT ID="LN">409 </FONT><A NAME="409"></A>     */</FONT>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    <FONT ID="Public">public</FONT> String toDescriptor() {
+<FONT ID="LN">412 </FONT><A NAME="412"></A>        <FONT ID="Return">return</FONT> descriptorFor(classRep);
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    }
+<FONT ID="LN">414 </FONT><A NAME="414"></A>
+<FONT ID="LN">415 </FONT><A NAME="415"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">416 </FONT><A NAME="416"></A>     * A helper translating a type's internal representation to its (JVM)
+<FONT ID="LN">417 </FONT><A NAME="417"></A>     * descriptor.
+<FONT ID="LN">418 </FONT><A NAME="418"></A>     * 
+<FONT ID="LN">419 </FONT><A NAME="419"></A>     * @param cls
+<FONT ID="LN">420 </FONT><A NAME="420"></A>     *            internal representation whose descriptor is required.
+<FONT ID="LN">421 </FONT><A NAME="421"></A>     * @return the JVM descriptor.
+<FONT ID="LN">422 </FONT><A NAME="422"></A>     */</FONT>
+<FONT ID="LN">423 </FONT><A NAME="423"></A>
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> String descriptorFor(Class&lt;?&gt; cls) {
+<FONT ID="LN">425 </FONT><A NAME="425"></A>        <FONT ID="Return">return</FONT> cls == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">"V"</FONT> : cls == <FONT ID="Void">void</FONT>.<FONT ID="Class">class</FONT> ? <FONT ID="StringLiteral">"V"</FONT>
+<FONT ID="LN">426 </FONT><A NAME="426"></A>                : cls.isArray() ? <FONT ID="StringLiteral">"["</FONT> + descriptorFor(cls.getComponentType())
+<FONT ID="LN">427 </FONT><A NAME="427"></A>                        : cls.isPrimitive() ? (cls == <FONT ID="Int">int</FONT>.<FONT ID="Class">class</FONT> ? <FONT ID="StringLiteral">"I"</FONT>
+<FONT ID="LN">428 </FONT><A NAME="428"></A>                                : cls == <FONT ID="Char">char</FONT>.<FONT ID="Class">class</FONT> ? <FONT ID="StringLiteral">"C"</FONT>
+<FONT ID="LN">429 </FONT><A NAME="429"></A>                                        : cls == <FONT ID="Boolean">boolean</FONT>.<FONT ID="Class">class</FONT> ? <FONT ID="StringLiteral">"Z"</FONT> : <FONT ID="StringLiteral">"?"</FONT>)
+<FONT ID="LN">430 </FONT><A NAME="430"></A>                                : <FONT ID="StringLiteral">"L"</FONT> + cls.getName().replace(<FONT ID="CharacerLiteral">'.'</FONT>, <FONT ID="CharacerLiteral">'/'</FONT>) + <FONT ID="StringLiteral">";"</FONT>;
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    }
+<FONT ID="LN">432 </FONT><A NAME="432"></A>
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">434 </FONT><A NAME="434"></A>     * The JVM representation for this type's name. This is also called the
+<FONT ID="LN">435 </FONT><A NAME="435"></A>     * internal form of the name. For example, java/lang/String for 
+<FONT ID="LN">436 </FONT><A NAME="436"></A>     * java.lang.String.
+<FONT ID="LN">437 </FONT><A NAME="437"></A>     * 
+<FONT ID="LN">438 </FONT><A NAME="438"></A>     * @return the type's name in internal form.
+<FONT ID="LN">439 </FONT><A NAME="439"></A>     */</FONT>
+<FONT ID="LN">440 </FONT><A NAME="440"></A>
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="Public">public</FONT> String jvmName() {
+<FONT ID="LN">442 </FONT><A NAME="442"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.isArray() || <FONT ID="This">this</FONT>.isPrimitive() ? <FONT ID="This">this</FONT>.toDescriptor()
+<FONT ID="LN">443 </FONT><A NAME="443"></A>                : classRep.getName().replace(<FONT ID="CharacerLiteral">'.'</FONT>, <FONT ID="CharacerLiteral">'/'</FONT>);
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    }
+<FONT ID="LN">445 </FONT><A NAME="445"></A>
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">447 </FONT><A NAME="447"></A>     * Returns the Java (and so j--) denotation for the specified type. For 
+<FONT ID="LN">448 </FONT><A NAME="448"></A>     * example, int[], java.lang.String.
+<FONT ID="LN">449 </FONT><A NAME="449"></A>     * 
+<FONT ID="LN">450 </FONT><A NAME="450"></A>     * @param classRep
+<FONT ID="LN">451 </FONT><A NAME="451"></A>     *            the internal representation of type whose Java denotation is
+<FONT ID="LN">452 </FONT><A NAME="452"></A>     *            required.
+<FONT ID="LN">453 </FONT><A NAME="453"></A>     * @return the Java denotation.
+<FONT ID="LN">454 </FONT><A NAME="454"></A>     */</FONT>
+<FONT ID="LN">455 </FONT><A NAME="455"></A>
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> String toJava(Class classRep) {
+<FONT ID="LN">457 </FONT><A NAME="457"></A>        <FONT ID="Return">return</FONT> classRep.isArray() ? toJava(classRep.getComponentType()) + <FONT ID="StringLiteral">"[]"</FONT>
+<FONT ID="LN">458 </FONT><A NAME="458"></A>                : classRep.getName();
+<FONT ID="LN">459 </FONT><A NAME="459"></A>    }
+<FONT ID="LN">460 </FONT><A NAME="460"></A>
+<FONT ID="LN">461 </FONT><A NAME="461"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">462 </FONT><A NAME="462"></A>     * Returns the type's package name. For example, java.lang for 
+<FONT ID="LN">463 </FONT><A NAME="463"></A>     * java.lang.String.
+<FONT ID="LN">464 </FONT><A NAME="464"></A>     * 
+<FONT ID="LN">465 </FONT><A NAME="465"></A>     * @return the package name.
+<FONT ID="LN">466 </FONT><A NAME="466"></A>     */</FONT>
+<FONT ID="LN">467 </FONT><A NAME="467"></A>
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    <FONT ID="Public">public</FONT> String packageName() {
+<FONT ID="LN">469 </FONT><A NAME="469"></A>        String name = toString();
+<FONT ID="LN">470 </FONT><A NAME="470"></A>        <FONT ID="Return">return</FONT> name.lastIndexOf(<FONT ID="CharacerLiteral">'.'</FONT>) == -<FONT ID="IntegerLiteral">1</FONT> ? <FONT ID="StringLiteral">""</FONT> : name.substring(<FONT ID="IntegerLiteral">0</FONT>, name
+<FONT ID="LN">471 </FONT><A NAME="471"></A>                .lastIndexOf(<FONT ID="CharacerLiteral">'.'</FONT>) - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    }
+<FONT ID="LN">473 </FONT><A NAME="473"></A>
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">475 </FONT><A NAME="475"></A>     * Returns the String representation for a type being appended to a 
+<FONT ID="LN">476 </FONT><A NAME="476"></A>     * {@code StringBuffer} for + and += over strings.
+<FONT ID="LN">477 </FONT><A NAME="477"></A>     * 
+<FONT ID="LN">478 </FONT><A NAME="478"></A>     * @return a string representation of the type.
+<FONT ID="LN">479 </FONT><A NAME="479"></A>     */</FONT>
+<FONT ID="LN">480 </FONT><A NAME="480"></A>
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    <FONT ID="Public">public</FONT> String argumentTypeForAppend() {
+<FONT ID="LN">482 </FONT><A NAME="482"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT> == Type.STRING || <FONT ID="This">this</FONT>.isPrimitive() ? toDescriptor()
+<FONT ID="LN">483 </FONT><A NAME="483"></A>                : <FONT ID="StringLiteral">"Ljava/lang/Object;"</FONT>;
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    }
+<FONT ID="LN">485 </FONT><A NAME="485"></A>
+<FONT ID="LN">486 </FONT><A NAME="486"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">487 </FONT><A NAME="487"></A>     * Finds an appropriate method in this type, given a message (method) name
+<FONT ID="LN">488 </FONT><A NAME="488"></A>     * and its argument types. This is pretty easy given our (current)
+<FONT ID="LN">489 </FONT><A NAME="489"></A>     * restriction that the types of the actual arguments must exactly match the
+<FONT ID="LN">490 </FONT><A NAME="490"></A>     * types of the formal parameters. Returns null if it cannot find one.
+<FONT ID="LN">491 </FONT><A NAME="491"></A>     * 
+<FONT ID="LN">492 </FONT><A NAME="492"></A>     * @param name
+<FONT ID="LN">493 </FONT><A NAME="493"></A>     *            the method name.
+<FONT ID="LN">494 </FONT><A NAME="494"></A>     * @param argTypes
+<FONT ID="LN">495 </FONT><A NAME="495"></A>     *            the argument types.
+<FONT ID="LN">496 </FONT><A NAME="496"></A>     * @return Method with given name and argument types, or {@code null}.
+<FONT ID="LN">497 </FONT><A NAME="497"></A>     */</FONT>
+<FONT ID="LN">498 </FONT><A NAME="498"></A>
+<FONT ID="LN">499 </FONT><A NAME="499"></A>    <FONT ID="Public">public</FONT> Method methodFor(String name, <A HREF="../jminusminus/Type.java.html">Type</A>[] argTypes) {
+<FONT ID="LN">500 </FONT><A NAME="500"></A>        Class[] classes = <FONT ID="New">new</FONT> Class[argTypes.length];
+<FONT ID="LN">501 </FONT><A NAME="501"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; argTypes.length; i++) {
+<FONT ID="LN">502 </FONT><A NAME="502"></A>            classes[i] = argTypes[i].classRep;
+<FONT ID="LN">503 </FONT><A NAME="503"></A>        }
+<FONT ID="LN">504 </FONT><A NAME="504"></A>        Class cls = classRep;
+<FONT ID="LN">505 </FONT><A NAME="505"></A>
+<FONT ID="LN">506 </FONT><A NAME="506"></A>        <FONT ID="SingleLineComment">// Search this class and all superclasses
+<FONT ID="LN">507 </FONT><A NAME="507"></A></FONT>        <FONT ID="While">while</FONT> (cls != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">508 </FONT><A NAME="508"></A>            java.lang.reflect.Method[] methods = cls.getDeclaredMethods();
+<FONT ID="LN">509 </FONT><A NAME="509"></A>            <FONT ID="For">for</FONT> (java.lang.reflect.Method method : methods) {
+<FONT ID="LN">510 </FONT><A NAME="510"></A>                <FONT ID="If">if</FONT> (method.getName().equals(name)
+<FONT ID="LN">511 </FONT><A NAME="511"></A>                        &amp;&amp; Type.argTypesMatch(classes, method
+<FONT ID="LN">512 </FONT><A NAME="512"></A>                                .getParameterTypes())) {
+<FONT ID="LN">513 </FONT><A NAME="513"></A>                    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Method(method);
+<FONT ID="LN">514 </FONT><A NAME="514"></A>                }
+<FONT ID="LN">515 </FONT><A NAME="515"></A>            }
+<FONT ID="LN">516 </FONT><A NAME="516"></A>            cls = cls.getSuperclass();
+<FONT ID="LN">517 </FONT><A NAME="517"></A>        }
+<FONT ID="LN">518 </FONT><A NAME="518"></A>        <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">519 </FONT><A NAME="519"></A>    }
+<FONT ID="LN">520 </FONT><A NAME="520"></A>
+<FONT ID="LN">521 </FONT><A NAME="521"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">522 </FONT><A NAME="522"></A>     * Finds an appropriate constructor in this type, given its argument types.
+<FONT ID="LN">523 </FONT><A NAME="523"></A>     * This is pretty easy given our (current) restriction that the types of the
+<FONT ID="LN">524 </FONT><A NAME="524"></A>     * actual arguments must exactly match the types of the formal parameters.
+<FONT ID="LN">525 </FONT><A NAME="525"></A>     * Returns null if it cannot find one.
+<FONT ID="LN">526 </FONT><A NAME="526"></A>     * 
+<FONT ID="LN">527 </FONT><A NAME="527"></A>     * @param argTypes
+<FONT ID="LN">528 </FONT><A NAME="528"></A>     *            the argument types.
+<FONT ID="LN">529 </FONT><A NAME="529"></A>     * @return Constructor with the specified argument types, or {@code null}.
+<FONT ID="LN">530 </FONT><A NAME="530"></A>     */</FONT>
+<FONT ID="LN">531 </FONT><A NAME="531"></A>
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    <FONT ID="Public">public</FONT> Constructor constructorFor(<A HREF="../jminusminus/Type.java.html">Type</A>[] argTypes) {
+<FONT ID="LN">533 </FONT><A NAME="533"></A>        Class[] classes = <FONT ID="New">new</FONT> Class[argTypes.length];
+<FONT ID="LN">534 </FONT><A NAME="534"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; argTypes.length; i++) {
+<FONT ID="LN">535 </FONT><A NAME="535"></A>            classes[i] = argTypes[i].classRep;
+<FONT ID="LN">536 </FONT><A NAME="536"></A>        }
+<FONT ID="LN">537 </FONT><A NAME="537"></A>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>        <FONT ID="SingleLineComment">// Search only this class (we don't inherit constructors)
+<FONT ID="LN">539 </FONT><A NAME="539"></A></FONT>        java.lang.reflect.Constructor[] constructors = classRep
+<FONT ID="LN">540 </FONT><A NAME="540"></A>                .getDeclaredConstructors();
+<FONT ID="LN">541 </FONT><A NAME="541"></A>        <FONT ID="For">for</FONT> (java.lang.reflect.Constructor constructor : constructors) {
+<FONT ID="LN">542 </FONT><A NAME="542"></A>            <FONT ID="If">if</FONT> (argTypesMatch(classes, constructor.getParameterTypes())) {
+<FONT ID="LN">543 </FONT><A NAME="543"></A>                <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Constructor(constructor);
+<FONT ID="LN">544 </FONT><A NAME="544"></A>            }
+<FONT ID="LN">545 </FONT><A NAME="545"></A>        }
+<FONT ID="LN">546 </FONT><A NAME="546"></A>        <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    }
+<FONT ID="LN">548 </FONT><A NAME="548"></A>
+<FONT ID="LN">549 </FONT><A NAME="549"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">550 </FONT><A NAME="550"></A>     * Returns the {@code Field} having this name.
+<FONT ID="LN">551 </FONT><A NAME="551"></A>     * 
+<FONT ID="LN">552 </FONT><A NAME="552"></A>     * @param name
+<FONT ID="LN">553 </FONT><A NAME="553"></A>     *            the name of the field we want.
+<FONT ID="LN">554 </FONT><A NAME="554"></A>     * @return the Field or {@code null} if it's not there.
+<FONT ID="LN">555 </FONT><A NAME="555"></A>     */</FONT>
+<FONT ID="LN">556 </FONT><A NAME="556"></A>
+<FONT ID="LN">557 </FONT><A NAME="557"></A>    <FONT ID="Public">public</FONT> Field fieldFor(String name) {
+<FONT ID="LN">558 </FONT><A NAME="558"></A>        Class&lt;?&gt; cls = classRep;
+<FONT ID="LN">559 </FONT><A NAME="559"></A>        <FONT ID="While">while</FONT> (cls != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">560 </FONT><A NAME="560"></A>            java.lang.reflect.Field[] fields = cls.getDeclaredFields();
+<FONT ID="LN">561 </FONT><A NAME="561"></A>            <FONT ID="For">for</FONT> (java.lang.reflect.Field field : fields) {
+<FONT ID="LN">562 </FONT><A NAME="562"></A>                <FONT ID="If">if</FONT> (field.getName().equals(name)) {
+<FONT ID="LN">563 </FONT><A NAME="563"></A>                    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Field(field);
+<FONT ID="LN">564 </FONT><A NAME="564"></A>                }
+<FONT ID="LN">565 </FONT><A NAME="565"></A>            }
+<FONT ID="LN">566 </FONT><A NAME="566"></A>            cls = cls.getSuperclass();
+<FONT ID="LN">567 </FONT><A NAME="567"></A>        }
+<FONT ID="LN">568 </FONT><A NAME="568"></A>        <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">569 </FONT><A NAME="569"></A>    }
+<FONT ID="LN">570 </FONT><A NAME="570"></A>
+<FONT ID="LN">571 </FONT><A NAME="571"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">572 </FONT><A NAME="572"></A>     * Converts an array of argument types to a string representation of a
+<FONT ID="LN">573 </FONT><A NAME="573"></A>     * parenthesized list of the types, for example, (int, boolean, 
+<FONT ID="LN">574 </FONT><A NAME="574"></A>     * java.lang.String).
+<FONT ID="LN">575 </FONT><A NAME="575"></A>     * 
+<FONT ID="LN">576 </FONT><A NAME="576"></A>     * @param argTypes
+<FONT ID="LN">577 </FONT><A NAME="577"></A>     *            the array of argument types.
+<FONT ID="LN">578 </FONT><A NAME="578"></A>     * @return the string representation.
+<FONT ID="LN">579 </FONT><A NAME="579"></A>     */</FONT>
+<FONT ID="LN">580 </FONT><A NAME="580"></A>
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String argTypesAsString(<A HREF="../jminusminus/Type.java.html">Type</A>[] argTypes) {
+<FONT ID="LN">582 </FONT><A NAME="582"></A>        <FONT ID="If">if</FONT> (argTypes.length == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">583 </FONT><A NAME="583"></A>            <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"()"</FONT>;
+<FONT ID="LN">584 </FONT><A NAME="584"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">585 </FONT><A NAME="585"></A>            String str = <FONT ID="StringLiteral">"("</FONT> + argTypes[<FONT ID="IntegerLiteral">0</FONT>].toString();
+<FONT ID="LN">586 </FONT><A NAME="586"></A>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">1</FONT>; i &lt; argTypes.length; i++) {
+<FONT ID="LN">587 </FONT><A NAME="587"></A>                str += <FONT ID="StringLiteral">","</FONT> + argTypes[i];
+<FONT ID="LN">588 </FONT><A NAME="588"></A>            }
+<FONT ID="LN">589 </FONT><A NAME="589"></A>            str += <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">590 </FONT><A NAME="590"></A>            <FONT ID="Return">return</FONT> str;
+<FONT ID="LN">591 </FONT><A NAME="591"></A>        }
+<FONT ID="LN">592 </FONT><A NAME="592"></A>    }
+<FONT ID="LN">593 </FONT><A NAME="593"></A>
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">595 </FONT><A NAME="595"></A>     * Checks the accessibility of a member from this type (that is, this type 
+<FONT ID="LN">596 </FONT><A NAME="596"></A>     * is the referencing type).
+<FONT ID="LN">597 </FONT><A NAME="597"></A>     * 
+<FONT ID="LN">598 </FONT><A NAME="598"></A>     * @param line
+<FONT ID="LN">599 </FONT><A NAME="599"></A>     *            the line in which the access occurs.
+<FONT ID="LN">600 </FONT><A NAME="600"></A>     * @param member
+<FONT ID="LN">601 </FONT><A NAME="601"></A>     *            the member being accessed.
+<FONT ID="LN">602 </FONT><A NAME="602"></A>     * @return {@code true} if access is valid; {@code false} otherwise.
+<FONT ID="LN">603 </FONT><A NAME="603"></A>     */</FONT>
+<FONT ID="LN">604 </FONT><A NAME="604"></A>
+<FONT ID="LN">605 </FONT><A NAME="605"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> checkAccess(<FONT ID="Int">int</FONT> line, <A HREF="../jminusminus/Member.java.html">Member</A> member) {
+<FONT ID="LN">606 </FONT><A NAME="606"></A>        <FONT ID="If">if</FONT> (!checkAccess(line, classRep, member.declaringType().classRep)) {
+<FONT ID="LN">607 </FONT><A NAME="607"></A>            <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">608 </FONT><A NAME="608"></A>        }
+<FONT ID="LN">609 </FONT><A NAME="609"></A>
+<FONT ID="LN">610 </FONT><A NAME="610"></A>        <FONT ID="SingleLineComment">// The member must be either public, protected, or private
+<FONT ID="LN">611 </FONT><A NAME="611"></A></FONT>        <FONT ID="If">if</FONT> (member.isPublic()) {
+<FONT ID="LN">612 </FONT><A NAME="612"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">613 </FONT><A NAME="613"></A>        }
+<FONT ID="LN">614 </FONT><A NAME="614"></A>        java.lang.Package p1 = classRep.getPackage();
+<FONT ID="LN">615 </FONT><A NAME="615"></A>        java.lang.Package p2 = member.declaringType().classRep.getPackage();
+<FONT ID="LN">616 </FONT><A NAME="616"></A>        <FONT ID="If">if</FONT> ((p1 == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">""</FONT> : p1.getName()).equals((p2 == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">""</FONT> : p2
+<FONT ID="LN">617 </FONT><A NAME="617"></A>                .getName()))) {
+<FONT ID="LN">618 </FONT><A NAME="618"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">619 </FONT><A NAME="619"></A>        }
+<FONT ID="LN">620 </FONT><A NAME="620"></A>        <FONT ID="If">if</FONT> (member.isProtected()) {
+<FONT ID="LN">621 </FONT><A NAME="621"></A>            <FONT ID="If">if</FONT> (classRep.getPackage().getName().equals(
+<FONT ID="LN">622 </FONT><A NAME="622"></A>                    member.declaringType().classRep.getPackage().getName())
+<FONT ID="LN">623 </FONT><A NAME="623"></A>                    || typeFor(member.getClass().getDeclaringClass())
+<FONT ID="LN">624 </FONT><A NAME="624"></A>                            .isJavaAssignableFrom(<FONT ID="This">this</FONT>)) {
+<FONT ID="LN">625 </FONT><A NAME="625"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">626 </FONT><A NAME="626"></A>            } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">627 </FONT><A NAME="627"></A>                JAST.compilationUnit.reportSemanticError(line,
+<FONT ID="LN">628 </FONT><A NAME="628"></A>                        <FONT ID="StringLiteral">"The protected member, "</FONT> + member.name()
+<FONT ID="LN">629 </FONT><A NAME="629"></A>                                + <FONT ID="StringLiteral">", is not accessible."</FONT>);
+<FONT ID="LN">630 </FONT><A NAME="630"></A>                <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">631 </FONT><A NAME="631"></A>            }
+<FONT ID="LN">632 </FONT><A NAME="632"></A>        }
+<FONT ID="LN">633 </FONT><A NAME="633"></A>        <FONT ID="If">if</FONT> (member.isPrivate()) {
+<FONT ID="LN">634 </FONT><A NAME="634"></A>            <FONT ID="If">if</FONT> (descriptorFor(classRep).equals(
+<FONT ID="LN">635 </FONT><A NAME="635"></A>                    descriptorFor(member.member().getDeclaringClass()))) {
+<FONT ID="LN">636 </FONT><A NAME="636"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">637 </FONT><A NAME="637"></A>            } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">638 </FONT><A NAME="638"></A>                JAST.compilationUnit.reportSemanticError(line,
+<FONT ID="LN">639 </FONT><A NAME="639"></A>                        <FONT ID="StringLiteral">"The private member, "</FONT> + member.name()
+<FONT ID="LN">640 </FONT><A NAME="640"></A>                                + <FONT ID="StringLiteral">", is not accessible."</FONT>);
+<FONT ID="LN">641 </FONT><A NAME="641"></A>                <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">642 </FONT><A NAME="642"></A>            }
+<FONT ID="LN">643 </FONT><A NAME="643"></A>        }
+<FONT ID="LN">644 </FONT><A NAME="644"></A>
+<FONT ID="LN">645 </FONT><A NAME="645"></A>        <FONT ID="SingleLineComment">// Otherwise, the member has default access
+<FONT ID="LN">646 </FONT><A NAME="646"></A></FONT>        <FONT ID="If">if</FONT> (packageName().equals(member.declaringType().packageName())) {
+<FONT ID="LN">647 </FONT><A NAME="647"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">648 </FONT><A NAME="648"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">649 </FONT><A NAME="649"></A>            JAST.compilationUnit.reportSemanticError(line, <FONT ID="StringLiteral">"The member, "</FONT>
+<FONT ID="LN">650 </FONT><A NAME="650"></A>                    + member.name()
+<FONT ID="LN">651 </FONT><A NAME="651"></A>                    + <FONT ID="StringLiteral">", is not accessible because it's in a different "</FONT>
+<FONT ID="LN">652 </FONT><A NAME="652"></A>                    + <FONT ID="StringLiteral">"package."</FONT>);
+<FONT ID="LN">653 </FONT><A NAME="653"></A>            <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">654 </FONT><A NAME="654"></A>        }
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    }
+<FONT ID="LN">656 </FONT><A NAME="656"></A>
+<FONT ID="LN">657 </FONT><A NAME="657"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">658 </FONT><A NAME="658"></A>     * Checks the accesibility of a target type (from this type).
+<FONT ID="LN">659 </FONT><A NAME="659"></A>     * 
+<FONT ID="LN">660 </FONT><A NAME="660"></A>     * @param line
+<FONT ID="LN">661 </FONT><A NAME="661"></A>     *            line in which the access occurs.
+<FONT ID="LN">662 </FONT><A NAME="662"></A>     * @param targetType
+<FONT ID="LN">663 </FONT><A NAME="663"></A>     *            the type being accessed.
+<FONT ID="LN">664 </FONT><A NAME="664"></A>     * @return {@code true} if access is valid; {@code false} otherwise.
+<FONT ID="LN">665 </FONT><A NAME="665"></A>     */</FONT>
+<FONT ID="LN">666 </FONT><A NAME="666"></A>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> checkAccess(<FONT ID="Int">int</FONT> line, <A HREF="../jminusminus/Type.java.html">Type</A> targetType) {
+<FONT ID="LN">668 </FONT><A NAME="668"></A>        <FONT ID="If">if</FONT> (targetType.isPrimitive()) {
+<FONT ID="LN">669 </FONT><A NAME="669"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">670 </FONT><A NAME="670"></A>        }
+<FONT ID="LN">671 </FONT><A NAME="671"></A>        <FONT ID="If">if</FONT> (targetType.isArray()) {
+<FONT ID="LN">672 </FONT><A NAME="672"></A>            <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.checkAccess(line, targetType.componentType());
+<FONT ID="LN">673 </FONT><A NAME="673"></A>        }
+<FONT ID="LN">674 </FONT><A NAME="674"></A>        <FONT ID="Return">return</FONT> checkAccess(line, classRep, targetType.classRep);
+<FONT ID="LN">675 </FONT><A NAME="675"></A>    }
+<FONT ID="LN">676 </FONT><A NAME="676"></A>
+<FONT ID="LN">677 </FONT><A NAME="677"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">678 </FONT><A NAME="678"></A>     * Checks the accessibility of a type.
+<FONT ID="LN">679 </FONT><A NAME="679"></A>     * 
+<FONT ID="LN">680 </FONT><A NAME="680"></A>     * @param line
+<FONT ID="LN">681 </FONT><A NAME="681"></A>     *            the line in which the access occurs.
+<FONT ID="LN">682 </FONT><A NAME="682"></A>     * @param referencingType
+<FONT ID="LN">683 </FONT><A NAME="683"></A>     *            the type attempting the access.
+<FONT ID="LN">684 </FONT><A NAME="684"></A>     * @param type
+<FONT ID="LN">685 </FONT><A NAME="685"></A>     *            the type that we want to access.
+<FONT ID="LN">686 </FONT><A NAME="686"></A>     * @return {@code true} if access is valid; {@code false} otherwise.
+<FONT ID="LN">687 </FONT><A NAME="687"></A>     */</FONT>
+<FONT ID="LN">688 </FONT><A NAME="688"></A>
+<FONT ID="LN">689 </FONT><A NAME="689"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> checkAccess(<FONT ID="Int">int</FONT> line, Class referencingType,
+<FONT ID="LN">690 </FONT><A NAME="690"></A>            Class type) {
+<FONT ID="LN">691 </FONT><A NAME="691"></A>        java.lang.Package p1 = referencingType.getPackage();
+<FONT ID="LN">692 </FONT><A NAME="692"></A>        java.lang.Package p2 = type.getPackage();
+<FONT ID="LN">693 </FONT><A NAME="693"></A>        <FONT ID="If">if</FONT> (Modifier.isPublic(type.getModifiers())
+<FONT ID="LN">694 </FONT><A NAME="694"></A>                || (p1 == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">""</FONT> : p1.getName()).equals((p2 == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">""</FONT>
+<FONT ID="LN">695 </FONT><A NAME="695"></A>                        : p2.getName()))) {
+<FONT ID="LN">696 </FONT><A NAME="696"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">697 </FONT><A NAME="697"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">698 </FONT><A NAME="698"></A>            JAST.compilationUnit.reportSemanticError(line, <FONT ID="StringLiteral">"The type, "</FONT>
+<FONT ID="LN">699 </FONT><A NAME="699"></A>                    + type.getCanonicalName() + <FONT ID="StringLiteral">", is not accessible from "</FONT>
+<FONT ID="LN">700 </FONT><A NAME="700"></A>                    + referencingType.getCanonicalName());
+<FONT ID="LN">701 </FONT><A NAME="701"></A>            <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">702 </FONT><A NAME="702"></A>        }
+<FONT ID="LN">703 </FONT><A NAME="703"></A>    }
+<FONT ID="LN">704 </FONT><A NAME="704"></A>
+<FONT ID="LN">705 </FONT><A NAME="705"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">706 </FONT><A NAME="706"></A>     * Resolves this type in the given context. Notice that this has meaning 
+<FONT ID="LN">707 </FONT><A NAME="707"></A>     * only for TypeName and ArrayTypeName, where names are replaced by real 
+<FONT ID="LN">708 </FONT><A NAME="708"></A>     * types. Names are looked up in the context.
+<FONT ID="LN">709 </FONT><A NAME="709"></A>     * 
+<FONT ID="LN">710 </FONT><A NAME="710"></A>     * @param context
+<FONT ID="LN">711 </FONT><A NAME="711"></A>     *            context in which the names are resolved.
+<FONT ID="LN">712 </FONT><A NAME="712"></A>     * @return the resolved type.
+<FONT ID="LN">713 </FONT><A NAME="713"></A>     */</FONT>
+<FONT ID="LN">714 </FONT><A NAME="714"></A>
+<FONT ID="LN">715 </FONT><A NAME="715"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> resolve(<A HREF="../jminusminus/Context.java.html">Context</A> context) {
+<FONT ID="LN">716 </FONT><A NAME="716"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">717 </FONT><A NAME="717"></A>    }
+<FONT ID="LN">718 </FONT><A NAME="718"></A>
+<FONT ID="LN">719 </FONT><A NAME="719"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">720 </FONT><A NAME="720"></A>     * A helper for constructing method signatures for reporting unfound methods
+<FONT ID="LN">721 </FONT><A NAME="721"></A>     * and constructors.
+<FONT ID="LN">722 </FONT><A NAME="722"></A>     * 
+<FONT ID="LN">723 </FONT><A NAME="723"></A>     * @param name
+<FONT ID="LN">724 </FONT><A NAME="724"></A>     *            the message or Type name.
+<FONT ID="LN">725 </FONT><A NAME="725"></A>     * @param argTypes
+<FONT ID="LN">726 </FONT><A NAME="726"></A>     *            the actual argument types.
+<FONT ID="LN">727 </FONT><A NAME="727"></A>     * @return a printable signature.
+<FONT ID="LN">728 </FONT><A NAME="728"></A>     */</FONT>
+<FONT ID="LN">729 </FONT><A NAME="729"></A>
+<FONT ID="LN">730 </FONT><A NAME="730"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String signatureFor(String name, <A HREF="../jminusminus/Type.java.html">Type</A>[] argTypes) {
+<FONT ID="LN">731 </FONT><A NAME="731"></A>        String signature = name + <FONT ID="StringLiteral">"("</FONT>;
+<FONT ID="LN">732 </FONT><A NAME="732"></A>        <FONT ID="If">if</FONT> (argTypes.length &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">733 </FONT><A NAME="733"></A>            signature += argTypes[<FONT ID="IntegerLiteral">0</FONT>].toString();
+<FONT ID="LN">734 </FONT><A NAME="734"></A>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">1</FONT>; i &lt; argTypes.length; i++) {
+<FONT ID="LN">735 </FONT><A NAME="735"></A>                signature += <FONT ID="StringLiteral">","</FONT> + argTypes[i].toString();
+<FONT ID="LN">736 </FONT><A NAME="736"></A>            }
+<FONT ID="LN">737 </FONT><A NAME="737"></A>        }
+<FONT ID="LN">738 </FONT><A NAME="738"></A>        signature += <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">739 </FONT><A NAME="739"></A>        <FONT ID="Return">return</FONT> signature;
+<FONT ID="LN">740 </FONT><A NAME="740"></A>    }
+<FONT ID="LN">741 </FONT><A NAME="741"></A>
+<FONT ID="LN">742 </FONT><A NAME="742"></A>}
+<FONT ID="LN">743 </FONT><A NAME="743"></A>
+<FONT ID="LN">744 </FONT><A NAME="744"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">745 </FONT><A NAME="745"></A> * Any reference type that can be denoted as a (possibly qualified) identifier.
+<FONT ID="LN">746 </FONT><A NAME="746"></A> * For now, this includes only class types.
+<FONT ID="LN">747 </FONT><A NAME="747"></A> */</FONT>
+<FONT ID="LN">748 </FONT><A NAME="748"></A>
+<FONT ID="LN">749 </FONT><A NAME="749"></A><FONT ID="Class">class</FONT> TypeName <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> {
+<FONT ID="LN">750 </FONT><A NAME="750"></A>
+<FONT ID="LN">751 </FONT><A NAME="751"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">752 </FONT><A NAME="752"></A>     * The line in which the identifier occurs in the source file.
+<FONT ID="LN">753 </FONT><A NAME="753"></A>     */</FONT>
+<FONT ID="LN">754 </FONT><A NAME="754"></A>    <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> line;
+<FONT ID="LN">755 </FONT><A NAME="755"></A>
+<FONT ID="LN">756 </FONT><A NAME="756"></A>    <FONT ID="FormalComment">/** The identifier's name. */</FONT>
+<FONT ID="LN">757 </FONT><A NAME="757"></A>    <FONT ID="Private">private</FONT> String name;
+<FONT ID="LN">758 </FONT><A NAME="758"></A>
+<FONT ID="LN">759 </FONT><A NAME="759"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">760 </FONT><A NAME="760"></A>     * Constructs a TypeName given its line number, and string spelling out its
+<FONT ID="LN">761 </FONT><A NAME="761"></A>     * fully qualified name.
+<FONT ID="LN">762 </FONT><A NAME="762"></A>     * 
+<FONT ID="LN">763 </FONT><A NAME="763"></A>     * @param line
+<FONT ID="LN">764 </FONT><A NAME="764"></A>     *            the line in which the identifier occurs in the source file.
+<FONT ID="LN">765 </FONT><A NAME="765"></A>     * @param name
+<FONT ID="LN">766 </FONT><A NAME="766"></A>     *            fully qualified name for the identifier.
+<FONT ID="LN">767 </FONT><A NAME="767"></A>     */</FONT>
+<FONT ID="LN">768 </FONT><A NAME="768"></A>
+<FONT ID="LN">769 </FONT><A NAME="769"></A>    <FONT ID="Public">public</FONT> TypeName(<FONT ID="Int">int</FONT> line, String name) {
+<FONT ID="LN">770 </FONT><A NAME="770"></A>        <FONT ID="This">this</FONT>.line = line;
+<FONT ID="LN">771 </FONT><A NAME="771"></A>        <FONT ID="This">this</FONT>.name = name;
+<FONT ID="LN">772 </FONT><A NAME="772"></A>    }
+<FONT ID="LN">773 </FONT><A NAME="773"></A>
+<FONT ID="LN">774 </FONT><A NAME="774"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">775 </FONT><A NAME="775"></A>     * Returns the line in which the identifier occurs in the source file.
+<FONT ID="LN">776 </FONT><A NAME="776"></A>     * 
+<FONT ID="LN">777 </FONT><A NAME="777"></A>     * @return the line number.
+<FONT ID="LN">778 </FONT><A NAME="778"></A>     */</FONT>
+<FONT ID="LN">779 </FONT><A NAME="779"></A>
+<FONT ID="LN">780 </FONT><A NAME="780"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> line() {
+<FONT ID="LN">781 </FONT><A NAME="781"></A>        <FONT ID="Return">return</FONT> line;
+<FONT ID="LN">782 </FONT><A NAME="782"></A>    }
+<FONT ID="LN">783 </FONT><A NAME="783"></A>
+<FONT ID="LN">784 </FONT><A NAME="784"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">785 </FONT><A NAME="785"></A>     * Returns the JVM name for this (identifier) type.
+<FONT ID="LN">786 </FONT><A NAME="786"></A>     * 
+<FONT ID="LN">787 </FONT><A NAME="787"></A>     * @return the JVM name.
+<FONT ID="LN">788 </FONT><A NAME="788"></A>     */</FONT>
+<FONT ID="LN">789 </FONT><A NAME="789"></A>
+<FONT ID="LN">790 </FONT><A NAME="790"></A>    <FONT ID="Public">public</FONT> String jvmName() {
+<FONT ID="LN">791 </FONT><A NAME="791"></A>        <FONT ID="Return">return</FONT> name.replace(<FONT ID="CharacerLiteral">'.'</FONT>, <FONT ID="CharacerLiteral">'/'</FONT>);
+<FONT ID="LN">792 </FONT><A NAME="792"></A>    }
+<FONT ID="LN">793 </FONT><A NAME="793"></A>
+<FONT ID="LN">794 </FONT><A NAME="794"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">795 </FONT><A NAME="795"></A>     * Returns the JVM descriptor for this type.
+<FONT ID="LN">796 </FONT><A NAME="796"></A>     * 
+<FONT ID="LN">797 </FONT><A NAME="797"></A>     * @return the descriptor.
+<FONT ID="LN">798 </FONT><A NAME="798"></A>     */</FONT>
+<FONT ID="LN">799 </FONT><A NAME="799"></A>
+<FONT ID="LN">800 </FONT><A NAME="800"></A>    <FONT ID="Public">public</FONT> String toDescriptor() {
+<FONT ID="LN">801 </FONT><A NAME="801"></A>        <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"L"</FONT> + jvmName() + <FONT ID="StringLiteral">";"</FONT>;
+<FONT ID="LN">802 </FONT><A NAME="802"></A>    }
+<FONT ID="LN">803 </FONT><A NAME="803"></A>
+<FONT ID="LN">804 </FONT><A NAME="804"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">805 </FONT><A NAME="805"></A>     * Returns the Java representation of this type. For example, 
+<FONT ID="LN">806 </FONT><A NAME="806"></A>     * java.lang.String.
+<FONT ID="LN">807 </FONT><A NAME="807"></A>     * 
+<FONT ID="LN">808 </FONT><A NAME="808"></A>     * @return the qualified name.
+<FONT ID="LN">809 </FONT><A NAME="809"></A>     */</FONT>
+<FONT ID="LN">810 </FONT><A NAME="810"></A>
+<FONT ID="LN">811 </FONT><A NAME="811"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">812 </FONT><A NAME="812"></A>        <FONT ID="Return">return</FONT> name;
+<FONT ID="LN">813 </FONT><A NAME="813"></A>    }
+<FONT ID="LN">814 </FONT><A NAME="814"></A>
+<FONT ID="LN">815 </FONT><A NAME="815"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">816 </FONT><A NAME="816"></A>     * Returns the simple name for this type. For example, String for 
+<FONT ID="LN">817 </FONT><A NAME="817"></A>     * java.lang.String.
+<FONT ID="LN">818 </FONT><A NAME="818"></A>     * 
+<FONT ID="LN">819 </FONT><A NAME="819"></A>     * @return the simple name.
+<FONT ID="LN">820 </FONT><A NAME="820"></A>     */</FONT>
+<FONT ID="LN">821 </FONT><A NAME="821"></A>
+<FONT ID="LN">822 </FONT><A NAME="822"></A>    <FONT ID="Public">public</FONT> String simpleName() {
+<FONT ID="LN">823 </FONT><A NAME="823"></A>        <FONT ID="Return">return</FONT> name.substring(name.lastIndexOf(<FONT ID="CharacerLiteral">'.'</FONT>) + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">824 </FONT><A NAME="824"></A>    }
+<FONT ID="LN">825 </FONT><A NAME="825"></A>
+<FONT ID="LN">826 </FONT><A NAME="826"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">827 </FONT><A NAME="827"></A>     * Resolves this type in the given context. Notice that this has meaning 
+<FONT ID="LN">828 </FONT><A NAME="828"></A>     * only for TypeName and ArrayTypeName, where names are replaced by real 
+<FONT ID="LN">829 </FONT><A NAME="829"></A>     * types. Names are looked up in the context.
+<FONT ID="LN">830 </FONT><A NAME="830"></A>     * 
+<FONT ID="LN">831 </FONT><A NAME="831"></A>     * @param context
+<FONT ID="LN">832 </FONT><A NAME="832"></A>     *            context in which the names are resolved.
+<FONT ID="LN">833 </FONT><A NAME="833"></A>     * @return the resolved type.
+<FONT ID="LN">834 </FONT><A NAME="834"></A>     */</FONT>
+<FONT ID="LN">835 </FONT><A NAME="835"></A>
+<FONT ID="LN">836 </FONT><A NAME="836"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> resolve(<A HREF="../jminusminus/Context.java.html">Context</A> context) {
+<FONT ID="LN">837 </FONT><A NAME="837"></A>        <A HREF="../jminusminus/Type.java.html">Type</A> resolvedType = context.lookupType(name);
+<FONT ID="LN">838 </FONT><A NAME="838"></A>        <FONT ID="If">if</FONT> (resolvedType == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">839 </FONT><A NAME="839"></A>            <FONT ID="SingleLineComment">// Try loading a type with the give fullname
+<FONT ID="LN">840 </FONT><A NAME="840"></A></FONT>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">841 </FONT><A NAME="841"></A>                resolvedType = typeFor(Class.forName(name));
+<FONT ID="LN">842 </FONT><A NAME="842"></A>                context.addType(line, resolvedType);
+<FONT ID="LN">843 </FONT><A NAME="843"></A>                <FONT ID="SingleLineComment">// context.compilationUnitContext().addEntry(line,
+<FONT ID="LN">844 </FONT><A NAME="844"></A></FONT>                <FONT ID="SingleLineComment">// resolvedType.toString(),
+<FONT ID="LN">845 </FONT><A NAME="845"></A></FONT>                <FONT ID="SingleLineComment">// new TypeNameDefn(resolvedType));
+<FONT ID="LN">846 </FONT><A NAME="846"></A></FONT>            } <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">847 </FONT><A NAME="847"></A>                JAST.compilationUnit.reportSemanticError(line,
+<FONT ID="LN">848 </FONT><A NAME="848"></A>                        <FONT ID="StringLiteral">"Unable to locate a type named %s"</FONT>, name);
+<FONT ID="LN">849 </FONT><A NAME="849"></A>                resolvedType = Type.ANY;
+<FONT ID="LN">850 </FONT><A NAME="850"></A>            }
+<FONT ID="LN">851 </FONT><A NAME="851"></A>        }
+<FONT ID="LN">852 </FONT><A NAME="852"></A>        <FONT ID="If">if</FONT> (resolvedType != Type.ANY) {
+<FONT ID="LN">853 </FONT><A NAME="853"></A>            <A HREF="../jminusminus/Type.java.html">Type</A> referencingType = ((<A HREF="../jminusminus/JTypeDecl.java.html">JTypeDecl</A>) (context.classContext
+<FONT ID="LN">854 </FONT><A NAME="854"></A>                    .definition())).thisType();
+<FONT ID="LN">855 </FONT><A NAME="855"></A>            Type.checkAccess(line, referencingType.classRep(), resolvedType
+<FONT ID="LN">856 </FONT><A NAME="856"></A>                    .classRep());
+<FONT ID="LN">857 </FONT><A NAME="857"></A>        }
+<FONT ID="LN">858 </FONT><A NAME="858"></A>        <FONT ID="Return">return</FONT> resolvedType;
+<FONT ID="LN">859 </FONT><A NAME="859"></A>    }
+<FONT ID="LN">860 </FONT><A NAME="860"></A>}
+<FONT ID="LN">861 </FONT><A NAME="861"></A>
+<FONT ID="LN">862 </FONT><A NAME="862"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">863 </FONT><A NAME="863"></A> * The (temporary) representation of an array's type. It is built by the 
+<FONT ID="LN">864 </FONT><A NAME="864"></A> * {@link Parser} to stand in for a {@link Type} until the {@code analyze} 
+<FONT ID="LN">865 </FONT><A NAME="865"></A> * phase, at which point it is resolved to an actual Type object 
+<FONT ID="LN">866 </FONT><A NAME="866"></A> * (having a Class that identifies it).
+<FONT ID="LN">867 </FONT><A NAME="867"></A> */</FONT>
+<FONT ID="LN">868 </FONT><A NAME="868"></A>
+<FONT ID="LN">869 </FONT><A NAME="869"></A><FONT ID="Class">class</FONT> ArrayTypeName <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> {
+<FONT ID="LN">870 </FONT><A NAME="870"></A>
+<FONT ID="LN">871 </FONT><A NAME="871"></A>    <FONT ID="FormalComment">/** The array's base or component type. */</FONT>
+<FONT ID="LN">872 </FONT><A NAME="872"></A>    <FONT ID="Private">private</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> componentType;
+<FONT ID="LN">873 </FONT><A NAME="873"></A>
+<FONT ID="LN">874 </FONT><A NAME="874"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">875 </FONT><A NAME="875"></A>     * Constructs an array's type given its component type.
+<FONT ID="LN">876 </FONT><A NAME="876"></A>     * 
+<FONT ID="LN">877 </FONT><A NAME="877"></A>     * @param componentType
+<FONT ID="LN">878 </FONT><A NAME="878"></A>     *            the type of its elements.
+<FONT ID="LN">879 </FONT><A NAME="879"></A>     */</FONT>
+<FONT ID="LN">880 </FONT><A NAME="880"></A>
+<FONT ID="LN">881 </FONT><A NAME="881"></A>    <FONT ID="Public">public</FONT> ArrayTypeName(<A HREF="../jminusminus/Type.java.html">Type</A> componentType) {
+<FONT ID="LN">882 </FONT><A NAME="882"></A>        <FONT ID="This">this</FONT>.componentType = componentType;
+<FONT ID="LN">883 </FONT><A NAME="883"></A>    }
+<FONT ID="LN">884 </FONT><A NAME="884"></A>
+<FONT ID="LN">885 </FONT><A NAME="885"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">886 </FONT><A NAME="886"></A>     * Returns the (component) type of its elements.
+<FONT ID="LN">887 </FONT><A NAME="887"></A>     * 
+<FONT ID="LN">888 </FONT><A NAME="888"></A>     * @return the component type.
+<FONT ID="LN">889 </FONT><A NAME="889"></A>     */</FONT>
+<FONT ID="LN">890 </FONT><A NAME="890"></A>
+<FONT ID="LN">891 </FONT><A NAME="891"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> componentType() {
+<FONT ID="LN">892 </FONT><A NAME="892"></A>        <FONT ID="Return">return</FONT> componentType;
+<FONT ID="LN">893 </FONT><A NAME="893"></A>    }
+<FONT ID="LN">894 </FONT><A NAME="894"></A>
+<FONT ID="LN">895 </FONT><A NAME="895"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">896 </FONT><A NAME="896"></A>     * Returns the JVM descriptor for this type.
+<FONT ID="LN">897 </FONT><A NAME="897"></A>     * 
+<FONT ID="LN">898 </FONT><A NAME="898"></A>     * @return the descriptor.
+<FONT ID="LN">899 </FONT><A NAME="899"></A>     */</FONT>
+<FONT ID="LN">900 </FONT><A NAME="900"></A>
+<FONT ID="LN">901 </FONT><A NAME="901"></A>    <FONT ID="Public">public</FONT> String toDescriptor() {
+<FONT ID="LN">902 </FONT><A NAME="902"></A>        <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"["</FONT> + componentType.toDescriptor();
+<FONT ID="LN">903 </FONT><A NAME="903"></A>    }
+<FONT ID="LN">904 </FONT><A NAME="904"></A>
+<FONT ID="LN">905 </FONT><A NAME="905"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">906 </FONT><A NAME="906"></A>     * A string representation of the type in Java form.
+<FONT ID="LN">907 </FONT><A NAME="907"></A>     * 
+<FONT ID="LN">908 </FONT><A NAME="908"></A>     * @return the representation in Java form.
+<FONT ID="LN">909 </FONT><A NAME="909"></A>     */</FONT>
+<FONT ID="LN">910 </FONT><A NAME="910"></A>
+<FONT ID="LN">911 </FONT><A NAME="911"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">912 </FONT><A NAME="912"></A>        <FONT ID="Return">return</FONT> componentType.toString() + <FONT ID="StringLiteral">"[]"</FONT>;
+<FONT ID="LN">913 </FONT><A NAME="913"></A>    }
+<FONT ID="LN">914 </FONT><A NAME="914"></A>
+<FONT ID="LN">915 </FONT><A NAME="915"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">916 </FONT><A NAME="916"></A>     * Resolves this type in the given context.
+<FONT ID="LN">917 </FONT><A NAME="917"></A>     * 
+<FONT ID="LN">918 </FONT><A NAME="918"></A>     * @param context
+<FONT ID="LN">919 </FONT><A NAME="919"></A>     *            context in which the names are resolved.
+<FONT ID="LN">920 </FONT><A NAME="920"></A>     * @return the resolved type.
+<FONT ID="LN">921 </FONT><A NAME="921"></A>     */</FONT>
+<FONT ID="LN">922 </FONT><A NAME="922"></A>
+<FONT ID="LN">923 </FONT><A NAME="923"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/Type.java.html">Type</A> resolve(<A HREF="../jminusminus/Context.java.html">Context</A> context) {
+<FONT ID="LN">924 </FONT><A NAME="924"></A>        componentType = componentType.resolve(context);
+<FONT ID="LN">925 </FONT><A NAME="925"></A>
+<FONT ID="LN">926 </FONT><A NAME="926"></A>        <FONT ID="SingleLineComment">// The API forces us to make an instance and get its
+<FONT ID="LN">927 </FONT><A NAME="927"></A></FONT>        <FONT ID="SingleLineComment">// type.
+<FONT ID="LN">928 </FONT><A NAME="928"></A></FONT>        Class classRep = Array.newInstance(componentType().classRep(), <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">929 </FONT><A NAME="929"></A>                .getClass();
+<FONT ID="LN">930 </FONT><A NAME="930"></A>        <FONT ID="Return">return</FONT> Type.typeFor(classRep);
+<FONT ID="LN">931 </FONT><A NAME="931"></A>    }
+<FONT ID="LN">932 </FONT><A NAME="932"></A>
+<FONT ID="LN">933 </FONT><A NAME="933"></A>}
+<FONT ID="LN">934 </FONT><A NAME="934"></A></pre>
+</BODY>
+</HTML>

@@ -1,0 +1,371 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>jminusminus.NEmitter (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">NEmitter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Copyright 2013 Bill Campbell, Swami Iyer and Bahar Akbal-Delibas
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Package">package</FONT> jminusminus;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/CLConstants.java.html">jminusminus.CLConstants</A>.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> java.io.BufferedReader;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> java.io.FileReader;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> java.io.FileNotFoundException;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> java.io.PrintWriter;
+<FONT ID="LN">13  </FONT><A NAME="13"></A>
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Import">import</FONT> java.util.Calendar;
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * A class for generating native SPIM code.
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> NEmitter {
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    <FONT ID="FormalComment">/** Source program file name. */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Private">private</FONT> String sourceFile;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A>     * Map of maps, one per class in the compilation unit. Each one of them maps
+<FONT ID="LN">29  </FONT><A NAME="29"></A>     * methods in a class to their control flow graph.
+<FONT ID="LN">30  </FONT><A NAME="30"></A>     */</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="Private">private</FONT> HashMap&lt;<A HREF="../jminusminus/CLFile.java.html">CLFile</A>, HashMap&lt;CLMethodInfo, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A>&gt;&gt; classes;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="FormalComment">/** Destination directory for the native SPIM code. */</FONT>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="Private">private</FONT> String destDir;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">37  </FONT><A NAME="37"></A>     * Whether an error occurred while creating/writing SPIM code.
+<FONT ID="LN">38  </FONT><A NAME="38"></A>     */</FONT>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> errorHasOccurred;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">42  </FONT><A NAME="42"></A>     * Report any error that occurs while creating/writing the spim file, to
+<FONT ID="LN">43  </FONT><A NAME="43"></A>     * STDERR.
+<FONT ID="LN">44  </FONT><A NAME="44"></A>     * 
+<FONT ID="LN">45  </FONT><A NAME="45"></A>     * @param message
+<FONT ID="LN">46  </FONT><A NAME="46"></A>     *            message identifying the error.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>     * @param args
+<FONT ID="LN">48  </FONT><A NAME="48"></A>     *            related values.
+<FONT ID="LN">49  </FONT><A NAME="49"></A>     */</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> reportEmitterError(String message, Object... args) {
+<FONT ID="LN">52  </FONT><A NAME="52"></A>        System.err.printf(message, args);
+<FONT ID="LN">53  </FONT><A NAME="53"></A>        System.err.println();
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        errorHasOccurred = <FONT ID="True">true</FONT>;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">58  </FONT><A NAME="58"></A>     * Emits SPIM code to setup a stack frame for the procedure denoted by cfg.
+<FONT ID="LN">59  </FONT><A NAME="59"></A>     * This involves saving the return address (ra), saving the frame pointer
+<FONT ID="LN">60  </FONT><A NAME="60"></A>     * (fp), saving any physical registers (t0, ..., t9, s0, ..., s7) used by
+<FONT ID="LN">61  </FONT><A NAME="61"></A>     * the procedure, and setting up the new value for fp (i.e. pushing a stack
+<FONT ID="LN">62  </FONT><A NAME="62"></A>     * frame).
+<FONT ID="LN">63  </FONT><A NAME="63"></A>     * 
+<FONT ID="LN">64  </FONT><A NAME="64"></A>     * @param cfg
+<FONT ID="LN">65  </FONT><A NAME="65"></A>     *            the control flow graph instance.
+<FONT ID="LN">66  </FONT><A NAME="66"></A>     * @param out
+<FONT ID="LN">67  </FONT><A NAME="67"></A>     *            output stream for SPIM code.
+<FONT ID="LN">68  </FONT><A NAME="68"></A>     */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> pushStackFrame(<A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg, PrintWriter out) {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>        <FONT ID="Int">int</FONT> frameSize = cfg.pRegisters.size() * <FONT ID="IntegerLiteral">4</FONT> + cfg.offset * <FONT ID="IntegerLiteral">4</FONT> + <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>        out.printf(
+<FONT ID="LN">73  </FONT><A NAME="73"></A>                <FONT ID="StringLiteral">"    subu    $sp,$sp,%d \t # Stack frame is %d bytes long\n"</FONT>,
+<FONT ID="LN">74  </FONT><A NAME="74"></A>                frameSize, frameSize);
+<FONT ID="LN">75  </FONT><A NAME="75"></A>        out.printf(<FONT ID="StringLiteral">"    sw      $ra,%d($sp) \t # Save return address\n"</FONT>,
+<FONT ID="LN">76  </FONT><A NAME="76"></A>                frameSize - <FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">77  </FONT><A NAME="77"></A>        out.printf(<FONT ID="StringLiteral">"    sw      $fp,%d($sp) \t # Save frame pointer\n"</FONT>,
+<FONT ID="LN">78  </FONT><A NAME="78"></A>                frameSize - <FONT ID="IntegerLiteral">8</FONT>);
+<FONT ID="LN">79  </FONT><A NAME="79"></A>        <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">12</FONT>;
+<FONT ID="LN">80  </FONT><A NAME="80"></A>        <FONT ID="For">for</FONT> (NPhysicalRegister pRegister : cfg.pRegisters) {
+<FONT ID="LN">81  </FONT><A NAME="81"></A>            out.printf(<FONT ID="StringLiteral">"    sw      %s,%d($sp) \t # Save register %s\n"</FONT>,
+<FONT ID="LN">82  </FONT><A NAME="82"></A>                    pRegister, frameSize - i, pRegister);
+<FONT ID="LN">83  </FONT><A NAME="83"></A>            i += <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        out.printf(<FONT ID="StringLiteral">"    addiu   $fp,$sp,%d \t # Save frame pointer\n"</FONT>,
+<FONT ID="LN">86  </FONT><A NAME="86"></A>                frameSize - <FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        out.println();
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    }
+<FONT ID="LN">89  </FONT><A NAME="89"></A>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">91  </FONT><A NAME="91"></A>     * Emits SPIM code to pop the stack frame that was setup for the procedure
+<FONT ID="LN">92  </FONT><A NAME="92"></A>     * denoted by cfg. This involves restoring the return address (ra), the
+<FONT ID="LN">93  </FONT><A NAME="93"></A>     * frame pointer (fp), any physical registers (t0, ..., t9, s0, ..., s7)
+<FONT ID="LN">94  </FONT><A NAME="94"></A>     * used by the procedure, setting fp to the restored value (i.e. popping the
+<FONT ID="LN">95  </FONT><A NAME="95"></A>     * stack frame), and finally jumping to ra (the caller).
+<FONT ID="LN">96  </FONT><A NAME="96"></A>     * 
+<FONT ID="LN">97  </FONT><A NAME="97"></A>     * @param cfg
+<FONT ID="LN">98  </FONT><A NAME="98"></A>     *            the control flow graph instance.
+<FONT ID="LN">99  </FONT><A NAME="99"></A>     * @param out
+<FONT ID="LN">100 </FONT><A NAME="100"></A>     *            output stream for SPIM code.
+<FONT ID="LN">101 </FONT><A NAME="101"></A>     */</FONT>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> popStackFrame(<A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg, PrintWriter out) {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>        <FONT ID="Int">int</FONT> frameSize = cfg.pRegisters.size() * <FONT ID="IntegerLiteral">4</FONT> + cfg.offset * <FONT ID="IntegerLiteral">4</FONT> + <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>        out.printf(<FONT ID="StringLiteral">"%s.restore:\n"</FONT>, cfg.labelPrefix);
+<FONT ID="LN">106 </FONT><A NAME="106"></A>        out.printf(<FONT ID="StringLiteral">"    lw      $ra,%d($sp) \t # Restore return address\n"</FONT>,
+<FONT ID="LN">107 </FONT><A NAME="107"></A>                frameSize - <FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>        out.printf(<FONT ID="StringLiteral">"    lw      $fp,%d($sp) \t # Restore frame pointer\n"</FONT>,
+<FONT ID="LN">109 </FONT><A NAME="109"></A>                frameSize - <FONT ID="IntegerLiteral">8</FONT>);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">12</FONT>;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>        <FONT ID="For">for</FONT> (NPhysicalRegister pRegister : cfg.pRegisters) {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>            out.printf(<FONT ID="StringLiteral">"    lw      %s,%d($sp) \t # Restore register %s\n"</FONT>,
+<FONT ID="LN">113 </FONT><A NAME="113"></A>                    pRegister, frameSize - i, pRegister);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>            i += <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>        }
+<FONT ID="LN">116 </FONT><A NAME="116"></A>        out.printf(<FONT ID="StringLiteral">"    addiu   $sp,$sp,%d \t # Pop stack\n"</FONT>, frameSize);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>        out.printf(<FONT ID="StringLiteral">"    jr      $ra \t # Return to caller\n"</FONT>, frameSize);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>        out.println();
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">122 </FONT><A NAME="122"></A>     * Constructs a NEmitter instance given the source file, list of CLFile 
+<FONT ID="LN">123 </FONT><A NAME="123"></A>     * objects, and the register allocation scheme.
+<FONT ID="LN">124 </FONT><A NAME="124"></A>     * 
+<FONT ID="LN">125 </FONT><A NAME="125"></A>     * @param sourceFile
+<FONT ID="LN">126 </FONT><A NAME="126"></A>     *            the source j-- program file name.
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     * @param clFiles
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     *            list of CLFile objects.
+<FONT ID="LN">129 </FONT><A NAME="129"></A>     * @param ra
+<FONT ID="LN">130 </FONT><A NAME="130"></A>     *            register allocation scheme (naive, linear, or graph).
+<FONT ID="LN">131 </FONT><A NAME="131"></A>     */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    <FONT ID="Public">public</FONT> NEmitter(String sourceFile, ArrayList&lt;<A HREF="../jminusminus/CLFile.java.html">CLFile</A>&gt; clFiles, String ra) {
+<FONT ID="LN">134 </FONT><A NAME="134"></A>        <FONT ID="This">this</FONT>.sourceFile = sourceFile.substring(sourceFile
+<FONT ID="LN">135 </FONT><A NAME="135"></A>                .lastIndexOf(File.separator) + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>        classes = <FONT ID="New">new</FONT> HashMap&lt;<A HREF="../jminusminus/CLFile.java.html">CLFile</A>, HashMap&lt;CLMethodInfo, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A>&gt;&gt;();
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/CLFile.java.html">CLFile</A> clFile : clFiles) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>            <A HREF="../jminusminus/CLConstantPool.java.html">CLConstantPool</A> cp = clFile.constantPool;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>            HashMap&lt;CLMethodInfo, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A>&gt; methods = 
+<FONT ID="LN">140 </FONT><A NAME="140"></A>                                    <FONT ID="New">new</FONT> HashMap&lt;CLMethodInfo, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A>&gt;();
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; clFile.methodsCount; i++) {
+<FONT ID="LN">143 </FONT><A NAME="143"></A>                CLMethodInfo m = clFile.methods.get(i);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>
+<FONT ID="LN">145 </FONT><A NAME="145"></A>                <FONT ID="SingleLineComment">// Build a control flow graph (cfg) for this method.
+<FONT ID="LN">146 </FONT><A NAME="146"></A></FONT>                <FONT ID="SingleLineComment">// Each block in the cfg, at the end of this step,
+<FONT ID="LN">147 </FONT><A NAME="147"></A></FONT>                <FONT ID="SingleLineComment">// has the JVM bytecode translated into tuple
+<FONT ID="LN">148 </FONT><A NAME="148"></A></FONT>                <FONT ID="SingleLineComment">// representation.
+<FONT ID="LN">149 </FONT><A NAME="149"></A></FONT>                <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg = <FONT ID="New">new</FONT> <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A>(cp, m);
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>                <FONT ID="SingleLineComment">// Write the tuples in cfg to STDOUT.
+<FONT ID="LN">152 </FONT><A NAME="152"></A></FONT>                PrettyPrinter p = <FONT ID="New">new</FONT> PrettyPrinter();
+<FONT ID="LN">153 </FONT><A NAME="153"></A>                p.printf(<FONT ID="StringLiteral">"%s %s\n"</FONT>, cfg.name, cfg.desc);
+<FONT ID="LN">154 </FONT><A NAME="154"></A>                cfg.writeTuplesToStdOut(p);
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>                <FONT ID="SingleLineComment">// Identify blocks in cfg that are loop heads and
+<FONT ID="LN">157 </FONT><A NAME="157"></A></FONT>                <FONT ID="SingleLineComment">// loop tails. Also, compute number of backward
+<FONT ID="LN">158 </FONT><A NAME="158"></A></FONT>                <FONT ID="SingleLineComment">// branches to blocks.
+<FONT ID="LN">159 </FONT><A NAME="159"></A></FONT>                cfg.detectLoops(cfg.basicBlocks.get(<FONT ID="IntegerLiteral">0</FONT>), <FONT ID="Null">null</FONT>);
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>                <FONT ID="SingleLineComment">// Remove unreachable blocks from cfg.
+<FONT ID="LN">162 </FONT><A NAME="162"></A></FONT>                cfg.removeUnreachableBlocks();
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>                <FONT ID="SingleLineComment">// Compute the dominator of each block in the cfg.
+<FONT ID="LN">165 </FONT><A NAME="165"></A></FONT>                cfg.computeDominators(cfg.basicBlocks.get(<FONT ID="IntegerLiteral">0</FONT>), <FONT ID="Null">null</FONT>);
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>                <FONT ID="SingleLineComment">// Convert the tuples in each block in the cfg to
+<FONT ID="LN">168 </FONT><A NAME="168"></A></FONT>                <FONT ID="SingleLineComment">// high-level (HIR) instructions.
+<FONT ID="LN">169 </FONT><A NAME="169"></A></FONT>                cfg.tuplesToHir();
+<FONT ID="LN">170 </FONT><A NAME="170"></A>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>                <FONT ID="SingleLineComment">// Eliminate redundant phi functions, i.e., replace
+<FONT ID="LN">172 </FONT><A NAME="172"></A></FONT>                <FONT ID="SingleLineComment">// phi functions of the form x = (y, x, x, ..., x)
+<FONT ID="LN">173 </FONT><A NAME="173"></A></FONT>                <FONT ID="SingleLineComment">// with y.
+<FONT ID="LN">174 </FONT><A NAME="174"></A></FONT>                cfg.eliminateRedundantPhiFunctions();
+<FONT ID="LN">175 </FONT><A NAME="175"></A>
+<FONT ID="LN">176 </FONT><A NAME="176"></A>                <FONT ID="SingleLineComment">// Perform optimizations on the high-level
+<FONT ID="LN">177 </FONT><A NAME="177"></A></FONT>                <FONT ID="SingleLineComment">// instructions.
+<FONT ID="LN">178 </FONT><A NAME="178"></A></FONT>                cfg.optimize();
+<FONT ID="LN">179 </FONT><A NAME="179"></A>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>                <FONT ID="SingleLineComment">// Write the HIR instructions in cfg to STDOUT.
+<FONT ID="LN">181 </FONT><A NAME="181"></A></FONT>                cfg.writeHirToStdOut(p);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>                <FONT ID="SingleLineComment">// Convert the HIR instructions in each block in the
+<FONT ID="LN">184 </FONT><A NAME="184"></A></FONT>                <FONT ID="SingleLineComment">// cfg to low-level (LIR) instructions.
+<FONT ID="LN">185 </FONT><A NAME="185"></A></FONT>                cfg.hirToLir();
+<FONT ID="LN">186 </FONT><A NAME="186"></A>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>                <FONT ID="SingleLineComment">// Resolve phi functions;
+<FONT ID="LN">188 </FONT><A NAME="188"></A></FONT>                cfg.resolvePhiFunctions();
+<FONT ID="LN">189 </FONT><A NAME="189"></A>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>                <FONT ID="SingleLineComment">// Compute block order.
+<FONT ID="LN">191 </FONT><A NAME="191"></A></FONT>                cfg.orderBlocks();
+<FONT ID="LN">192 </FONT><A NAME="192"></A>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>                <FONT ID="SingleLineComment">// Assign new ids to LIR instructions.
+<FONT ID="LN">194 </FONT><A NAME="194"></A></FONT>                cfg.renumberLirInstructions();
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>                <FONT ID="SingleLineComment">// Write the LIR instructions in cfg to STDOUT.
+<FONT ID="LN">197 </FONT><A NAME="197"></A></FONT>                cfg.writeLirToStdOut(p);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>                <FONT ID="SingleLineComment">// Save the cfg for the method in a map keyed in by
+<FONT ID="LN">200 </FONT><A NAME="200"></A></FONT>                <FONT ID="SingleLineComment">// the CLMethodInfo object for the method.
+<FONT ID="LN">201 </FONT><A NAME="201"></A></FONT>                methods.put(m, cfg);
+<FONT ID="LN">202 </FONT><A NAME="202"></A>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>                <FONT ID="SingleLineComment">// Perform register allocation.
+<FONT ID="LN">204 </FONT><A NAME="204"></A></FONT>                <A HREF="../jminusminus/NRegisterAllocator.java.html">NRegisterAllocator</A> regAllocator;
+<FONT ID="LN">205 </FONT><A NAME="205"></A>                <FONT ID="If">if</FONT> (ra.equals(<FONT ID="StringLiteral">"naive"</FONT>)) {
+<FONT ID="LN">206 </FONT><A NAME="206"></A>                    regAllocator = <FONT ID="New">new</FONT> <A HREF="../jminusminus/NNaiveRegisterAllocator.java.html">NNaiveRegisterAllocator</A>(cfg);
+<FONT ID="LN">207 </FONT><A NAME="207"></A>                } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (ra.equals(<FONT ID="StringLiteral">"linear"</FONT>)) {
+<FONT ID="LN">208 </FONT><A NAME="208"></A>                    regAllocator = <FONT ID="New">new</FONT> <A HREF="../jminusminus/NLinearRegisterAllocator.java.html">NLinearRegisterAllocator</A>(cfg);
+<FONT ID="LN">209 </FONT><A NAME="209"></A>                } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>                    regAllocator = <FONT ID="New">new</FONT> <A HREF="../jminusminus/NGraphRegisterAllocator.java.html">NGraphRegisterAllocator</A>(cfg);
+<FONT ID="LN">211 </FONT><A NAME="211"></A>                }
+<FONT ID="LN">212 </FONT><A NAME="212"></A>                regAllocator.allocation();
+<FONT ID="LN">213 </FONT><A NAME="213"></A>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>                <FONT ID="SingleLineComment">// Write the intervals in cfg to STDOUT.
+<FONT ID="LN">215 </FONT><A NAME="215"></A></FONT>                cfg.writeIntervalsToStdOut(p);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>                <FONT ID="SingleLineComment">// Replace references to virtual registers in LIR
+<FONT ID="LN">218 </FONT><A NAME="218"></A></FONT>                <FONT ID="SingleLineComment">// instructions with references to physical registers.
+<FONT ID="LN">219 </FONT><A NAME="219"></A></FONT>                cfg.allocatePhysicalRegisters();
+<FONT ID="LN">220 </FONT><A NAME="220"></A>
+<FONT ID="LN">221 </FONT><A NAME="221"></A>                <FONT ID="SingleLineComment">// Write the LIR instructions in cfg to STDOUT.
+<FONT ID="LN">222 </FONT><A NAME="222"></A></FONT>                cfg.writeLirToStdOut(p);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>                <FONT ID="SingleLineComment">// Lastly write the live sets to STDOUT.
+<FONT ID="LN">225 </FONT><A NAME="225"></A></FONT>                <FONT ID="SingleLineComment">// Only relevant for linear scan and graph coloring
+<FONT ID="LN">226 </FONT><A NAME="226"></A></FONT>                <FONT ID="If">if</FONT> (regAllocator <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../jminusminus/NLinearRegisterAllocator.java.html">NLinearRegisterAllocator</A> ||
+<FONT ID="LN">227 </FONT><A NAME="227"></A>                    regAllocator <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../jminusminus/NGraphRegisterAllocator.java.html">NGraphRegisterAllocator</A>) {
+<FONT ID="LN">228 </FONT><A NAME="228"></A>                    
+<FONT ID="LN">229 </FONT><A NAME="229"></A>                    regAllocator.writeSetsToStdOut(p);
+<FONT ID="LN">230 </FONT><A NAME="230"></A>                }
+<FONT ID="LN">231 </FONT><A NAME="231"></A>            }
+<FONT ID="LN">232 </FONT><A NAME="232"></A>
+<FONT ID="LN">233 </FONT><A NAME="233"></A>            <FONT ID="SingleLineComment">// Store the cfgs for the methods in this class in a map.
+<FONT ID="LN">234 </FONT><A NAME="234"></A></FONT>            classes.put(clFile, methods);
+<FONT ID="LN">235 </FONT><A NAME="235"></A>        }
+<FONT ID="LN">236 </FONT><A NAME="236"></A>    }
+<FONT ID="LN">237 </FONT><A NAME="237"></A>
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">239 </FONT><A NAME="239"></A>     * Sets the destination directory for the SPIM files to the specified value.
+<FONT ID="LN">240 </FONT><A NAME="240"></A>     * 
+<FONT ID="LN">241 </FONT><A NAME="241"></A>     * @param destDir
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     *            destination directory.
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     */</FONT>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> destinationDir(String destDir) {
+<FONT ID="LN">246 </FONT><A NAME="246"></A>        <FONT ID="This">this</FONT>.destDir = destDir;
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    }
+<FONT ID="LN">248 </FONT><A NAME="248"></A>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">250 </FONT><A NAME="250"></A>     * Has an emitter error occurred up to now?
+<FONT ID="LN">251 </FONT><A NAME="251"></A>     * 
+<FONT ID="LN">252 </FONT><A NAME="252"></A>     * @return true or false.
+<FONT ID="LN">253 </FONT><A NAME="253"></A>     */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> errorHasOccurred() {
+<FONT ID="LN">256 </FONT><A NAME="256"></A>        <FONT ID="Return">return</FONT> errorHasOccurred;
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    }
+<FONT ID="LN">258 </FONT><A NAME="258"></A>
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">260 </FONT><A NAME="260"></A>     * Writes out SPIM file(s) to the file system. The destination directory for
+<FONT ID="LN">261 </FONT><A NAME="261"></A>     * the files can be set using the {@code destinationDir} method.
+<FONT ID="LN">262 </FONT><A NAME="262"></A>     */</FONT>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write() {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>        String file = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">267 </FONT><A NAME="267"></A>            file = destDir + File.separator + sourceFile.replace(<FONT ID="StringLiteral">".java"</FONT>, <FONT ID="StringLiteral">".s"</FONT>);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>            PrintWriter out = <FONT ID="New">new</FONT> PrintWriter(file);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>            <FONT ID="SingleLineComment">// Header.
+<FONT ID="LN">271 </FONT><A NAME="271"></A></FONT>            out.printf(<FONT ID="StringLiteral">"# %s\n"</FONT>, file);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>            out.printf(<FONT ID="StringLiteral">"# Source file: %s\n"</FONT>, sourceFile);
+<FONT ID="LN">273 </FONT><A NAME="273"></A>            out.printf(<FONT ID="StringLiteral">"# Compiled: %s\n\n"</FONT>, Calendar.getInstance().getTime()
+<FONT ID="LN">274 </FONT><A NAME="274"></A>                    .toString());
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>            <FONT ID="SingleLineComment">// Translate classes and their methods to SPIM.
+<FONT ID="LN">277 </FONT><A NAME="277"></A></FONT>            <FONT ID="For">for</FONT> (<A HREF="../jminusminus/CLFile.java.html">CLFile</A> clFile : classes.keySet()) {
+<FONT ID="LN">278 </FONT><A NAME="278"></A>                HashMap&lt;CLMethodInfo, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A>&gt; aClass = classes
+<FONT ID="LN">279 </FONT><A NAME="279"></A>                        .get(clFile);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>                <A HREF="../jminusminus/CLConstantPool.java.html">CLConstantPool</A> cp = clFile.constantPool;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>                <FONT ID="Int">int</FONT> nameIndex = ((CLConstantClassInfo) cp
+<FONT ID="LN">282 </FONT><A NAME="282"></A>                        .cpItem(clFile.thisClass)).nameIndex;
+<FONT ID="LN">283 </FONT><A NAME="283"></A>                String className = <FONT ID="New">new</FONT> String(((CLConstantUtf8Info) cp
+<FONT ID="LN">284 </FONT><A NAME="284"></A>                        .cpItem(nameIndex)).b);
+<FONT ID="LN">285 </FONT><A NAME="285"></A>                <FONT ID="For">for</FONT> (CLMethodInfo m : aClass.keySet()) {
+<FONT ID="LN">286 </FONT><A NAME="286"></A>                    <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg = aClass.get(m);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>                    String methodName = cfg.name;
+<FONT ID="LN">288 </FONT><A NAME="288"></A>                    String methodDesc = cfg.desc;
+<FONT ID="LN">289 </FONT><A NAME="289"></A>                    <FONT ID="If">if</FONT> (methodName.equals(<FONT ID="StringLiteral">"&lt;init&gt;"</FONT>)) {
+<FONT ID="LN">290 </FONT><A NAME="290"></A>                        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">291 </FONT><A NAME="291"></A>                    }
+<FONT ID="LN">292 </FONT><A NAME="292"></A>                    out.printf(<FONT ID="StringLiteral">".text\n\n"</FONT>);
+<FONT ID="LN">293 </FONT><A NAME="293"></A>                    <FONT ID="If">if</FONT> (methodName.equals(<FONT ID="StringLiteral">"main"</FONT>)
+<FONT ID="LN">294 </FONT><A NAME="294"></A>                            &amp;&amp; methodDesc.equals(<FONT ID="StringLiteral">"([Ljava/lang/String;)V"</FONT>)) {
+<FONT ID="LN">295 </FONT><A NAME="295"></A>                        out.printf(<FONT ID="StringLiteral">"%s:\n"</FONT>, methodName);
+<FONT ID="LN">296 </FONT><A NAME="296"></A>                        cfg.labelPrefix = methodName;
+<FONT ID="LN">297 </FONT><A NAME="297"></A>                    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">298 </FONT><A NAME="298"></A>                        out.printf(<FONT ID="StringLiteral">"%s.%s:\n"</FONT>, className, methodName);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>                        cfg.labelPrefix = className + <FONT ID="StringLiteral">"."</FONT> + methodName;
+<FONT ID="LN">300 </FONT><A NAME="300"></A>                    }
+<FONT ID="LN">301 </FONT><A NAME="301"></A>
+<FONT ID="LN">302 </FONT><A NAME="302"></A>                    <FONT ID="SingleLineComment">// Setup stack frame for this method
+<FONT ID="LN">303 </FONT><A NAME="303"></A></FONT>                    pushStackFrame(cfg, out);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>
+<FONT ID="LN">305 </FONT><A NAME="305"></A>                    <FONT ID="For">for</FONT> (NBasicBlock block : cfg.basicBlocks) {
+<FONT ID="LN">306 </FONT><A NAME="306"></A>                        out.printf(<FONT ID="StringLiteral">"%s.%d:\n"</FONT>, cfg.labelPrefix, block.id);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>                        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NLIRInstruction.java.html">NLIRInstruction</A> lir : block.lir) {
+<FONT ID="LN">308 </FONT><A NAME="308"></A>                            lir.toSpim(out);
+<FONT ID="LN">309 </FONT><A NAME="309"></A>                        }
+<FONT ID="LN">310 </FONT><A NAME="310"></A>                        out.printf(<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">311 </FONT><A NAME="311"></A>                    }
+<FONT ID="LN">312 </FONT><A NAME="312"></A>
+<FONT ID="LN">313 </FONT><A NAME="313"></A>                    <FONT ID="SingleLineComment">// Pop the stack frame for this method.
+<FONT ID="LN">314 </FONT><A NAME="314"></A></FONT>                    popStackFrame(cfg, out);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>
+<FONT ID="LN">316 </FONT><A NAME="316"></A>                    <FONT ID="SingleLineComment">// Data segment for this cfg storing string
+<FONT ID="LN">317 </FONT><A NAME="317"></A></FONT>                    <FONT ID="SingleLineComment">// literals.
+<FONT ID="LN">318 </FONT><A NAME="318"></A></FONT>                    <FONT ID="If">if</FONT> (cfg.data.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">319 </FONT><A NAME="319"></A>                        out.printf(<FONT ID="StringLiteral">".data\n\n"</FONT>);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>                        <FONT ID="For">for</FONT> (String line : cfg.data) {
+<FONT ID="LN">321 </FONT><A NAME="321"></A>                            out.printf(line);
+<FONT ID="LN">322 </FONT><A NAME="322"></A>                        }
+<FONT ID="LN">323 </FONT><A NAME="323"></A>                    }
+<FONT ID="LN">324 </FONT><A NAME="324"></A>
+<FONT ID="LN">325 </FONT><A NAME="325"></A>                    out.printf(<FONT ID="StringLiteral">"\n\n"</FONT>);
+<FONT ID="LN">326 </FONT><A NAME="326"></A>                }
+<FONT ID="LN">327 </FONT><A NAME="327"></A>            }
+<FONT ID="LN">328 </FONT><A NAME="328"></A>
+<FONT ID="LN">329 </FONT><A NAME="329"></A>            <FONT ID="SingleLineComment">// Emit SPIM runtime code; just SPIM.s for now.
+<FONT ID="LN">330 </FONT><A NAME="330"></A></FONT>            String[] libs = { <FONT ID="StringLiteral">"SPIM.s"</FONT> };
+<FONT ID="LN">331 </FONT><A NAME="331"></A>            out.printf(<FONT ID="StringLiteral">"# SPIM Runtime\n\n"</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>            <FONT ID="For">for</FONT> (String lib : libs) {
+<FONT ID="LN">333 </FONT><A NAME="333"></A>                file = System.getenv(<FONT ID="StringLiteral">"j"</FONT>) + File.separator + <FONT ID="StringLiteral">"src"</FONT>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>                        + File.separator + <FONT ID="StringLiteral">"spim"</FONT> + File.separator + lib;
+<FONT ID="LN">335 </FONT><A NAME="335"></A>                BufferedReader in = <FONT ID="New">new</FONT> BufferedReader(<FONT ID="New">new</FONT> FileReader(file));
+<FONT ID="LN">336 </FONT><A NAME="336"></A>                String line;
+<FONT ID="LN">337 </FONT><A NAME="337"></A>                <FONT ID="While">while</FONT> ((line = in.readLine()) != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">338 </FONT><A NAME="338"></A>                    out.printf(<FONT ID="StringLiteral">"%s\n"</FONT>, line);
+<FONT ID="LN">339 </FONT><A NAME="339"></A>                }
+<FONT ID="LN">340 </FONT><A NAME="340"></A>                in.close();
+<FONT ID="LN">341 </FONT><A NAME="341"></A>            }
+<FONT ID="LN">342 </FONT><A NAME="342"></A>
+<FONT ID="LN">343 </FONT><A NAME="343"></A>            out.close();
+<FONT ID="LN">344 </FONT><A NAME="344"></A>        } <FONT ID="Catch">catch</FONT> (FileNotFoundException e) {
+<FONT ID="LN">345 </FONT><A NAME="345"></A>            reportEmitterError(<FONT ID="StringLiteral">"File %s not found"</FONT>, file);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>        } <FONT ID="Catch">catch</FONT> (IOException e) {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>            reportEmitterError(<FONT ID="StringLiteral">"Cannot write to file %s"</FONT>, file);
+<FONT ID="LN">348 </FONT><A NAME="348"></A>        }
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    }
+<FONT ID="LN">350 </FONT><A NAME="350"></A>
+<FONT ID="LN">351 </FONT><A NAME="351"></A>}
+<FONT ID="LN">352 </FONT><A NAME="352"></A></pre>
+</BODY>
+</HTML>

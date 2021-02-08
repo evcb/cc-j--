@@ -1,0 +1,822 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>jminusminus.CLCPInfo (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CLCPInfo.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Copyright 2013 Bill Campbell, Swami Iyer and Bahar Akbal-Delibas
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Package">package</FONT> jminusminus;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.io.DataOutputStream;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/CLConstants.java.html">jminusminus.CLConstants</A>.*;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * Representation of cp_info structure (JVM Spec Section 4.5). Classes
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * representing individual constant pool items inherit this class. Instances of
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * these classes are created and populated into the constant pool table when a
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * class is read using {@link CLAbsorber} or constructed using 
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * {@link CLEmitter}.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> CLCPInfo {
+<FONT ID="LN">18  </FONT><A NAME="18"></A>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    <FONT ID="SingleLineComment">// The fields below represent the members of the cp_info
+<FONT ID="LN">20  </FONT><A NAME="20"></A></FONT>    <FONT ID="SingleLineComment">// structure and are thus inherited by the child classes of
+<FONT ID="LN">21  </FONT><A NAME="21"></A></FONT>    <FONT ID="SingleLineComment">// CLCPInfo. These classes define their own fields (if any)
+<FONT ID="LN">22  </FONT><A NAME="22"></A></FONT>    <FONT ID="SingleLineComment">// representing the members of the individual cp_info
+<FONT ID="LN">23  </FONT><A NAME="23"></A></FONT>    <FONT ID="SingleLineComment">// structures they represent.
+<FONT ID="LN">24  </FONT><A NAME="24"></A></FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="FormalComment">/** Index of this object into the constant pool. */</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> cpIndex;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="FormalComment">/** cp_info.tag item. */</FONT>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT> tag;
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">32  </FONT><A NAME="32"></A>     * Writes the contents of this constant pool item to the specified output
+<FONT ID="LN">33  </FONT><A NAME="33"></A>     * stream.
+<FONT ID="LN">34  </FONT><A NAME="34"></A>     * 
+<FONT ID="LN">35  </FONT><A NAME="35"></A>     * @param out
+<FONT ID="LN">36  </FONT><A NAME="36"></A>     *            output stream.
+<FONT ID="LN">37  </FONT><A NAME="37"></A>     * @throws IOException
+<FONT ID="LN">38  </FONT><A NAME="38"></A>     *             if an error occurs while writing.
+<FONT ID="LN">39  </FONT><A NAME="39"></A>     */</FONT>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">42  </FONT><A NAME="42"></A>        out.writeByte(tag);
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    }
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">46  </FONT><A NAME="46"></A>     * Writes the content of this object to STDOUT in a format similar to that of
+<FONT ID="LN">47  </FONT><A NAME="47"></A>     * javap.
+<FONT ID="LN">48  </FONT><A NAME="48"></A>     * 
+<FONT ID="LN">49  </FONT><A NAME="49"></A>     * @param p
+<FONT ID="LN">50  </FONT><A NAME="50"></A>     *            for pretty printing with indentation.
+<FONT ID="LN">51  </FONT><A NAME="51"></A>     */</FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        p.printf(<FONT ID="StringLiteral">"%-10s"</FONT>, cpIndex);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>}
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * Representation of CONSTANT_Class_info structure (JVM Spec Section 4.5.1).
+<FONT ID="LN">61  </FONT><A NAME="61"></A> */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A><FONT ID="Class">class</FONT> CLConstantClassInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">64  </FONT><A NAME="64"></A>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    <FONT ID="FormalComment">/** CONSTANT_Class_info.name_index item. */</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nameIndex;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">69  </FONT><A NAME="69"></A>     * Constructs a CLConstantClassInfo object.
+<FONT ID="LN">70  </FONT><A NAME="70"></A>     * 
+<FONT ID="LN">71  </FONT><A NAME="71"></A>     * @param nameIndex
+<FONT ID="LN">72  </FONT><A NAME="72"></A>     *            CONSTANT_Class_info.name_index item.
+<FONT ID="LN">73  </FONT><A NAME="73"></A>     */</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="Public">public</FONT> CLConstantClassInfo(<FONT ID="Int">int</FONT> nameIndex) {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_Class;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>        <FONT ID="This">this</FONT>.nameIndex = nameIndex;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    }
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">81  </FONT><A NAME="81"></A>     * {@inheritDoc}
+<FONT ID="LN">82  </FONT><A NAME="82"></A>     */</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">86  </FONT><A NAME="86"></A>        out.writeShort(nameIndex);
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">90  </FONT><A NAME="90"></A>     * {@inheritDoc}
+<FONT ID="LN">91  </FONT><A NAME="91"></A>     */</FONT>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantClassInfo) {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>            CLConstantClassInfo c = (CLConstantClassInfo) obj;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>            <FONT ID="If">if</FONT> (c.nameIndex == nameIndex) {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>            }
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">104 </FONT><A NAME="104"></A>     * {@inheritDoc}
+<FONT ID="LN">105 </FONT><A NAME="105"></A>     */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">108 </FONT><A NAME="108"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">109 </FONT><A NAME="109"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"Class"</FONT>, nameIndex);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    }
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>}
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">115 </FONT><A NAME="115"></A> * Abstract super class of CONSTANT_Fieldref_info, CONSTANT_Methodref_info,
+<FONT ID="LN">116 </FONT><A NAME="116"></A> * CONSTANT_InterfaceMethodref_info structures (JVM Spec Section 4.5.2).
+<FONT ID="LN">117 </FONT><A NAME="117"></A> */</FONT>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>
+<FONT ID="LN">119 </FONT><A NAME="119"></A><FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> CLConstantMemberRefInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="FormalComment">/** CONSTANT_Memberref_info.class_index item. */</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> classIndex;
+<FONT ID="LN">123 </FONT><A NAME="123"></A>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    <FONT ID="FormalComment">/** CONSTANT_Memberref_info.name_and_type_index item. */</FONT>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nameAndTypeIndex;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     * Constructs a CLConstantMemberRefInfo object.
+<FONT ID="LN">129 </FONT><A NAME="129"></A>     * 
+<FONT ID="LN">130 </FONT><A NAME="130"></A>     * @param classIndex
+<FONT ID="LN">131 </FONT><A NAME="131"></A>     *            CONSTANT_Memberref_info.class_index item.
+<FONT ID="LN">132 </FONT><A NAME="132"></A>     * @param nameAndTypeIndex
+<FONT ID="LN">133 </FONT><A NAME="133"></A>     *            CONSTANT_Memberref_info.name_and_type_index item.
+<FONT ID="LN">134 </FONT><A NAME="134"></A>     * @param tag
+<FONT ID="LN">135 </FONT><A NAME="135"></A>     *            CONSTANT_Memberref_info.tag item.
+<FONT ID="LN">136 </FONT><A NAME="136"></A>     */</FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    <FONT ID="Protected">protected</FONT> CLConstantMemberRefInfo(<FONT ID="Int">int</FONT> classIndex, <FONT ID="Int">int</FONT> nameAndTypeIndex,
+<FONT ID="LN">139 </FONT><A NAME="139"></A>            <FONT ID="Short">short</FONT> tag) {
+<FONT ID="LN">140 </FONT><A NAME="140"></A>        <FONT ID="Super">super</FONT>.tag = tag;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>        <FONT ID="This">this</FONT>.classIndex = classIndex;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>        <FONT ID="This">this</FONT>.nameAndTypeIndex = nameAndTypeIndex;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    }
+<FONT ID="LN">144 </FONT><A NAME="144"></A>
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">146 </FONT><A NAME="146"></A>     * {@inheritDoc}
+<FONT ID="LN">147 </FONT><A NAME="147"></A>     */</FONT>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">151 </FONT><A NAME="151"></A>        out.writeShort(classIndex);
+<FONT ID="LN">152 </FONT><A NAME="152"></A>        out.writeShort(nameAndTypeIndex);
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">156 </FONT><A NAME="156"></A>     * {@inheritDoc}
+<FONT ID="LN">157 </FONT><A NAME="157"></A>     */</FONT>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantMemberRefInfo) {
+<FONT ID="LN">161 </FONT><A NAME="161"></A>            CLConstantMemberRefInfo c = (CLConstantMemberRefInfo) obj;
+<FONT ID="LN">162 </FONT><A NAME="162"></A>            <FONT ID="If">if</FONT> ((c.tag == tag) &amp;&amp; (c.classIndex == classIndex)
+<FONT ID="LN">163 </FONT><A NAME="163"></A>                    &amp;&amp; (c.nameAndTypeIndex == nameAndTypeIndex)) {
+<FONT ID="LN">164 </FONT><A NAME="164"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>            }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        }
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    }
+<FONT ID="LN">169 </FONT><A NAME="169"></A>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>}
+<FONT ID="LN">171 </FONT><A NAME="171"></A>
+<FONT ID="LN">172 </FONT><A NAME="172"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">173 </FONT><A NAME="173"></A> * Representation of CONSTANT_Fieldref_info structure (JVM Spec Section 4.5.2).
+<FONT ID="LN">174 </FONT><A NAME="174"></A> */</FONT>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>
+<FONT ID="LN">176 </FONT><A NAME="176"></A><FONT ID="Class">class</FONT> CLConstantFieldRefInfo <FONT ID="Extends">extends</FONT> CLConstantMemberRefInfo {
+<FONT ID="LN">177 </FONT><A NAME="177"></A>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">179 </FONT><A NAME="179"></A>     * Constructs a CLConstantFieldRefInfo object.
+<FONT ID="LN">180 </FONT><A NAME="180"></A>     * 
+<FONT ID="LN">181 </FONT><A NAME="181"></A>     * @param classIndex
+<FONT ID="LN">182 </FONT><A NAME="182"></A>     *            CONSTANT_Fieldref_info.class_index item.
+<FONT ID="LN">183 </FONT><A NAME="183"></A>     * @param nameAndTypeIndex
+<FONT ID="LN">184 </FONT><A NAME="184"></A>     *            CONSTANT_Fieldref_info.name_and_type_index item.
+<FONT ID="LN">185 </FONT><A NAME="185"></A>     */</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    <FONT ID="Public">public</FONT> CLConstantFieldRefInfo(<FONT ID="Int">int</FONT> classIndex, <FONT ID="Int">int</FONT> nameAndTypeIndex) {
+<FONT ID="LN">188 </FONT><A NAME="188"></A>        <FONT ID="Super">super</FONT>(classIndex, nameAndTypeIndex, CONSTANT_Fieldref);
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    }
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">192 </FONT><A NAME="192"></A>     * {@inheritDoc}
+<FONT ID="LN">193 </FONT><A NAME="193"></A>     */</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">196 </FONT><A NAME="196"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">197 </FONT><A NAME="197"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%-8s%-8s\n"</FONT>, <FONT ID="StringLiteral">"FieldRef"</FONT>, classIndex, nameAndTypeIndex);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    }
+<FONT ID="LN">199 </FONT><A NAME="199"></A>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>}
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">203 </FONT><A NAME="203"></A> * Representation of CONSTANT_Methodref_info structure (JVM Spec Section 4.5.2).
+<FONT ID="LN">204 </FONT><A NAME="204"></A> */</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>
+<FONT ID="LN">206 </FONT><A NAME="206"></A><FONT ID="Class">class</FONT> CLConstantMethodRefInfo <FONT ID="Extends">extends</FONT> CLConstantMemberRefInfo {
+<FONT ID="LN">207 </FONT><A NAME="207"></A>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">209 </FONT><A NAME="209"></A>     * Constructs a CLConstantMethodRefInfo object.
+<FONT ID="LN">210 </FONT><A NAME="210"></A>     * 
+<FONT ID="LN">211 </FONT><A NAME="211"></A>     * @param classIndex
+<FONT ID="LN">212 </FONT><A NAME="212"></A>     *            CONSTANT_Methodref_info.class_index item.
+<FONT ID="LN">213 </FONT><A NAME="213"></A>     * @param nameAndTypeIndex
+<FONT ID="LN">214 </FONT><A NAME="214"></A>     *            CONSTANT_Methodref_info.name_and_type_index item.
+<FONT ID="LN">215 </FONT><A NAME="215"></A>     */</FONT>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    <FONT ID="Public">public</FONT> CLConstantMethodRefInfo(<FONT ID="Int">int</FONT> classIndex, <FONT ID="Int">int</FONT> nameAndTypeIndex) {
+<FONT ID="LN">218 </FONT><A NAME="218"></A>        <FONT ID="Super">super</FONT>(classIndex, nameAndTypeIndex, CONSTANT_Methodref);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    }
+<FONT ID="LN">220 </FONT><A NAME="220"></A>
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">222 </FONT><A NAME="222"></A>     * {@inheritDoc}
+<FONT ID="LN">223 </FONT><A NAME="223"></A>     */</FONT>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">226 </FONT><A NAME="226"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%-8s%-8s\n"</FONT>, <FONT ID="StringLiteral">"MethodRef"</FONT>, classIndex, nameAndTypeIndex);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    }
+<FONT ID="LN">229 </FONT><A NAME="229"></A>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>}
+<FONT ID="LN">231 </FONT><A NAME="231"></A>
+<FONT ID="LN">232 </FONT><A NAME="232"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">233 </FONT><A NAME="233"></A> * Representation of CONSTANT_InterfaceMethodref_info structure (JVM Spec
+<FONT ID="LN">234 </FONT><A NAME="234"></A> * Section 4.5.2).
+<FONT ID="LN">235 </FONT><A NAME="235"></A> */</FONT>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A><FONT ID="Class">class</FONT> CLConstantInterfaceMethodRefInfo <FONT ID="Extends">extends</FONT> CLConstantMemberRefInfo {
+<FONT ID="LN">238 </FONT><A NAME="238"></A>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">240 </FONT><A NAME="240"></A>     * Constructs a CLConstantInterfaceMethodRefInfo object.
+<FONT ID="LN">241 </FONT><A NAME="241"></A>     * 
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     * @param classIndex
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     *            CONSTANT_InterfaceMethodref_info.class_index item.
+<FONT ID="LN">244 </FONT><A NAME="244"></A>     * @param nameAndTypeIndex
+<FONT ID="LN">245 </FONT><A NAME="245"></A>     *            CONSTANT_InterfaceMethodref_info.name_and_type_index item.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>     */</FONT>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <FONT ID="Public">public</FONT> CLConstantInterfaceMethodRefInfo(<FONT ID="Int">int</FONT> classIndex, <FONT ID="Int">int</FONT> nameAndTypeIndex) {
+<FONT ID="LN">249 </FONT><A NAME="249"></A>        <FONT ID="Super">super</FONT>(classIndex, nameAndTypeIndex, CONSTANT_InterfaceMethodref);
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    }
+<FONT ID="LN">251 </FONT><A NAME="251"></A>
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">253 </FONT><A NAME="253"></A>     * {@inheritDoc}
+<FONT ID="LN">254 </FONT><A NAME="254"></A>     */</FONT>
+<FONT ID="LN">255 </FONT><A NAME="255"></A>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">258 </FONT><A NAME="258"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%-8s%-8s\n"</FONT>, <FONT ID="StringLiteral">"InterfaceMethodRef"</FONT>, classIndex,
+<FONT ID="LN">259 </FONT><A NAME="259"></A>                nameAndTypeIndex);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    }
+<FONT ID="LN">261 </FONT><A NAME="261"></A>
+<FONT ID="LN">262 </FONT><A NAME="262"></A>}
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">265 </FONT><A NAME="265"></A> * Representation of CONSTANT_String_info structure (JVM Spec Section 4.5.3).
+<FONT ID="LN">266 </FONT><A NAME="266"></A> */</FONT>
+<FONT ID="LN">267 </FONT><A NAME="267"></A>
+<FONT ID="LN">268 </FONT><A NAME="268"></A><FONT ID="Class">class</FONT> CLConstantStringInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">269 </FONT><A NAME="269"></A>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    <FONT ID="FormalComment">/** CONSTANT_String_info.string_index item. */</FONT>
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> stringIndex;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">274 </FONT><A NAME="274"></A>     * Constructs a CLConstantStringInfo object.
+<FONT ID="LN">275 </FONT><A NAME="275"></A>     * 
+<FONT ID="LN">276 </FONT><A NAME="276"></A>     * @param stringIndex
+<FONT ID="LN">277 </FONT><A NAME="277"></A>     *            CONSTANT_String_info.string_index item.
+<FONT ID="LN">278 </FONT><A NAME="278"></A>     */</FONT>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    <FONT ID="Public">public</FONT> CLConstantStringInfo(<FONT ID="Int">int</FONT> stringIndex) {
+<FONT ID="LN">281 </FONT><A NAME="281"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_String;
+<FONT ID="LN">282 </FONT><A NAME="282"></A>        <FONT ID="This">this</FONT>.stringIndex = stringIndex;
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    }
+<FONT ID="LN">284 </FONT><A NAME="284"></A>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">286 </FONT><A NAME="286"></A>     * {@inheritDoc}
+<FONT ID="LN">287 </FONT><A NAME="287"></A>     */</FONT>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">290 </FONT><A NAME="290"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">291 </FONT><A NAME="291"></A>        out.writeShort(stringIndex);
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    }
+<FONT ID="LN">293 </FONT><A NAME="293"></A>
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">295 </FONT><A NAME="295"></A>     * {@inheritDoc}
+<FONT ID="LN">296 </FONT><A NAME="296"></A>     */</FONT>
+<FONT ID="LN">297 </FONT><A NAME="297"></A>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantStringInfo) {
+<FONT ID="LN">300 </FONT><A NAME="300"></A>            CLConstantStringInfo c = (CLConstantStringInfo) obj;
+<FONT ID="LN">301 </FONT><A NAME="301"></A>            <FONT ID="If">if</FONT> (c.stringIndex == stringIndex) {
+<FONT ID="LN">302 </FONT><A NAME="302"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">303 </FONT><A NAME="303"></A>            }
+<FONT ID="LN">304 </FONT><A NAME="304"></A>        }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    }
+<FONT ID="LN">307 </FONT><A NAME="307"></A>
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">309 </FONT><A NAME="309"></A>     * {@inheritDoc}
+<FONT ID="LN">310 </FONT><A NAME="310"></A>     */</FONT>
+<FONT ID="LN">311 </FONT><A NAME="311"></A>
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">313 </FONT><A NAME="313"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">314 </FONT><A NAME="314"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"String"</FONT>, stringIndex);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    }
+<FONT ID="LN">316 </FONT><A NAME="316"></A>
+<FONT ID="LN">317 </FONT><A NAME="317"></A>}
+<FONT ID="LN">318 </FONT><A NAME="318"></A>
+<FONT ID="LN">319 </FONT><A NAME="319"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">320 </FONT><A NAME="320"></A> * Representation of CONSTANT_Integer_info structure (JVM Spec Section 4.5.4).
+<FONT ID="LN">321 </FONT><A NAME="321"></A> */</FONT>
+<FONT ID="LN">322 </FONT><A NAME="322"></A>
+<FONT ID="LN">323 </FONT><A NAME="323"></A><FONT ID="Class">class</FONT> CLConstantIntegerInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">324 </FONT><A NAME="324"></A>
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    <FONT ID="FormalComment">/** The int number. */</FONT>
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> i;
+<FONT ID="LN">327 </FONT><A NAME="327"></A>
+<FONT ID="LN">328 </FONT><A NAME="328"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">329 </FONT><A NAME="329"></A>     * Constructs a CLConstantIntegerInfo object.
+<FONT ID="LN">330 </FONT><A NAME="330"></A>     * 
+<FONT ID="LN">331 </FONT><A NAME="331"></A>     * @param i
+<FONT ID="LN">332 </FONT><A NAME="332"></A>     *            the int number.
+<FONT ID="LN">333 </FONT><A NAME="333"></A>     */</FONT>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    <FONT ID="Public">public</FONT> CLConstantIntegerInfo(<FONT ID="Int">int</FONT> i) {
+<FONT ID="LN">336 </FONT><A NAME="336"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_Integer;
+<FONT ID="LN">337 </FONT><A NAME="337"></A>        <FONT ID="This">this</FONT>.i = i;
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    }
+<FONT ID="LN">339 </FONT><A NAME="339"></A>
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">341 </FONT><A NAME="341"></A>     * Returns CONSTANT_Integer_info.bytes item.
+<FONT ID="LN">342 </FONT><A NAME="342"></A>     * 
+<FONT ID="LN">343 </FONT><A NAME="343"></A>     * @return CONSTANT_Integer_info.bytes item.
+<FONT ID="LN">344 </FONT><A NAME="344"></A>     */</FONT>
+<FONT ID="LN">345 </FONT><A NAME="345"></A>
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT>[] bytes() {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>        <FONT ID="Short">short</FONT>[] s = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">348 </FONT><A NAME="348"></A>        <FONT ID="Short">short</FONT> mask = <FONT ID="IntegerLiteral">0xFF</FONT>;
+<FONT ID="LN">349 </FONT><A NAME="349"></A>        <FONT ID="Int">int</FONT> k = i;
+<FONT ID="LN">350 </FONT><A NAME="350"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; <FONT ID="IntegerLiteral">4</FONT>; j++) {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>            s[<FONT ID="IntegerLiteral">3</FONT> - j] = (<FONT ID="Short">short</FONT>) (k &amp; mask);
+<FONT ID="LN">352 </FONT><A NAME="352"></A>            k &gt;&gt;&gt;= <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">353 </FONT><A NAME="353"></A>        }
+<FONT ID="LN">354 </FONT><A NAME="354"></A>        <FONT ID="Return">return</FONT> s;
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    }
+<FONT ID="LN">356 </FONT><A NAME="356"></A>
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">358 </FONT><A NAME="358"></A>     * {@inheritDoc}
+<FONT ID="LN">359 </FONT><A NAME="359"></A>     */</FONT>
+<FONT ID="LN">360 </FONT><A NAME="360"></A>
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">362 </FONT><A NAME="362"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">363 </FONT><A NAME="363"></A>
+<FONT ID="LN">364 </FONT><A NAME="364"></A>        <FONT ID="SingleLineComment">// out is cast to DataOutputStream to resolve the
+<FONT ID="LN">365 </FONT><A NAME="365"></A></FONT>        <FONT ID="SingleLineComment">// writeInt()
+<FONT ID="LN">366 </FONT><A NAME="366"></A></FONT>        <FONT ID="SingleLineComment">// ambiguity
+<FONT ID="LN">367 </FONT><A NAME="367"></A></FONT>        ((DataOutputStream) out).writeInt(i);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    }
+<FONT ID="LN">369 </FONT><A NAME="369"></A>
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">371 </FONT><A NAME="371"></A>     * {@inheritDoc}
+<FONT ID="LN">372 </FONT><A NAME="372"></A>     */</FONT>
+<FONT ID="LN">373 </FONT><A NAME="373"></A>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">375 </FONT><A NAME="375"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantIntegerInfo) {
+<FONT ID="LN">376 </FONT><A NAME="376"></A>            CLConstantIntegerInfo c = (CLConstantIntegerInfo) obj;
+<FONT ID="LN">377 </FONT><A NAME="377"></A>            <FONT ID="If">if</FONT> (c.i == i) {
+<FONT ID="LN">378 </FONT><A NAME="378"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">379 </FONT><A NAME="379"></A>            }
+<FONT ID="LN">380 </FONT><A NAME="380"></A>        }
+<FONT ID="LN">381 </FONT><A NAME="381"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    }
+<FONT ID="LN">383 </FONT><A NAME="383"></A>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">385 </FONT><A NAME="385"></A>     * {@inheritDoc}
+<FONT ID="LN">386 </FONT><A NAME="386"></A>     */</FONT>
+<FONT ID="LN">387 </FONT><A NAME="387"></A>
+<FONT ID="LN">388 </FONT><A NAME="388"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">389 </FONT><A NAME="389"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">390 </FONT><A NAME="390"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"Integer"</FONT>, i);
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    }
+<FONT ID="LN">392 </FONT><A NAME="392"></A>
+<FONT ID="LN">393 </FONT><A NAME="393"></A>}
+<FONT ID="LN">394 </FONT><A NAME="394"></A>
+<FONT ID="LN">395 </FONT><A NAME="395"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">396 </FONT><A NAME="396"></A> * Representation of CONSTANT_Float_info structure (JVM Spec Section 4.5.4).
+<FONT ID="LN">397 </FONT><A NAME="397"></A> */</FONT>
+<FONT ID="LN">398 </FONT><A NAME="398"></A>
+<FONT ID="LN">399 </FONT><A NAME="399"></A><FONT ID="Class">class</FONT> CLConstantFloatInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">400 </FONT><A NAME="400"></A>
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    <FONT ID="FormalComment">/** The floating-point number. */</FONT>
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> f;
+<FONT ID="LN">403 </FONT><A NAME="403"></A>
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">405 </FONT><A NAME="405"></A>     * Constructs a CLConstantFloatInfo object.
+<FONT ID="LN">406 </FONT><A NAME="406"></A>     * 
+<FONT ID="LN">407 </FONT><A NAME="407"></A>     * @param f
+<FONT ID="LN">408 </FONT><A NAME="408"></A>     *            the floating-point number.
+<FONT ID="LN">409 </FONT><A NAME="409"></A>     */</FONT>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    <FONT ID="Public">public</FONT> CLConstantFloatInfo(<FONT ID="Float">float</FONT> f) {
+<FONT ID="LN">412 </FONT><A NAME="412"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_Float;
+<FONT ID="LN">413 </FONT><A NAME="413"></A>        <FONT ID="This">this</FONT>.f = f;
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    }
+<FONT ID="LN">415 </FONT><A NAME="415"></A>
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">417 </FONT><A NAME="417"></A>     * Returns CONSTANT_Float_info.bytes item.
+<FONT ID="LN">418 </FONT><A NAME="418"></A>     * 
+<FONT ID="LN">419 </FONT><A NAME="419"></A>     * @return CONSTANT_Float_info.bytes item.
+<FONT ID="LN">420 </FONT><A NAME="420"></A>     */</FONT>
+<FONT ID="LN">421 </FONT><A NAME="421"></A>
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT>[] bytes() {
+<FONT ID="LN">423 </FONT><A NAME="423"></A>        <FONT ID="Short">short</FONT>[] s = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">424 </FONT><A NAME="424"></A>        <FONT ID="Short">short</FONT> mask = <FONT ID="IntegerLiteral">0xFF</FONT>;
+<FONT ID="LN">425 </FONT><A NAME="425"></A>        <FONT ID="Int">int</FONT> i = Float.floatToIntBits(f);
+<FONT ID="LN">426 </FONT><A NAME="426"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; <FONT ID="IntegerLiteral">4</FONT>; j++) {
+<FONT ID="LN">427 </FONT><A NAME="427"></A>            s[<FONT ID="IntegerLiteral">3</FONT> - j] = (<FONT ID="Short">short</FONT>) (i &amp; mask);
+<FONT ID="LN">428 </FONT><A NAME="428"></A>            i &gt;&gt;&gt;= <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">429 </FONT><A NAME="429"></A>        }
+<FONT ID="LN">430 </FONT><A NAME="430"></A>        <FONT ID="Return">return</FONT> s;
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    }
+<FONT ID="LN">432 </FONT><A NAME="432"></A>
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">434 </FONT><A NAME="434"></A>     * {@inheritDoc}
+<FONT ID="LN">435 </FONT><A NAME="435"></A>     */</FONT>
+<FONT ID="LN">436 </FONT><A NAME="436"></A>
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">438 </FONT><A NAME="438"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">439 </FONT><A NAME="439"></A>        out.writeFloat(f);
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    }
+<FONT ID="LN">441 </FONT><A NAME="441"></A>
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">443 </FONT><A NAME="443"></A>     * {@inheritDoc}
+<FONT ID="LN">444 </FONT><A NAME="444"></A>     */</FONT>
+<FONT ID="LN">445 </FONT><A NAME="445"></A>
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">447 </FONT><A NAME="447"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantFloatInfo) {
+<FONT ID="LN">448 </FONT><A NAME="448"></A>            CLConstantFloatInfo c = (CLConstantFloatInfo) obj;
+<FONT ID="LN">449 </FONT><A NAME="449"></A>            <FONT ID="If">if</FONT> (c.f == f) {
+<FONT ID="LN">450 </FONT><A NAME="450"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">451 </FONT><A NAME="451"></A>            }
+<FONT ID="LN">452 </FONT><A NAME="452"></A>        }
+<FONT ID="LN">453 </FONT><A NAME="453"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    }
+<FONT ID="LN">455 </FONT><A NAME="455"></A>
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">457 </FONT><A NAME="457"></A>     * {@inheritDoc}
+<FONT ID="LN">458 </FONT><A NAME="458"></A>     */</FONT>
+<FONT ID="LN">459 </FONT><A NAME="459"></A>
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">461 </FONT><A NAME="461"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">462 </FONT><A NAME="462"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"Float"</FONT>, f);
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    }
+<FONT ID="LN">464 </FONT><A NAME="464"></A>
+<FONT ID="LN">465 </FONT><A NAME="465"></A>}
+<FONT ID="LN">466 </FONT><A NAME="466"></A>
+<FONT ID="LN">467 </FONT><A NAME="467"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">468 </FONT><A NAME="468"></A> * Representation of CONSTANT_Long_info structure (JVM Spec Section 4.5.5).
+<FONT ID="LN">469 </FONT><A NAME="469"></A> */</FONT>
+<FONT ID="LN">470 </FONT><A NAME="470"></A>
+<FONT ID="LN">471 </FONT><A NAME="471"></A><FONT ID="Class">class</FONT> CLConstantLongInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">472 </FONT><A NAME="472"></A>
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    <FONT ID="FormalComment">/** The long number. */</FONT>
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> l;
+<FONT ID="LN">475 </FONT><A NAME="475"></A>
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">477 </FONT><A NAME="477"></A>     * Returns the 8 bytes of the {@code long} value.
+<FONT ID="LN">478 </FONT><A NAME="478"></A>     * 
+<FONT ID="LN">479 </FONT><A NAME="479"></A>     * @return the 8 bytes of the {@code long} value.
+<FONT ID="LN">480 </FONT><A NAME="480"></A>     */</FONT>
+<FONT ID="LN">481 </FONT><A NAME="481"></A>
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    <FONT ID="Private">private</FONT> <FONT ID="Short">short</FONT>[] bytes() {
+<FONT ID="LN">483 </FONT><A NAME="483"></A>        <FONT ID="Short">short</FONT>[] s = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">8</FONT>];
+<FONT ID="LN">484 </FONT><A NAME="484"></A>        <FONT ID="Short">short</FONT> mask = <FONT ID="IntegerLiteral">0xFF</FONT>;
+<FONT ID="LN">485 </FONT><A NAME="485"></A>        <FONT ID="Long">long</FONT> k = l;
+<FONT ID="LN">486 </FONT><A NAME="486"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; <FONT ID="IntegerLiteral">8</FONT>; j++) {
+<FONT ID="LN">487 </FONT><A NAME="487"></A>            s[<FONT ID="IntegerLiteral">7</FONT> - j] = (<FONT ID="Short">short</FONT>) (k &amp; mask);
+<FONT ID="LN">488 </FONT><A NAME="488"></A>            k &gt;&gt;&gt;= <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">489 </FONT><A NAME="489"></A>        }
+<FONT ID="LN">490 </FONT><A NAME="490"></A>        <FONT ID="Return">return</FONT> s;
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    }
+<FONT ID="LN">492 </FONT><A NAME="492"></A>
+<FONT ID="LN">493 </FONT><A NAME="493"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">494 </FONT><A NAME="494"></A>     * Constructs a CLConstantLongInfo object.
+<FONT ID="LN">495 </FONT><A NAME="495"></A>     * 
+<FONT ID="LN">496 </FONT><A NAME="496"></A>     * @param l
+<FONT ID="LN">497 </FONT><A NAME="497"></A>     *            the long number.
+<FONT ID="LN">498 </FONT><A NAME="498"></A>     */</FONT>
+<FONT ID="LN">499 </FONT><A NAME="499"></A>
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    <FONT ID="Public">public</FONT> CLConstantLongInfo(<FONT ID="Long">long</FONT> l) {
+<FONT ID="LN">501 </FONT><A NAME="501"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_Long;
+<FONT ID="LN">502 </FONT><A NAME="502"></A>        <FONT ID="This">this</FONT>.l = l;
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    }
+<FONT ID="LN">504 </FONT><A NAME="504"></A>
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">506 </FONT><A NAME="506"></A>     * Returns CONSTANT_Long_info.low_bytes item.
+<FONT ID="LN">507 </FONT><A NAME="507"></A>     * 
+<FONT ID="LN">508 </FONT><A NAME="508"></A>     * @return CONSTANT_Long_info.low_bytes item.
+<FONT ID="LN">509 </FONT><A NAME="509"></A>     */</FONT>
+<FONT ID="LN">510 </FONT><A NAME="510"></A>
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT>[] lowBytes() {
+<FONT ID="LN">512 </FONT><A NAME="512"></A>        <FONT ID="Short">short</FONT>[] s = bytes();
+<FONT ID="LN">513 </FONT><A NAME="513"></A>        <FONT ID="Short">short</FONT>[] l = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">514 </FONT><A NAME="514"></A>        l[<FONT ID="IntegerLiteral">0</FONT>] = s[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">515 </FONT><A NAME="515"></A>        l[<FONT ID="IntegerLiteral">1</FONT>] = s[<FONT ID="IntegerLiteral">5</FONT>];
+<FONT ID="LN">516 </FONT><A NAME="516"></A>        l[<FONT ID="IntegerLiteral">2</FONT>] = s[<FONT ID="IntegerLiteral">6</FONT>];
+<FONT ID="LN">517 </FONT><A NAME="517"></A>        l[<FONT ID="IntegerLiteral">3</FONT>] = s[<FONT ID="IntegerLiteral">7</FONT>];
+<FONT ID="LN">518 </FONT><A NAME="518"></A>        <FONT ID="Return">return</FONT> l;
+<FONT ID="LN">519 </FONT><A NAME="519"></A>    }
+<FONT ID="LN">520 </FONT><A NAME="520"></A>
+<FONT ID="LN">521 </FONT><A NAME="521"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">522 </FONT><A NAME="522"></A>     * Returns CONSTANT_Long_info.high_bytes item.
+<FONT ID="LN">523 </FONT><A NAME="523"></A>     * 
+<FONT ID="LN">524 </FONT><A NAME="524"></A>     * @return CONSTANT_Long_info.high_bytes item.
+<FONT ID="LN">525 </FONT><A NAME="525"></A>     */</FONT>
+<FONT ID="LN">526 </FONT><A NAME="526"></A>
+<FONT ID="LN">527 </FONT><A NAME="527"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT>[] highBytes() {
+<FONT ID="LN">528 </FONT><A NAME="528"></A>        <FONT ID="Short">short</FONT>[] s = bytes();
+<FONT ID="LN">529 </FONT><A NAME="529"></A>        <FONT ID="Short">short</FONT>[] h = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">530 </FONT><A NAME="530"></A>        h[<FONT ID="IntegerLiteral">0</FONT>] = s[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">531 </FONT><A NAME="531"></A>        h[<FONT ID="IntegerLiteral">1</FONT>] = s[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">532 </FONT><A NAME="532"></A>        h[<FONT ID="IntegerLiteral">2</FONT>] = s[<FONT ID="IntegerLiteral">2</FONT>];
+<FONT ID="LN">533 </FONT><A NAME="533"></A>        h[<FONT ID="IntegerLiteral">3</FONT>] = s[<FONT ID="IntegerLiteral">3</FONT>];
+<FONT ID="LN">534 </FONT><A NAME="534"></A>        <FONT ID="Return">return</FONT> h;
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    }
+<FONT ID="LN">536 </FONT><A NAME="536"></A>
+<FONT ID="LN">537 </FONT><A NAME="537"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">538 </FONT><A NAME="538"></A>     * {@inheritDoc}
+<FONT ID="LN">539 </FONT><A NAME="539"></A>     */</FONT>
+<FONT ID="LN">540 </FONT><A NAME="540"></A>
+<FONT ID="LN">541 </FONT><A NAME="541"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">542 </FONT><A NAME="542"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">543 </FONT><A NAME="543"></A>        out.writeLong(l);
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    }
+<FONT ID="LN">545 </FONT><A NAME="545"></A>
+<FONT ID="LN">546 </FONT><A NAME="546"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">547 </FONT><A NAME="547"></A>     * {@inheritDoc}
+<FONT ID="LN">548 </FONT><A NAME="548"></A>     */</FONT>
+<FONT ID="LN">549 </FONT><A NAME="549"></A>
+<FONT ID="LN">550 </FONT><A NAME="550"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">551 </FONT><A NAME="551"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantLongInfo) {
+<FONT ID="LN">552 </FONT><A NAME="552"></A>            CLConstantLongInfo c = (CLConstantLongInfo) obj;
+<FONT ID="LN">553 </FONT><A NAME="553"></A>            <FONT ID="If">if</FONT> (c.l == l) {
+<FONT ID="LN">554 </FONT><A NAME="554"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">555 </FONT><A NAME="555"></A>            }
+<FONT ID="LN">556 </FONT><A NAME="556"></A>        }
+<FONT ID="LN">557 </FONT><A NAME="557"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    }
+<FONT ID="LN">559 </FONT><A NAME="559"></A>
+<FONT ID="LN">560 </FONT><A NAME="560"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">561 </FONT><A NAME="561"></A>     * {@inheritDoc}
+<FONT ID="LN">562 </FONT><A NAME="562"></A>     */</FONT>
+<FONT ID="LN">563 </FONT><A NAME="563"></A>
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">565 </FONT><A NAME="565"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">566 </FONT><A NAME="566"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"Long"</FONT>, l);
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    }
+<FONT ID="LN">568 </FONT><A NAME="568"></A>
+<FONT ID="LN">569 </FONT><A NAME="569"></A>}
+<FONT ID="LN">570 </FONT><A NAME="570"></A>
+<FONT ID="LN">571 </FONT><A NAME="571"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">572 </FONT><A NAME="572"></A> * Representation of CONSTANT_Double_info structure (JVM Spec Section 4.5.5).
+<FONT ID="LN">573 </FONT><A NAME="573"></A> */</FONT>
+<FONT ID="LN">574 </FONT><A NAME="574"></A>
+<FONT ID="LN">575 </FONT><A NAME="575"></A><FONT ID="Class">class</FONT> CLConstantDoubleInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">576 </FONT><A NAME="576"></A>
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    <FONT ID="FormalComment">/** The double precision floating-point number. */</FONT>
+<FONT ID="LN">578 </FONT><A NAME="578"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> d;
+<FONT ID="LN">579 </FONT><A NAME="579"></A>
+<FONT ID="LN">580 </FONT><A NAME="580"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">581 </FONT><A NAME="581"></A>     * Returns the 8 bytes of the double precision floating-point value.
+<FONT ID="LN">582 </FONT><A NAME="582"></A>     * 
+<FONT ID="LN">583 </FONT><A NAME="583"></A>     * @return the 8 bytes of the double precision floating-point value.
+<FONT ID="LN">584 </FONT><A NAME="584"></A>     */</FONT>
+<FONT ID="LN">585 </FONT><A NAME="585"></A>
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    <FONT ID="Private">private</FONT> <FONT ID="Short">short</FONT>[] bytes() {
+<FONT ID="LN">587 </FONT><A NAME="587"></A>        <FONT ID="Short">short</FONT>[] s = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">8</FONT>];
+<FONT ID="LN">588 </FONT><A NAME="588"></A>        <FONT ID="Short">short</FONT> mask = <FONT ID="IntegerLiteral">0xFF</FONT>;
+<FONT ID="LN">589 </FONT><A NAME="589"></A>        <FONT ID="Long">long</FONT> l = Double.doubleToLongBits(d);
+<FONT ID="LN">590 </FONT><A NAME="590"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; <FONT ID="IntegerLiteral">8</FONT>; j++) {
+<FONT ID="LN">591 </FONT><A NAME="591"></A>            s[<FONT ID="IntegerLiteral">7</FONT> - j] = (<FONT ID="Short">short</FONT>) (l &amp; mask);
+<FONT ID="LN">592 </FONT><A NAME="592"></A>            l &gt;&gt;&gt;= <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">593 </FONT><A NAME="593"></A>        }
+<FONT ID="LN">594 </FONT><A NAME="594"></A>        <FONT ID="Return">return</FONT> s;
+<FONT ID="LN">595 </FONT><A NAME="595"></A>    }
+<FONT ID="LN">596 </FONT><A NAME="596"></A>
+<FONT ID="LN">597 </FONT><A NAME="597"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">598 </FONT><A NAME="598"></A>     * Constructs a CLConstantDoubleInfo object.
+<FONT ID="LN">599 </FONT><A NAME="599"></A>     * 
+<FONT ID="LN">600 </FONT><A NAME="600"></A>     * @param d
+<FONT ID="LN">601 </FONT><A NAME="601"></A>     *            the double precision floating-point number.
+<FONT ID="LN">602 </FONT><A NAME="602"></A>     */</FONT>
+<FONT ID="LN">603 </FONT><A NAME="603"></A>
+<FONT ID="LN">604 </FONT><A NAME="604"></A>    <FONT ID="Public">public</FONT> CLConstantDoubleInfo(<FONT ID="Double">double</FONT> d) {
+<FONT ID="LN">605 </FONT><A NAME="605"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_Double;
+<FONT ID="LN">606 </FONT><A NAME="606"></A>        <FONT ID="This">this</FONT>.d = d;
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    }
+<FONT ID="LN">608 </FONT><A NAME="608"></A>
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">610 </FONT><A NAME="610"></A>     * Returns CONSTANT_Double_info.low_bytes item.
+<FONT ID="LN">611 </FONT><A NAME="611"></A>     * 
+<FONT ID="LN">612 </FONT><A NAME="612"></A>     * @return CONSTANT_Double_info.low_bytes item.
+<FONT ID="LN">613 </FONT><A NAME="613"></A>     */</FONT>
+<FONT ID="LN">614 </FONT><A NAME="614"></A>
+<FONT ID="LN">615 </FONT><A NAME="615"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT>[] lowBytes() {
+<FONT ID="LN">616 </FONT><A NAME="616"></A>        <FONT ID="Short">short</FONT>[] s = bytes();
+<FONT ID="LN">617 </FONT><A NAME="617"></A>        <FONT ID="Short">short</FONT>[] l = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">618 </FONT><A NAME="618"></A>        l[<FONT ID="IntegerLiteral">0</FONT>] = s[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">619 </FONT><A NAME="619"></A>        l[<FONT ID="IntegerLiteral">1</FONT>] = s[<FONT ID="IntegerLiteral">5</FONT>];
+<FONT ID="LN">620 </FONT><A NAME="620"></A>        l[<FONT ID="IntegerLiteral">2</FONT>] = s[<FONT ID="IntegerLiteral">6</FONT>];
+<FONT ID="LN">621 </FONT><A NAME="621"></A>        l[<FONT ID="IntegerLiteral">3</FONT>] = s[<FONT ID="IntegerLiteral">7</FONT>];
+<FONT ID="LN">622 </FONT><A NAME="622"></A>        <FONT ID="Return">return</FONT> l;
+<FONT ID="LN">623 </FONT><A NAME="623"></A>    }
+<FONT ID="LN">624 </FONT><A NAME="624"></A>
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">626 </FONT><A NAME="626"></A>     * Returns CONSTANT_Double_info.high_bytes item.
+<FONT ID="LN">627 </FONT><A NAME="627"></A>     * 
+<FONT ID="LN">628 </FONT><A NAME="628"></A>     * @return CONSTANT_Double_info.high_bytes item.
+<FONT ID="LN">629 </FONT><A NAME="629"></A>     */</FONT>
+<FONT ID="LN">630 </FONT><A NAME="630"></A>
+<FONT ID="LN">631 </FONT><A NAME="631"></A>    <FONT ID="Public">public</FONT> <FONT ID="Short">short</FONT>[] highBytes() {
+<FONT ID="LN">632 </FONT><A NAME="632"></A>        <FONT ID="Short">short</FONT>[] s = bytes();
+<FONT ID="LN">633 </FONT><A NAME="633"></A>        <FONT ID="Short">short</FONT>[] h = <FONT ID="New">new</FONT> <FONT ID="Short">short</FONT>[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">634 </FONT><A NAME="634"></A>        h[<FONT ID="IntegerLiteral">0</FONT>] = s[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">635 </FONT><A NAME="635"></A>        h[<FONT ID="IntegerLiteral">1</FONT>] = s[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">636 </FONT><A NAME="636"></A>        h[<FONT ID="IntegerLiteral">2</FONT>] = s[<FONT ID="IntegerLiteral">2</FONT>];
+<FONT ID="LN">637 </FONT><A NAME="637"></A>        h[<FONT ID="IntegerLiteral">3</FONT>] = s[<FONT ID="IntegerLiteral">3</FONT>];
+<FONT ID="LN">638 </FONT><A NAME="638"></A>        <FONT ID="Return">return</FONT> h;
+<FONT ID="LN">639 </FONT><A NAME="639"></A>    }
+<FONT ID="LN">640 </FONT><A NAME="640"></A>
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">642 </FONT><A NAME="642"></A>     * {@inheritDoc}
+<FONT ID="LN">643 </FONT><A NAME="643"></A>     */</FONT>
+<FONT ID="LN">644 </FONT><A NAME="644"></A>
+<FONT ID="LN">645 </FONT><A NAME="645"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">646 </FONT><A NAME="646"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">647 </FONT><A NAME="647"></A>        out.writeDouble(d);
+<FONT ID="LN">648 </FONT><A NAME="648"></A>    }
+<FONT ID="LN">649 </FONT><A NAME="649"></A>
+<FONT ID="LN">650 </FONT><A NAME="650"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">651 </FONT><A NAME="651"></A>     * {@inheritDoc}
+<FONT ID="LN">652 </FONT><A NAME="652"></A>     */</FONT>
+<FONT ID="LN">653 </FONT><A NAME="653"></A>
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">655 </FONT><A NAME="655"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantDoubleInfo) {
+<FONT ID="LN">656 </FONT><A NAME="656"></A>            CLConstantDoubleInfo c = (CLConstantDoubleInfo) obj;
+<FONT ID="LN">657 </FONT><A NAME="657"></A>            <FONT ID="If">if</FONT> (c.d == d) {
+<FONT ID="LN">658 </FONT><A NAME="658"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">659 </FONT><A NAME="659"></A>            }
+<FONT ID="LN">660 </FONT><A NAME="660"></A>        }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">662 </FONT><A NAME="662"></A>    }
+<FONT ID="LN">663 </FONT><A NAME="663"></A>
+<FONT ID="LN">664 </FONT><A NAME="664"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">665 </FONT><A NAME="665"></A>     * {@inheritDoc}
+<FONT ID="LN">666 </FONT><A NAME="666"></A>     */</FONT>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>
+<FONT ID="LN">668 </FONT><A NAME="668"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">669 </FONT><A NAME="669"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">670 </FONT><A NAME="670"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"Double"</FONT>, d);
+<FONT ID="LN">671 </FONT><A NAME="671"></A>    }
+<FONT ID="LN">672 </FONT><A NAME="672"></A>
+<FONT ID="LN">673 </FONT><A NAME="673"></A>}
+<FONT ID="LN">674 </FONT><A NAME="674"></A>
+<FONT ID="LN">675 </FONT><A NAME="675"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">676 </FONT><A NAME="676"></A> * Representation of CONSTANT_NameAndType_info structure (JVM Spec Section
+<FONT ID="LN">677 </FONT><A NAME="677"></A> * 4.5.6).
+<FONT ID="LN">678 </FONT><A NAME="678"></A> */</FONT>
+<FONT ID="LN">679 </FONT><A NAME="679"></A>
+<FONT ID="LN">680 </FONT><A NAME="680"></A><FONT ID="Class">class</FONT> CLConstantNameAndTypeInfo <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">681 </FONT><A NAME="681"></A>
+<FONT ID="LN">682 </FONT><A NAME="682"></A>    <FONT ID="FormalComment">/** CONSTANT_NameAndType_info.name_index item. */</FONT>
+<FONT ID="LN">683 </FONT><A NAME="683"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nameIndex;
+<FONT ID="LN">684 </FONT><A NAME="684"></A>
+<FONT ID="LN">685 </FONT><A NAME="685"></A>    <FONT ID="FormalComment">/** CONSTANT_NameAndType_info.descriptor_index item. */</FONT>
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> descriptorIndex;
+<FONT ID="LN">687 </FONT><A NAME="687"></A>
+<FONT ID="LN">688 </FONT><A NAME="688"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">689 </FONT><A NAME="689"></A>     * Constructs a CLConstantNameAndTypeInfo object.
+<FONT ID="LN">690 </FONT><A NAME="690"></A>     * 
+<FONT ID="LN">691 </FONT><A NAME="691"></A>     * @param nameIndex
+<FONT ID="LN">692 </FONT><A NAME="692"></A>     *            CONSTANT_NameAndType_info.name_index item.
+<FONT ID="LN">693 </FONT><A NAME="693"></A>     * @param descriptorIndex
+<FONT ID="LN">694 </FONT><A NAME="694"></A>     *            CONSTANT_NameAndType_info.descriptor_index item.
+<FONT ID="LN">695 </FONT><A NAME="695"></A>     */</FONT>
+<FONT ID="LN">696 </FONT><A NAME="696"></A>
+<FONT ID="LN">697 </FONT><A NAME="697"></A>    <FONT ID="Public">public</FONT> CLConstantNameAndTypeInfo(<FONT ID="Int">int</FONT> nameIndex, <FONT ID="Int">int</FONT> descriptorIndex) {
+<FONT ID="LN">698 </FONT><A NAME="698"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_NameAndType;
+<FONT ID="LN">699 </FONT><A NAME="699"></A>        <FONT ID="This">this</FONT>.nameIndex = nameIndex;
+<FONT ID="LN">700 </FONT><A NAME="700"></A>        <FONT ID="This">this</FONT>.descriptorIndex = descriptorIndex;
+<FONT ID="LN">701 </FONT><A NAME="701"></A>    }
+<FONT ID="LN">702 </FONT><A NAME="702"></A>
+<FONT ID="LN">703 </FONT><A NAME="703"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">704 </FONT><A NAME="704"></A>     * {@inheritDoc}
+<FONT ID="LN">705 </FONT><A NAME="705"></A>     */</FONT>
+<FONT ID="LN">706 </FONT><A NAME="706"></A>
+<FONT ID="LN">707 </FONT><A NAME="707"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">708 </FONT><A NAME="708"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">709 </FONT><A NAME="709"></A>        out.writeShort(nameIndex);
+<FONT ID="LN">710 </FONT><A NAME="710"></A>        out.writeShort(descriptorIndex);
+<FONT ID="LN">711 </FONT><A NAME="711"></A>    }
+<FONT ID="LN">712 </FONT><A NAME="712"></A>
+<FONT ID="LN">713 </FONT><A NAME="713"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">714 </FONT><A NAME="714"></A>     * {@inheritDoc}
+<FONT ID="LN">715 </FONT><A NAME="715"></A>     */</FONT>
+<FONT ID="LN">716 </FONT><A NAME="716"></A>
+<FONT ID="LN">717 </FONT><A NAME="717"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">718 </FONT><A NAME="718"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantNameAndTypeInfo) {
+<FONT ID="LN">719 </FONT><A NAME="719"></A>            CLConstantNameAndTypeInfo c = (CLConstantNameAndTypeInfo) obj;
+<FONT ID="LN">720 </FONT><A NAME="720"></A>            <FONT ID="If">if</FONT> ((c.nameIndex == nameIndex)
+<FONT ID="LN">721 </FONT><A NAME="721"></A>                    &amp;&amp; (c.descriptorIndex == descriptorIndex)) {
+<FONT ID="LN">722 </FONT><A NAME="722"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">723 </FONT><A NAME="723"></A>            }
+<FONT ID="LN">724 </FONT><A NAME="724"></A>        }
+<FONT ID="LN">725 </FONT><A NAME="725"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">726 </FONT><A NAME="726"></A>    }
+<FONT ID="LN">727 </FONT><A NAME="727"></A>
+<FONT ID="LN">728 </FONT><A NAME="728"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">729 </FONT><A NAME="729"></A>     * {@inheritDoc}
+<FONT ID="LN">730 </FONT><A NAME="730"></A>     */</FONT>
+<FONT ID="LN">731 </FONT><A NAME="731"></A>
+<FONT ID="LN">732 </FONT><A NAME="732"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">733 </FONT><A NAME="733"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">734 </FONT><A NAME="734"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%-8s%-8s\n"</FONT>, <FONT ID="StringLiteral">"NameAndType"</FONT>, nameIndex, descriptorIndex);
+<FONT ID="LN">735 </FONT><A NAME="735"></A>    }
+<FONT ID="LN">736 </FONT><A NAME="736"></A>
+<FONT ID="LN">737 </FONT><A NAME="737"></A>}
+<FONT ID="LN">738 </FONT><A NAME="738"></A>
+<FONT ID="LN">739 </FONT><A NAME="739"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">740 </FONT><A NAME="740"></A> * Representation of CONSTANT_Utf8_info structure (JVM Spec Section 4.5.7).
+<FONT ID="LN">741 </FONT><A NAME="741"></A> */</FONT>
+<FONT ID="LN">742 </FONT><A NAME="742"></A>
+<FONT ID="LN">743 </FONT><A NAME="743"></A><FONT ID="Class">class</FONT> CLConstantUtf8Info <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/CLCPInfo.java.html">CLCPInfo</A> {
+<FONT ID="LN">744 </FONT><A NAME="744"></A>
+<FONT ID="LN">745 </FONT><A NAME="745"></A>    <FONT ID="FormalComment">/** CONSTANT_Utf8_info.bytes item. */</FONT>
+<FONT ID="LN">746 </FONT><A NAME="746"></A>    <FONT ID="Public">public</FONT> <FONT ID="Byte">byte</FONT>[] b;
+<FONT ID="LN">747 </FONT><A NAME="747"></A>
+<FONT ID="LN">748 </FONT><A NAME="748"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">749 </FONT><A NAME="749"></A>     * Constructs a CLConstantUtf8Info object.
+<FONT ID="LN">750 </FONT><A NAME="750"></A>     * 
+<FONT ID="LN">751 </FONT><A NAME="751"></A>     * @param b
+<FONT ID="LN">752 </FONT><A NAME="752"></A>     *            a constant string value.
+<FONT ID="LN">753 </FONT><A NAME="753"></A>     */</FONT>
+<FONT ID="LN">754 </FONT><A NAME="754"></A>
+<FONT ID="LN">755 </FONT><A NAME="755"></A>    <FONT ID="Public">public</FONT> CLConstantUtf8Info(<FONT ID="Byte">byte</FONT>[] b) {
+<FONT ID="LN">756 </FONT><A NAME="756"></A>        <FONT ID="Super">super</FONT>.tag = CONSTANT_Utf8;
+<FONT ID="LN">757 </FONT><A NAME="757"></A>        <FONT ID="This">this</FONT>.b = b;
+<FONT ID="LN">758 </FONT><A NAME="758"></A>    }
+<FONT ID="LN">759 </FONT><A NAME="759"></A>
+<FONT ID="LN">760 </FONT><A NAME="760"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">761 </FONT><A NAME="761"></A>     * Returns CONSTANT_Utf8_info.length item.
+<FONT ID="LN">762 </FONT><A NAME="762"></A>     * 
+<FONT ID="LN">763 </FONT><A NAME="763"></A>     * @return CONSTANT_Utf8_info.length item.
+<FONT ID="LN">764 </FONT><A NAME="764"></A>     */</FONT>
+<FONT ID="LN">765 </FONT><A NAME="765"></A>
+<FONT ID="LN">766 </FONT><A NAME="766"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> length() {
+<FONT ID="LN">767 </FONT><A NAME="767"></A>        <FONT ID="Return">return</FONT> b.length;
+<FONT ID="LN">768 </FONT><A NAME="768"></A>    }
+<FONT ID="LN">769 </FONT><A NAME="769"></A>
+<FONT ID="LN">770 </FONT><A NAME="770"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">771 </FONT><A NAME="771"></A>     * {@inheritDoc}
+<FONT ID="LN">772 </FONT><A NAME="772"></A>     */</FONT>
+<FONT ID="LN">773 </FONT><A NAME="773"></A>
+<FONT ID="LN">774 </FONT><A NAME="774"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">775 </FONT><A NAME="775"></A>        <FONT ID="Super">super</FONT>.write(out);
+<FONT ID="LN">776 </FONT><A NAME="776"></A>        out.writeUTF(<FONT ID="New">new</FONT> String(b));
+<FONT ID="LN">777 </FONT><A NAME="777"></A>    }
+<FONT ID="LN">778 </FONT><A NAME="778"></A>
+<FONT ID="LN">779 </FONT><A NAME="779"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">780 </FONT><A NAME="780"></A>     * {@inheritDoc}
+<FONT ID="LN">781 </FONT><A NAME="781"></A>     */</FONT>
+<FONT ID="LN">782 </FONT><A NAME="782"></A>
+<FONT ID="LN">783 </FONT><A NAME="783"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">784 </FONT><A NAME="784"></A>        <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> CLConstantUtf8Info) {
+<FONT ID="LN">785 </FONT><A NAME="785"></A>            CLConstantUtf8Info c = (CLConstantUtf8Info) obj;
+<FONT ID="LN">786 </FONT><A NAME="786"></A>            <FONT ID="If">if</FONT> ((<FONT ID="New">new</FONT> String(b)).equals(<FONT ID="New">new</FONT> String(c.b))) {
+<FONT ID="LN">787 </FONT><A NAME="787"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">788 </FONT><A NAME="788"></A>            }
+<FONT ID="LN">789 </FONT><A NAME="789"></A>        }
+<FONT ID="LN">790 </FONT><A NAME="790"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">791 </FONT><A NAME="791"></A>    }
+<FONT ID="LN">792 </FONT><A NAME="792"></A>
+<FONT ID="LN">793 </FONT><A NAME="793"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">794 </FONT><A NAME="794"></A>     * {@inheritDoc}
+<FONT ID="LN">795 </FONT><A NAME="795"></A>     */</FONT>
+<FONT ID="LN">796 </FONT><A NAME="796"></A>
+<FONT ID="LN">797 </FONT><A NAME="797"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">798 </FONT><A NAME="798"></A>        <FONT ID="Super">super</FONT>.writeToStdOut(p);
+<FONT ID="LN">799 </FONT><A NAME="799"></A>        p.printf(<FONT ID="StringLiteral">"%-20s%s\n"</FONT>, <FONT ID="StringLiteral">"Utf8"</FONT>, <FONT ID="New">new</FONT> String(b));
+<FONT ID="LN">800 </FONT><A NAME="800"></A>    }
+<FONT ID="LN">801 </FONT><A NAME="801"></A>
+<FONT ID="LN">802 </FONT><A NAME="802"></A>}
+<FONT ID="LN">803 </FONT><A NAME="803"></A></pre>
+</BODY>
+</HTML>

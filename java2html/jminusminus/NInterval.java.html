@@ -1,0 +1,692 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>jminusminus.NInterval (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">NInterval.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Copyright 2013 Bill Campbell, Swami Iyer and Bahar Akbal-Delibas
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Package">package</FONT> jminusminus;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.util.Collections;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> java.util.TreeMap;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> jminusminus.NPhysicalRegister.*;
+<FONT ID="LN">10  </FONT><A NAME="10"></A>
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * A lifetime interval, recording the interval of LIR code for which the
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * corresponding virtual register contains a useful value.
+<FONT ID="LN">14  </FONT><A NAME="14"></A> */</FONT>
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Class">class</FONT> NInterval <FONT ID="Implements">implements</FONT> Comparable&lt;<A HREF="../jminusminus/NInterval.java.html">NInterval</A>&gt; {
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    <FONT ID="FormalComment">/** Control flow graph instance. */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    <FONT ID="Private">private</FONT> <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">22  </FONT><A NAME="22"></A>     * The virtual register id corresponding to the index in the array list of
+<FONT ID="LN">23  </FONT><A NAME="23"></A>     * NIntervals used by register allocation
+<FONT ID="LN">24  </FONT><A NAME="24"></A>     */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> vRegId;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="FormalComment">/** All live ranges for this virtual register */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;NRange&gt; ranges;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A>     * All use positions (in LIR) and their types for this virtual register
+<FONT ID="LN">32  </FONT><A NAME="32"></A>     */</FONT>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="Public">public</FONT> TreeMap&lt;Integer, InstructionType&gt; usePositions;
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">36  </FONT><A NAME="36"></A>     * The NPhyicalRegister assigned to this interval. If an interval ends up
+<FONT ID="LN">37  </FONT><A NAME="37"></A>     * needing more than one physical register it is split.
+<FONT ID="LN">38  </FONT><A NAME="38"></A>     */</FONT>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    <FONT ID="Public">public</FONT> NPhysicalRegister pRegister;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="FormalComment">/** Whether or not to spill. */</FONT>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> spill;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="FormalComment">/** From offset. */</FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="Public">public</FONT> OffsetFrom offsetFrom;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    <FONT ID="FormalComment">/** Offset. */</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> offset;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="FormalComment">/** Parent of this interval. */</FONT>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A> parent;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="FormalComment">/** Children of this interval. */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;<A HREF="../jminusminus/NInterval.java.html">NInterval</A>&gt; children;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">57  </FONT><A NAME="57"></A>     * Constructs a NInterval with the given virtual register ID for the given
+<FONT ID="LN">58  </FONT><A NAME="58"></A>     * control flow graph.
+<FONT ID="LN">59  </FONT><A NAME="59"></A>     * 
+<FONT ID="LN">60  </FONT><A NAME="60"></A>     * @param virtualRegID
+<FONT ID="LN">61  </FONT><A NAME="61"></A>     *            program counter.
+<FONT ID="LN">62  </FONT><A NAME="62"></A>     * @param cfg
+<FONT ID="LN">63  </FONT><A NAME="63"></A>     *            The control flow graph.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>     */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Public">public</FONT> NInterval(<FONT ID="Int">int</FONT> virtualRegID, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg) {
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        <FONT ID="This">this</FONT>.cfg = cfg;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        <FONT ID="This">this</FONT>.ranges = <FONT ID="New">new</FONT> ArrayList&lt;NRange&gt;();
+<FONT ID="LN">69  </FONT><A NAME="69"></A>        <FONT ID="This">this</FONT>.usePositions = <FONT ID="New">new</FONT> TreeMap&lt;Integer, InstructionType&gt;();
+<FONT ID="LN">70  </FONT><A NAME="70"></A>        <FONT ID="This">this</FONT>.vRegId = virtualRegID;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>        <FONT ID="This">this</FONT>.children = <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../jminusminus/NInterval.java.html">NInterval</A>&gt;();
+<FONT ID="LN">72  </FONT><A NAME="72"></A>        <FONT ID="This">this</FONT>.parent = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>        spill = <FONT ID="False">false</FONT>;
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        offset = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    }
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">78  </FONT><A NAME="78"></A>     * This second constructor is used in instantiating children of a split
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     * interval.
+<FONT ID="LN">80  </FONT><A NAME="80"></A>     * 
+<FONT ID="LN">81  </FONT><A NAME="81"></A>     * @param virtualRegID
+<FONT ID="LN">82  </FONT><A NAME="82"></A>     *            program counter.
+<FONT ID="LN">83  </FONT><A NAME="83"></A>     * @param cfg
+<FONT ID="LN">84  </FONT><A NAME="84"></A>     *            The control flow graph.
+<FONT ID="LN">85  </FONT><A NAME="85"></A>     * @param childRanges
+<FONT ID="LN">86  </FONT><A NAME="86"></A>     *            The instruction ranges for this child.
+<FONT ID="LN">87  </FONT><A NAME="87"></A>     * @param parent
+<FONT ID="LN">88  </FONT><A NAME="88"></A>     *            The parent interval.
+<FONT ID="LN">89  </FONT><A NAME="89"></A>     */</FONT>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="Public">public</FONT> NInterval(<FONT ID="Int">int</FONT> virtualRegID, <A HREF="../jminusminus/NControlFlowGraph.java.html">NControlFlowGraph</A> cfg,
+<FONT ID="LN">92  </FONT><A NAME="92"></A>            ArrayList&lt;NRange&gt; childRanges, <A HREF="../jminusminus/NInterval.java.html">NInterval</A> parent) {
+<FONT ID="LN">93  </FONT><A NAME="93"></A>        <FONT ID="This">this</FONT>.cfg = cfg;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        <FONT ID="This">this</FONT>.ranges = childRanges;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>        <FONT ID="This">this</FONT>.usePositions = <FONT ID="New">new</FONT> TreeMap&lt;Integer, InstructionType&gt;();
+<FONT ID="LN">96  </FONT><A NAME="96"></A>        <FONT ID="This">this</FONT>.vRegId = virtualRegID;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>        <FONT ID="This">this</FONT>.parent = parent;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>        <FONT ID="This">this</FONT>.children = <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../jminusminus/NInterval.java.html">NInterval</A>&gt;();
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        spill = <FONT ID="False">false</FONT>;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        offset = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">104 </FONT><A NAME="104"></A>     * Adds a new range to the existing ranges. If the range overlaps then
+<FONT ID="LN">105 </FONT><A NAME="105"></A>     * the old start position will be given the new start range position.
+<FONT ID="LN">106 </FONT><A NAME="106"></A>     * 
+<FONT ID="LN">107 </FONT><A NAME="107"></A>     * @param newNRange
+<FONT ID="LN">108 </FONT><A NAME="108"></A>     *            the NRange to add
+<FONT ID="LN">109 </FONT><A NAME="109"></A>     */</FONT>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addOrExtendNRange(NRange newNRange) {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>        <FONT ID="If">if</FONT> (!ranges.isEmpty()) {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>            <FONT ID="If">if</FONT> (newNRange.stop + <FONT ID="IntegerLiteral">5</FONT> == ranges.get(<FONT ID="IntegerLiteral">0</FONT>).start
+<FONT ID="LN">114 </FONT><A NAME="114"></A>                    || newNRange.rangeOverlaps(ranges.get(<FONT ID="IntegerLiteral">0</FONT>))) {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>                ranges.get(<FONT ID="IntegerLiteral">0</FONT>).start = newNRange.start;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>            } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>                ranges.add(<FONT ID="IntegerLiteral">0</FONT>, newNRange);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>            }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">120 </FONT><A NAME="120"></A>            ranges.add(newNRange);
+<FONT ID="LN">121 </FONT><A NAME="121"></A>        }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    }
+<FONT ID="LN">123 </FONT><A NAME="123"></A>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">125 </FONT><A NAME="125"></A>     * Looks for the very first position where an intersection with another
+<FONT ID="LN">126 </FONT><A NAME="126"></A>     * interval occurs.
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     * 
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     * NOTE: A.nextIntersection(B) equals B.nextIntersection(A)
+<FONT ID="LN">129 </FONT><A NAME="129"></A>     * 
+<FONT ID="LN">130 </FONT><A NAME="130"></A>     * @param otherInterval
+<FONT ID="LN">131 </FONT><A NAME="131"></A>     *            the interval to compare against for intersection.
+<FONT ID="LN">132 </FONT><A NAME="132"></A>     * @return the position where the intersection begins.
+<FONT ID="LN">133 </FONT><A NAME="133"></A>     */</FONT>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nextIntersection(<A HREF="../jminusminus/NInterval.java.html">NInterval</A> otherInterval) {
+<FONT ID="LN">136 </FONT><A NAME="136"></A>        <FONT ID="Int">int</FONT> a = -<FONT ID="IntegerLiteral">1</FONT>, b = -<FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        <FONT ID="For">for</FONT> (NRange r : <FONT ID="This">this</FONT>.ranges) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>            <FONT ID="If">if</FONT> (otherInterval.isLiveAt(r.start)) {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>                a = r.start;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>                <FONT ID="Break">break</FONT>;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>            }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>        }
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        <FONT ID="For">for</FONT> (NRange r : otherInterval.ranges) {
+<FONT ID="LN">144 </FONT><A NAME="144"></A>            <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.isLiveAt(r.start)) {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>                b = r.start;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>                <FONT ID="Break">break</FONT>;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>            }
+<FONT ID="LN">148 </FONT><A NAME="148"></A>        }
+<FONT ID="LN">149 </FONT><A NAME="149"></A>        <FONT ID="If">if</FONT> (a &gt;= <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; b &gt;= <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>            <FONT ID="Return">return</FONT> a &lt;= b ? a : b;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">152 </FONT><A NAME="152"></A>            <FONT ID="Return">return</FONT> a &gt; b ? a : b;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    }
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">157 </FONT><A NAME="157"></A>     * Returns the next use position of this interval after the first range 
+<FONT ID="LN">158 </FONT><A NAME="158"></A>     * start of the foreign interval. If there is no such use, then the first 
+<FONT ID="LN">159 </FONT><A NAME="159"></A>     * use position is returned to preserve data flow (in case of loops).
+<FONT ID="LN">160 </FONT><A NAME="160"></A>     * 
+<FONT ID="LN">161 </FONT><A NAME="161"></A>     * @param currInterval
+<FONT ID="LN">162 </FONT><A NAME="162"></A>     *            the interval with starting point after which we want to find
+<FONT ID="LN">163 </FONT><A NAME="163"></A>     *            the next usage of this one.
+<FONT ID="LN">164 </FONT><A NAME="164"></A>     * 
+<FONT ID="LN">165 </FONT><A NAME="165"></A>     * @return the next use position.
+<FONT ID="LN">166 </FONT><A NAME="166"></A>     * 
+<FONT ID="LN">167 </FONT><A NAME="167"></A>     */</FONT>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nextUsageOverlapping(<A HREF="../jminusminus/NInterval.java.html">NInterval</A> currInterval) {
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        <FONT ID="Int">int</FONT> psi = currInterval.firstRangeStart();
+<FONT ID="LN">171 </FONT><A NAME="171"></A>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>        <FONT ID="If">if</FONT> (usePositions.ceilingKey(psi) != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">173 </FONT><A NAME="173"></A>            <FONT ID="Return">return</FONT> usePositions.ceilingKey(psi);
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (!usePositions.isEmpty()) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>            <FONT ID="Return">return</FONT> usePositions.firstKey();
+<FONT ID="LN">176 </FONT><A NAME="176"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">177 </FONT><A NAME="177"></A>            <FONT ID="Return">return</FONT> Integer.MAX_VALUE;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>        }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">182 </FONT><A NAME="182"></A>     * Returns the first use position in this interval.
+<FONT ID="LN">183 </FONT><A NAME="183"></A>     * 
+<FONT ID="LN">184 </FONT><A NAME="184"></A>     * @return the first use position.
+<FONT ID="LN">185 </FONT><A NAME="185"></A>     */</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> firstUsage() {
+<FONT ID="LN">188 </FONT><A NAME="188"></A>        <FONT ID="Return">return</FONT> usePositions.firstKey();
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    }
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">192 </FONT><A NAME="192"></A>     * Sets the start value of the very first range. Note: There will always be
+<FONT ID="LN">193 </FONT><A NAME="193"></A>     * at least one range before this method is used by the
+<FONT ID="LN">194 </FONT><A NAME="194"></A>     * {@link NRegisterAllocator#buildIntervals() buildIntervals} method.
+<FONT ID="LN">195 </FONT><A NAME="195"></A>     * 
+<FONT ID="LN">196 </FONT><A NAME="196"></A>     * @param newStart
+<FONT ID="LN">197 </FONT><A NAME="197"></A>     *            the value to which the first range's start will be set.
+<FONT ID="LN">198 </FONT><A NAME="198"></A>     */</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> newFirstRangeStart(<FONT ID="Int">int</FONT> newStart) {
+<FONT ID="LN">200 </FONT><A NAME="200"></A>        <FONT ID="SingleLineComment">// Check
+<FONT ID="LN">201 </FONT><A NAME="201"></A></FONT>        <FONT ID="If">if</FONT> (!ranges.isEmpty()) {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>            ranges.get(<FONT ID="IntegerLiteral">0</FONT>).start = newStart;
+<FONT ID="LN">203 </FONT><A NAME="203"></A>        }
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    }
+<FONT ID="LN">205 </FONT><A NAME="205"></A>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">207 </FONT><A NAME="207"></A>     * Registers a use (read or write).
+<FONT ID="LN">208 </FONT><A NAME="208"></A>     * 
+<FONT ID="LN">209 </FONT><A NAME="209"></A>     * @param index
+<FONT ID="LN">210 </FONT><A NAME="210"></A>     *            the site of the use.
+<FONT ID="LN">211 </FONT><A NAME="211"></A>     * @param type
+<FONT ID="LN">212 </FONT><A NAME="212"></A>     *            the instruction type.
+<FONT ID="LN">213 </FONT><A NAME="213"></A>     */</FONT>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addUsePosition(Integer index, InstructionType type) {
+<FONT ID="LN">216 </FONT><A NAME="216"></A>        usePositions.put(index, type);
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    }
+<FONT ID="LN">218 </FONT><A NAME="218"></A>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">220 </FONT><A NAME="220"></A>     * Checks if this virtual register is alive at a given index.
+<FONT ID="LN">221 </FONT><A NAME="221"></A>     * 
+<FONT ID="LN">222 </FONT><A NAME="222"></A>     * @param atIndex
+<FONT ID="LN">223 </FONT><A NAME="223"></A>     *            the index at which to see if this register is live.
+<FONT ID="LN">224 </FONT><A NAME="224"></A>     * @return {@code true} if this virtual register is alive at the given 
+<FONT ID="LN">225 </FONT><A NAME="225"></A>     *         index; {@code false} otherwise.
+<FONT ID="LN">226 </FONT><A NAME="226"></A>     */</FONT>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isLiveAt(<FONT ID="Int">int</FONT> atIndex) {
+<FONT ID="LN">229 </FONT><A NAME="229"></A>        <FONT ID="For">for</FONT> (NRange r : ranges) {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>            <FONT ID="If">if</FONT> (atIndex &gt;= r.start &amp;&amp; atIndex &lt;= r.stop) {
+<FONT ID="LN">231 </FONT><A NAME="231"></A>                <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>            }
+<FONT ID="LN">233 </FONT><A NAME="233"></A>        }
+<FONT ID="LN">234 </FONT><A NAME="234"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    }
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">238 </FONT><A NAME="238"></A>     * Returns the range in this interval in which the LIR instruction with the 
+<FONT ID="LN">239 </FONT><A NAME="239"></A>     * given id is live; {@code null} otherwise. This will never return 
+<FONT ID="LN">240 </FONT><A NAME="240"></A>     * {@code null} if called for an interval from the active list after it has 
+<FONT ID="LN">241 </FONT><A NAME="241"></A>     * been set up by the allocation method.
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     * 
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     * @param id
+<FONT ID="LN">244 </FONT><A NAME="244"></A>     *            LIR instruction id.
+<FONT ID="LN">245 </FONT><A NAME="245"></A>     * @return range in which LIR instruction with given id is live, or null.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>     */</FONT>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <FONT ID="Private">private</FONT> NRange liveRangeAt(<FONT ID="Int">int</FONT> id) {
+<FONT ID="LN">249 </FONT><A NAME="249"></A>        <FONT ID="For">for</FONT> (NRange r : ranges) {
+<FONT ID="LN">250 </FONT><A NAME="250"></A>            <FONT ID="If">if</FONT> (id &gt;= r.start &amp;&amp; id &lt;= r.stop) {
+<FONT ID="LN">251 </FONT><A NAME="251"></A>                <FONT ID="Return">return</FONT> r;
+<FONT ID="LN">252 </FONT><A NAME="252"></A>            }
+<FONT ID="LN">253 </FONT><A NAME="253"></A>        }
+<FONT ID="LN">254 </FONT><A NAME="254"></A>        <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    }
+<FONT ID="LN">256 </FONT><A NAME="256"></A>
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">258 </FONT><A NAME="258"></A>     * Writes the interval information to STDOUT.
+<FONT ID="LN">259 </FONT><A NAME="259"></A>     * 
+<FONT ID="LN">260 </FONT><A NAME="260"></A>     * @param p
+<FONT ID="LN">261 </FONT><A NAME="261"></A>     *            for pretty printing with indentation.
+<FONT ID="LN">262 </FONT><A NAME="262"></A>     */</FONT>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>        <FONT ID="If">if</FONT> (cfg.registers.get(vRegId) != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>            String s = cfg.registers.get(vRegId).name() + <FONT ID="StringLiteral">": "</FONT>;
+<FONT ID="LN">267 </FONT><A NAME="267"></A>            <FONT ID="For">for</FONT> (NRange r : ranges) {
+<FONT ID="LN">268 </FONT><A NAME="268"></A>                s += r.toString() + <FONT ID="StringLiteral">" "</FONT>;
+<FONT ID="LN">269 </FONT><A NAME="269"></A>            }
+<FONT ID="LN">270 </FONT><A NAME="270"></A>            <FONT ID="If">if</FONT> (pRegister != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">271 </FONT><A NAME="271"></A>                s += <FONT ID="StringLiteral">"-&gt; "</FONT> + pRegister.name();
+<FONT ID="LN">272 </FONT><A NAME="272"></A>            } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">273 </FONT><A NAME="273"></A>                s += <FONT ID="StringLiteral">"-&gt; None"</FONT>;
+<FONT ID="LN">274 </FONT><A NAME="274"></A>            }
+<FONT ID="LN">275 </FONT><A NAME="275"></A>            <FONT ID="If">if</FONT> (spill) {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>                <FONT ID="If">if</FONT> (offsetFrom == OffsetFrom.FP) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>                    s += <FONT ID="StringLiteral">" [frame:"</FONT> + offset + <FONT ID="StringLiteral">"]"</FONT>;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>                } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">279 </FONT><A NAME="279"></A>                    s += <FONT ID="StringLiteral">" [stack:"</FONT> + offset + <FONT ID="StringLiteral">"]"</FONT>;
+<FONT ID="LN">280 </FONT><A NAME="280"></A>                }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>            }
+<FONT ID="LN">282 </FONT><A NAME="282"></A>            p.printf(<FONT ID="StringLiteral">"%s\n"</FONT>, s);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>            <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : <FONT ID="This">this</FONT>.children) {
+<FONT ID="LN">284 </FONT><A NAME="284"></A>                child.writeToStdOut(p);
+<FONT ID="LN">285 </FONT><A NAME="285"></A>            }
+<FONT ID="LN">286 </FONT><A NAME="286"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.isChild()) {
+<FONT ID="LN">287 </FONT><A NAME="287"></A>            String s = <FONT ID="StringLiteral">"\tv"</FONT> + <FONT ID="This">this</FONT>.vRegId + <FONT ID="StringLiteral">": "</FONT>;
+<FONT ID="LN">288 </FONT><A NAME="288"></A>            <FONT ID="For">for</FONT> (NRange r : ranges) {
+<FONT ID="LN">289 </FONT><A NAME="289"></A>                s += r.toString() + <FONT ID="StringLiteral">" "</FONT>;
+<FONT ID="LN">290 </FONT><A NAME="290"></A>            }
+<FONT ID="LN">291 </FONT><A NAME="291"></A>            <FONT ID="If">if</FONT> (pRegister != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>                s += <FONT ID="StringLiteral">"-&gt; "</FONT> + pRegister.name();
+<FONT ID="LN">293 </FONT><A NAME="293"></A>            } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">294 </FONT><A NAME="294"></A>                s += <FONT ID="StringLiteral">"-&gt; None"</FONT>;
+<FONT ID="LN">295 </FONT><A NAME="295"></A>            }
+<FONT ID="LN">296 </FONT><A NAME="296"></A>            <FONT ID="If">if</FONT> (offsetFrom == OffsetFrom.FP) {
+<FONT ID="LN">297 </FONT><A NAME="297"></A>                s += <FONT ID="StringLiteral">" [frame:"</FONT> + offset + <FONT ID="StringLiteral">"]"</FONT>;
+<FONT ID="LN">298 </FONT><A NAME="298"></A>            } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>                s += <FONT ID="StringLiteral">" [stack:"</FONT> + offset + <FONT ID="StringLiteral">"]"</FONT>;
+<FONT ID="LN">300 </FONT><A NAME="300"></A>            }
+<FONT ID="LN">301 </FONT><A NAME="301"></A>            p.printf(<FONT ID="StringLiteral">"%s\n"</FONT>, s);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>            <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : <FONT ID="This">this</FONT>.children) {
+<FONT ID="LN">303 </FONT><A NAME="303"></A>                child.writeToStdOut(p);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>            }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>        }
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    }
+<FONT ID="LN">307 </FONT><A NAME="307"></A>
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">309 </FONT><A NAME="309"></A>     * Returns the start position for the first range.
+<FONT ID="LN">310 </FONT><A NAME="310"></A>     * 
+<FONT ID="LN">311 </FONT><A NAME="311"></A>     * @return the start position.
+<FONT ID="LN">312 </FONT><A NAME="312"></A>     */</FONT>
+<FONT ID="LN">313 </FONT><A NAME="313"></A>
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> firstRangeStart() {
+<FONT ID="LN">315 </FONT><A NAME="315"></A>        <FONT ID="If">if</FONT> (ranges.isEmpty())
+<FONT ID="LN">316 </FONT><A NAME="316"></A>            <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">317 </FONT><A NAME="317"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">318 </FONT><A NAME="318"></A>            <FONT ID="Return">return</FONT> ranges.get(<FONT ID="IntegerLiteral">0</FONT>).start;
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    }
+<FONT ID="LN">320 </FONT><A NAME="320"></A>
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">322 </FONT><A NAME="322"></A>     * Returns the stop position for the last range.
+<FONT ID="LN">323 </FONT><A NAME="323"></A>     * 
+<FONT ID="LN">324 </FONT><A NAME="324"></A>     * @return the stop position.
+<FONT ID="LN">325 </FONT><A NAME="325"></A>     */</FONT>
+<FONT ID="LN">326 </FONT><A NAME="326"></A>
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> lastNRangeStop() {
+<FONT ID="LN">328 </FONT><A NAME="328"></A>        <FONT ID="If">if</FONT> (ranges.isEmpty())
+<FONT ID="LN">329 </FONT><A NAME="329"></A>            <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">330 </FONT><A NAME="330"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">331 </FONT><A NAME="331"></A>            <FONT ID="Return">return</FONT> ranges.get(ranges.size() - <FONT ID="IntegerLiteral">1</FONT>).stop;
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    }
+<FONT ID="LN">333 </FONT><A NAME="333"></A>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">335 </FONT><A NAME="335"></A>     * Compares start positions (for ordering intervals).
+<FONT ID="LN">336 </FONT><A NAME="336"></A>     * 
+<FONT ID="LN">337 </FONT><A NAME="337"></A>     * @param other
+<FONT ID="LN">338 </FONT><A NAME="338"></A>     *            interval to compare to.
+<FONT ID="LN">339 </FONT><A NAME="339"></A>     * 
+<FONT ID="LN">340 </FONT><A NAME="340"></A>     * @return ordering value.
+<FONT ID="LN">341 </FONT><A NAME="341"></A>     */</FONT>
+<FONT ID="LN">342 </FONT><A NAME="342"></A>
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> compareTo(<A HREF="../jminusminus/NInterval.java.html">NInterval</A> other) {
+<FONT ID="LN">344 </FONT><A NAME="344"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.firstRangeStart() - other.firstRangeStart();
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    }
+<FONT ID="LN">346 </FONT><A NAME="346"></A>
+<FONT ID="LN">347 </FONT><A NAME="347"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">348 </FONT><A NAME="348"></A>     * Two intervals are equal if they have the same virtual register ID.
+<FONT ID="LN">349 </FONT><A NAME="349"></A>     * 
+<FONT ID="LN">350 </FONT><A NAME="350"></A>     * @param other
+<FONT ID="LN">351 </FONT><A NAME="351"></A>     *            the interval we are comparing ourself with.
+<FONT ID="LN">352 </FONT><A NAME="352"></A>     * @return true if the two intervals are the same, false otherwise.
+<FONT ID="LN">353 </FONT><A NAME="353"></A>     */</FONT>
+<FONT ID="LN">354 </FONT><A NAME="354"></A>
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(<A HREF="../jminusminus/NInterval.java.html">NInterval</A> other) {
+<FONT ID="LN">356 </FONT><A NAME="356"></A>        <FONT ID="Return">return</FONT> (<FONT ID="This">this</FONT>.vRegId == other.vRegId);
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    }
+<FONT ID="LN">358 </FONT><A NAME="358"></A>
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">360 </FONT><A NAME="360"></A>     * Splits the current interval at the given index. Responsible for splitting
+<FONT ID="LN">361 </FONT><A NAME="361"></A>     * a range if the index falls on one, moving remaining ranges over to child,
+<FONT ID="LN">362 </FONT><A NAME="362"></A>     * and moving appropriate usePositions over to the child.
+<FONT ID="LN">363 </FONT><A NAME="363"></A>     * 
+<FONT ID="LN">364 </FONT><A NAME="364"></A>     * @param idx
+<FONT ID="LN">365 </FONT><A NAME="365"></A>     *            the index at which this interval is to be split
+<FONT ID="LN">366 </FONT><A NAME="366"></A>     * 
+<FONT ID="LN">367 </FONT><A NAME="367"></A>     * @return the child interval which is to be sorted onto unhandled. If there
+<FONT ID="LN">368 </FONT><A NAME="368"></A>     *         was no child created in the case of a pruning this interval is
+<FONT ID="LN">369 </FONT><A NAME="369"></A>     *         returned.
+<FONT ID="LN">370 </FONT><A NAME="370"></A>     */</FONT>
+<FONT ID="LN">371 </FONT><A NAME="371"></A>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A> splitAt(<FONT ID="Int">int</FONT> idx) {
+<FONT ID="LN">373 </FONT><A NAME="373"></A>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>        ArrayList&lt;NRange&gt; childsRanges = <FONT ID="New">new</FONT> ArrayList&lt;NRange&gt;();
+<FONT ID="LN">375 </FONT><A NAME="375"></A>        <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.isLiveAt(idx)) { <FONT ID="SingleLineComment">// means split falls on a range
+<FONT ID="LN">376 </FONT><A NAME="376"></A></FONT>            <FONT ID="SingleLineComment">// Assumptions: if a range is LIVE on an index, then there
+<FONT ID="LN">377 </FONT><A NAME="377"></A></FONT>            <FONT ID="SingleLineComment">// exist usePositions at or before the index
+<FONT ID="LN">378 </FONT><A NAME="378"></A></FONT>            <FONT ID="SingleLineComment">// within this same range.
+<FONT ID="LN">379 </FONT><A NAME="379"></A></FONT>            NRange liveRange = <FONT ID="This">this</FONT>.liveRangeAt(idx);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>            <FONT ID="Int">int</FONT> splitTo = idx;
+<FONT ID="LN">381 </FONT><A NAME="381"></A>            splitTo = usePositions.ceilingKey(idx);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>            childsRanges.add((liveRange.splitRange(splitTo, idx - <FONT ID="IntegerLiteral">5</FONT>)));
+<FONT ID="LN">383 </FONT><A NAME="383"></A>        }
+<FONT ID="LN">384 </FONT><A NAME="384"></A>
+<FONT ID="LN">385 </FONT><A NAME="385"></A>        <FONT ID="SingleLineComment">// The following two for loops take care of any untouched ranges
+<FONT ID="LN">386 </FONT><A NAME="386"></A></FONT>        <FONT ID="SingleLineComment">// which start after the split position and must be moved to the
+<FONT ID="LN">387 </FONT><A NAME="387"></A></FONT>        <FONT ID="SingleLineComment">// child interval.
+<FONT ID="LN">388 </FONT><A NAME="388"></A></FONT>        <FONT ID="For">for</FONT> (NRange r : ranges) {
+<FONT ID="LN">389 </FONT><A NAME="389"></A>            <FONT ID="If">if</FONT> (r.start &gt; idx) {
+<FONT ID="LN">390 </FONT><A NAME="390"></A>                childsRanges.add(r);
+<FONT ID="LN">391 </FONT><A NAME="391"></A>            }
+<FONT ID="LN">392 </FONT><A NAME="392"></A>        }
+<FONT ID="LN">393 </FONT><A NAME="393"></A>        <FONT ID="For">for</FONT> (NRange r : childsRanges) {
+<FONT ID="LN">394 </FONT><A NAME="394"></A>            ranges.remove(r);
+<FONT ID="LN">395 </FONT><A NAME="395"></A>        }
+<FONT ID="LN">396 </FONT><A NAME="396"></A>
+<FONT ID="LN">397 </FONT><A NAME="397"></A>        <A HREF="../jminusminus/NInterval.java.html">NInterval</A> child = <FONT ID="New">new</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A>(cfg.maxIntervals++, cfg, childsRanges,
+<FONT ID="LN">398 </FONT><A NAME="398"></A>                <FONT ID="This">this</FONT>.getParent());
+<FONT ID="LN">399 </FONT><A NAME="399"></A>        cfg.registers.add(<FONT ID="Null">null</FONT>); <FONT ID="SingleLineComment">// expand size of cfg.registers to
+<FONT ID="LN">400 </FONT><A NAME="400"></A></FONT>        <FONT ID="SingleLineComment">// avoid null pointer exception when printing.
+<FONT ID="LN">401 </FONT><A NAME="401"></A></FONT>
+<FONT ID="LN">402 </FONT><A NAME="402"></A>        <FONT ID="SingleLineComment">// transfer remaining use positions
+<FONT ID="LN">403 </FONT><A NAME="403"></A></FONT>        <FONT ID="While">while</FONT> (<FONT ID="This">this</FONT>.usePositions.ceilingKey(idx) != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">404 </FONT><A NAME="404"></A>            child.usePositions
+<FONT ID="LN">405 </FONT><A NAME="405"></A>                    .put(<FONT ID="This">this</FONT>.usePositions.ceilingKey(idx), <FONT ID="This">this</FONT>.usePositions
+<FONT ID="LN">406 </FONT><A NAME="406"></A>                            .remove(<FONT ID="This">this</FONT>.usePositions.ceilingKey(idx)));
+<FONT ID="LN">407 </FONT><A NAME="407"></A>        <FONT ID="This">this</FONT>.getParent().children.add(child);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>        <FONT ID="Return">return</FONT> child;
+<FONT ID="LN">409 </FONT><A NAME="409"></A>    }
+<FONT ID="LN">410 </FONT><A NAME="410"></A>
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">412 </FONT><A NAME="412"></A>     * Returns the parent interval.
+<FONT ID="LN">413 </FONT><A NAME="413"></A>     * 
+<FONT ID="LN">414 </FONT><A NAME="414"></A>     * @return the parent interval.
+<FONT ID="LN">415 </FONT><A NAME="415"></A>     */</FONT>
+<FONT ID="LN">416 </FONT><A NAME="416"></A>
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    <FONT ID="Private">private</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A> getParent() {
+<FONT ID="LN">418 </FONT><A NAME="418"></A>        <FONT ID="If">if</FONT> (parent != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">419 </FONT><A NAME="419"></A>            <FONT ID="Return">return</FONT> parent;
+<FONT ID="LN">420 </FONT><A NAME="420"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">421 </FONT><A NAME="421"></A>            <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    }
+<FONT ID="LN">423 </FONT><A NAME="423"></A>
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">425 </FONT><A NAME="425"></A>     * Returns the child interval at a given instruction index.
+<FONT ID="LN">426 </FONT><A NAME="426"></A>     * 
+<FONT ID="LN">427 </FONT><A NAME="427"></A>     * @param idx
+<FONT ID="LN">428 </FONT><A NAME="428"></A>     *            The instruction index.
+<FONT ID="LN">429 </FONT><A NAME="429"></A>     * @return the child interval.
+<FONT ID="LN">430 </FONT><A NAME="430"></A>     */</FONT>
+<FONT ID="LN">431 </FONT><A NAME="431"></A>
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A> childAt(<FONT ID="Int">int</FONT> idx) {
+<FONT ID="LN">433 </FONT><A NAME="433"></A>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : children) {
+<FONT ID="LN">434 </FONT><A NAME="434"></A>            <FONT ID="If">if</FONT> (child.isLiveAt(idx)) {
+<FONT ID="LN">435 </FONT><A NAME="435"></A>                <FONT ID="Return">return</FONT> child;
+<FONT ID="LN">436 </FONT><A NAME="436"></A>            }
+<FONT ID="LN">437 </FONT><A NAME="437"></A>        }
+<FONT ID="LN">438 </FONT><A NAME="438"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    }
+<FONT ID="LN">440 </FONT><A NAME="440"></A>
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">442 </FONT><A NAME="442"></A>     * Returns the child of this interval which is live or ends before the given 
+<FONT ID="LN">443 </FONT><A NAME="443"></A>     * basic block's end.
+<FONT ID="LN">444 </FONT><A NAME="444"></A>     * 
+<FONT ID="LN">445 </FONT><A NAME="445"></A>     * @param b
+<FONT ID="LN">446 </FONT><A NAME="446"></A>     *            the basic block.
+<FONT ID="LN">447 </FONT><A NAME="447"></A>     * @return the child of this interval which ends at or nearest (before) this
+<FONT ID="LN">448 </FONT><A NAME="448"></A>     *         basic block's end (last lir instruction index).
+<FONT ID="LN">449 </FONT><A NAME="449"></A>     */</FONT>
+<FONT ID="LN">450 </FONT><A NAME="450"></A>
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A> childAtOrEndingBefore(NBasicBlock b) {
+<FONT ID="LN">452 </FONT><A NAME="452"></A>        <FONT ID="Int">int</FONT> idx = b.getLastLIRInstId();
+<FONT ID="LN">453 </FONT><A NAME="453"></A>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : children) {
+<FONT ID="LN">454 </FONT><A NAME="454"></A>            <FONT ID="If">if</FONT> (child.isLiveAt(idx))
+<FONT ID="LN">455 </FONT><A NAME="455"></A>                <FONT ID="Return">return</FONT> child;
+<FONT ID="LN">456 </FONT><A NAME="456"></A>        }
+<FONT ID="LN">457 </FONT><A NAME="457"></A>        <A HREF="../jminusminus/NInterval.java.html">NInterval</A> tmp = <FONT ID="This">this</FONT>;
+<FONT ID="LN">458 </FONT><A NAME="458"></A>        <FONT ID="Int">int</FONT> highestEndingAllowed = b.getFirstLIRInstId();
+<FONT ID="LN">459 </FONT><A NAME="459"></A>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : children) {
+<FONT ID="LN">460 </FONT><A NAME="460"></A>            <FONT ID="SingleLineComment">// get the child which ends before idx but also ends closest to idx
+<FONT ID="LN">461 </FONT><A NAME="461"></A></FONT>            <FONT ID="If">if</FONT> (child.lastNRangeStop() &lt; idx
+<FONT ID="LN">462 </FONT><A NAME="462"></A>                    &amp;&amp; child.lastNRangeStop() &gt; highestEndingAllowed) {
+<FONT ID="LN">463 </FONT><A NAME="463"></A>                tmp = child;
+<FONT ID="LN">464 </FONT><A NAME="464"></A>                highestEndingAllowed = tmp.lastNRangeStop();
+<FONT ID="LN">465 </FONT><A NAME="465"></A>            }
+<FONT ID="LN">466 </FONT><A NAME="466"></A>        }
+<FONT ID="LN">467 </FONT><A NAME="467"></A>        <FONT ID="Return">return</FONT> tmp;
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    }
+<FONT ID="LN">469 </FONT><A NAME="469"></A>
+<FONT ID="LN">470 </FONT><A NAME="470"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">471 </FONT><A NAME="471"></A>     * Returns the child of this interval which is live or starts after the given 
+<FONT ID="LN">472 </FONT><A NAME="472"></A>     * basic block's start.
+<FONT ID="LN">473 </FONT><A NAME="473"></A>     * 
+<FONT ID="LN">474 </FONT><A NAME="474"></A>     * @param b
+<FONT ID="LN">475 </FONT><A NAME="475"></A>     *            the basic block.
+<FONT ID="LN">476 </FONT><A NAME="476"></A>     * @return the child of this interval which starts at or nearest (after)
+<FONT ID="LN">477 </FONT><A NAME="477"></A>     *         this basic block's start (fist lir instruction index).
+<FONT ID="LN">478 </FONT><A NAME="478"></A>     */</FONT>
+<FONT ID="LN">479 </FONT><A NAME="479"></A>
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/NInterval.java.html">NInterval</A> childAtOrStartingAfter(NBasicBlock b) {
+<FONT ID="LN">481 </FONT><A NAME="481"></A>        <FONT ID="Int">int</FONT> idx = b.getFirstLIRInstId();
+<FONT ID="LN">482 </FONT><A NAME="482"></A>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : children) {
+<FONT ID="LN">483 </FONT><A NAME="483"></A>            <FONT ID="If">if</FONT> (child.isLiveAt(idx))
+<FONT ID="LN">484 </FONT><A NAME="484"></A>                <FONT ID="Return">return</FONT> child;
+<FONT ID="LN">485 </FONT><A NAME="485"></A>        }
+<FONT ID="LN">486 </FONT><A NAME="486"></A>        <A HREF="../jminusminus/NInterval.java.html">NInterval</A> tmp = <FONT ID="This">this</FONT>;
+<FONT ID="LN">487 </FONT><A NAME="487"></A>        <FONT ID="Int">int</FONT> lowestStartAllowed = b.getLastLIRInstId();<FONT ID="SingleLineComment">// block's end
+<FONT ID="LN">488 </FONT><A NAME="488"></A></FONT>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : children) {
+<FONT ID="LN">489 </FONT><A NAME="489"></A>            <FONT ID="If">if</FONT> (child.firstRangeStart() &gt; idx
+<FONT ID="LN">490 </FONT><A NAME="490"></A>                    &amp;&amp; child.firstRangeStart() &lt; lowestStartAllowed) {
+<FONT ID="LN">491 </FONT><A NAME="491"></A>                tmp = child;
+<FONT ID="LN">492 </FONT><A NAME="492"></A>                lowestStartAllowed = tmp.firstRangeStart();
+<FONT ID="LN">493 </FONT><A NAME="493"></A>            }
+<FONT ID="LN">494 </FONT><A NAME="494"></A>        }
+<FONT ID="LN">495 </FONT><A NAME="495"></A>        <FONT ID="Return">return</FONT> tmp;
+<FONT ID="LN">496 </FONT><A NAME="496"></A>    }
+<FONT ID="LN">497 </FONT><A NAME="497"></A>
+<FONT ID="LN">498 </FONT><A NAME="498"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">499 </FONT><A NAME="499"></A>     * Returns the basic block in which this interval's start position falls.
+<FONT ID="LN">500 </FONT><A NAME="500"></A>     * 
+<FONT ID="LN">501 </FONT><A NAME="501"></A>     * @return basic block in which this interval's start position falls.
+<FONT ID="LN">502 </FONT><A NAME="502"></A>     */</FONT>
+<FONT ID="LN">503 </FONT><A NAME="503"></A>
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> startsAtBlock() {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>        <FONT ID="For">for</FONT> (NBasicBlock b : <FONT ID="This">this</FONT>.cfg.basicBlocks) {
+<FONT ID="LN">506 </FONT><A NAME="506"></A>            <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.firstRangeStart() &gt;= b.getFirstLIRInstId()
+<FONT ID="LN">507 </FONT><A NAME="507"></A>                    &amp;&amp; <FONT ID="This">this</FONT>.firstRangeStart() &lt;= b.getLastLIRInstId())
+<FONT ID="LN">508 </FONT><A NAME="508"></A>                <FONT ID="Return">return</FONT> b.id;
+<FONT ID="LN">509 </FONT><A NAME="509"></A>        }
+<FONT ID="LN">510 </FONT><A NAME="510"></A>        <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>; <FONT ID="SingleLineComment">// this will never happen
+<FONT ID="LN">511 </FONT><A NAME="511"></A></FONT>    }
+<FONT ID="LN">512 </FONT><A NAME="512"></A>
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">514 </FONT><A NAME="514"></A>     * Returns the basic block in which this interval's end position falls.
+<FONT ID="LN">515 </FONT><A NAME="515"></A>     * 
+<FONT ID="LN">516 </FONT><A NAME="516"></A>     * @return the basic block number.
+<FONT ID="LN">517 </FONT><A NAME="517"></A>     */</FONT>
+<FONT ID="LN">518 </FONT><A NAME="518"></A>
+<FONT ID="LN">519 </FONT><A NAME="519"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> endsAtBlock() {
+<FONT ID="LN">520 </FONT><A NAME="520"></A>        <FONT ID="For">for</FONT> (NBasicBlock b : <FONT ID="This">this</FONT>.cfg.basicBlocks) {
+<FONT ID="LN">521 </FONT><A NAME="521"></A>            <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.lastNRangeStop() &gt;= b.getFirstLIRInstId()
+<FONT ID="LN">522 </FONT><A NAME="522"></A>                    &amp;&amp; <FONT ID="This">this</FONT>.lastNRangeStop() &lt;= b.getLastLIRInstId()) {
+<FONT ID="LN">523 </FONT><A NAME="523"></A>                <FONT ID="Return">return</FONT> b.id;
+<FONT ID="LN">524 </FONT><A NAME="524"></A>            }
+<FONT ID="LN">525 </FONT><A NAME="525"></A>        }
+<FONT ID="LN">526 </FONT><A NAME="526"></A>        <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>; <FONT ID="SingleLineComment">// this will never happen
+<FONT ID="LN">527 </FONT><A NAME="527"></A></FONT>    }
+<FONT ID="LN">528 </FONT><A NAME="528"></A>
+<FONT ID="LN">529 </FONT><A NAME="529"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">530 </FONT><A NAME="530"></A>     * Assigns an offset to this interval (if one hasn't been already assigned).
+<FONT ID="LN">531 </FONT><A NAME="531"></A>     * Assigns that same offset to any (newly created) children.
+<FONT ID="LN">532 </FONT><A NAME="532"></A>     */</FONT>
+<FONT ID="LN">533 </FONT><A NAME="533"></A>
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> spill() {
+<FONT ID="LN">535 </FONT><A NAME="535"></A>        <FONT ID="This">this</FONT>.spill = <FONT ID="True">true</FONT>;
+<FONT ID="LN">536 </FONT><A NAME="536"></A>        <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.offset == -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">537 </FONT><A NAME="537"></A>            <FONT ID="This">this</FONT>.offset = cfg.offset++;
+<FONT ID="LN">538 </FONT><A NAME="538"></A>            <FONT ID="This">this</FONT>.offsetFrom = OffsetFrom.SP;
+<FONT ID="LN">539 </FONT><A NAME="539"></A>        }
+<FONT ID="LN">540 </FONT><A NAME="540"></A>        <FONT ID="For">for</FONT> (<A HREF="../jminusminus/NInterval.java.html">NInterval</A> child : children) {
+<FONT ID="LN">541 </FONT><A NAME="541"></A>            <FONT ID="If">if</FONT> (child.offset == -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">542 </FONT><A NAME="542"></A>                child.offset = <FONT ID="This">this</FONT>.offset;
+<FONT ID="LN">543 </FONT><A NAME="543"></A>                child.offsetFrom = <FONT ID="This">this</FONT>.offsetFrom;
+<FONT ID="LN">544 </FONT><A NAME="544"></A>            }
+<FONT ID="LN">545 </FONT><A NAME="545"></A>        }
+<FONT ID="LN">546 </FONT><A NAME="546"></A>    }
+<FONT ID="LN">547 </FONT><A NAME="547"></A>
+<FONT ID="LN">548 </FONT><A NAME="548"></A>    <FONT ID="SingleLineComment">// The following two methods are used for insertion of move instructions
+<FONT ID="LN">549 </FONT><A NAME="549"></A></FONT>    <FONT ID="SingleLineComment">// for spills.
+<FONT ID="LN">550 </FONT><A NAME="550"></A></FONT>
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">552 </FONT><A NAME="552"></A>     * Is this interval a child interval?
+<FONT ID="LN">553 </FONT><A NAME="553"></A>     * 
+<FONT ID="LN">554 </FONT><A NAME="554"></A>     * @return {@code true} if this interval is a child interval; 
+<FONT ID="LN">555 </FONT><A NAME="555"></A>     *         {@code false} otherwise.
+<FONT ID="LN">556 </FONT><A NAME="556"></A>     */</FONT>
+<FONT ID="LN">557 </FONT><A NAME="557"></A>
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isChild() {
+<FONT ID="LN">559 </FONT><A NAME="559"></A>        <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.parent != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">560 </FONT><A NAME="560"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">561 </FONT><A NAME="561"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">562 </FONT><A NAME="562"></A>            <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>        }
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    }
+<FONT ID="LN">565 </FONT><A NAME="565"></A>
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">567 </FONT><A NAME="567"></A>     * Is this interval a parent interval? (That is, does it have children?)
+<FONT ID="LN">568 </FONT><A NAME="568"></A>     * 
+<FONT ID="LN">569 </FONT><A NAME="569"></A>     * @return {@code true} if this interval is a parent interval; 
+<FONT ID="LN">570 </FONT><A NAME="570"></A>     *         {@code false} otherwise.
+<FONT ID="LN">571 </FONT><A NAME="571"></A>     */</FONT>
+<FONT ID="LN">572 </FONT><A NAME="572"></A>
+<FONT ID="LN">573 </FONT><A NAME="573"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isParent() {
+<FONT ID="LN">574 </FONT><A NAME="574"></A>        <FONT ID="Return">return</FONT> !<FONT ID="This">this</FONT>.children.isEmpty();
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    }
+<FONT ID="LN">576 </FONT><A NAME="576"></A>
+<FONT ID="LN">577 </FONT><A NAME="577"></A>}
+<FONT ID="LN">578 </FONT><A NAME="578"></A>
+<FONT ID="LN">579 </FONT><A NAME="579"></A><FONT ID="FormalComment">/** The types of stack pointers. */</FONT>
+<FONT ID="LN">580 </FONT><A NAME="580"></A>enum OffsetFrom {
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    FP, SP
+<FONT ID="LN">582 </FONT><A NAME="582"></A>};
+<FONT ID="LN">583 </FONT><A NAME="583"></A>
+<FONT ID="LN">584 </FONT><A NAME="584"></A><FONT ID="FormalComment">/** The types of possible uses. */</FONT>
+<FONT ID="LN">585 </FONT><A NAME="585"></A>enum InstructionType {
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    read, write
+<FONT ID="LN">587 </FONT><A NAME="587"></A>};
+<FONT ID="LN">588 </FONT><A NAME="588"></A>
+<FONT ID="LN">589 </FONT><A NAME="589"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">590 </FONT><A NAME="590"></A> * A liveness range (for an interval).
+<FONT ID="LN">591 </FONT><A NAME="591"></A> */</FONT>
+<FONT ID="LN">592 </FONT><A NAME="592"></A>
+<FONT ID="LN">593 </FONT><A NAME="593"></A><FONT ID="Class">class</FONT> NRange <FONT ID="Implements">implements</FONT> Comparable&lt;NRange&gt; {
+<FONT ID="LN">594 </FONT><A NAME="594"></A>
+<FONT ID="LN">595 </FONT><A NAME="595"></A>    <FONT ID="FormalComment">/** The range's start position. */</FONT>
+<FONT ID="LN">596 </FONT><A NAME="596"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> start;
+<FONT ID="LN">597 </FONT><A NAME="597"></A>
+<FONT ID="LN">598 </FONT><A NAME="598"></A>    <FONT ID="FormalComment">/** The range's stop position. */</FONT>
+<FONT ID="LN">599 </FONT><A NAME="599"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> stop;
+<FONT ID="LN">600 </FONT><A NAME="600"></A>
+<FONT ID="LN">601 </FONT><A NAME="601"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">602 </FONT><A NAME="602"></A>     * Constructs a liveness range extending from start to stop (positions in the
+<FONT ID="LN">603 </FONT><A NAME="603"></A>     * code).
+<FONT ID="LN">604 </FONT><A NAME="604"></A>     * 
+<FONT ID="LN">605 </FONT><A NAME="605"></A>     * @param start
+<FONT ID="LN">606 </FONT><A NAME="606"></A>     *            start position.
+<FONT ID="LN">607 </FONT><A NAME="607"></A>     * @param stop
+<FONT ID="LN">608 </FONT><A NAME="608"></A>     *            stop position.
+<FONT ID="LN">609 </FONT><A NAME="609"></A>     */</FONT>
+<FONT ID="LN">610 </FONT><A NAME="610"></A>    <FONT ID="Public">public</FONT> NRange(<FONT ID="Int">int</FONT> start, <FONT ID="Int">int</FONT> stop) {
+<FONT ID="LN">611 </FONT><A NAME="611"></A>        <FONT ID="This">this</FONT>.start = start;
+<FONT ID="LN">612 </FONT><A NAME="612"></A>        <FONT ID="This">this</FONT>.stop = stop;
+<FONT ID="LN">613 </FONT><A NAME="613"></A>
+<FONT ID="LN">614 </FONT><A NAME="614"></A>    }
+<FONT ID="LN">615 </FONT><A NAME="615"></A>
+<FONT ID="LN">616 </FONT><A NAME="616"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">617 </FONT><A NAME="617"></A>     * Mutates current range to be only as long as the split point and returns
+<FONT ID="LN">618 </FONT><A NAME="618"></A>     * the remainder as a new range.
+<FONT ID="LN">619 </FONT><A NAME="619"></A>     * 
+<FONT ID="LN">620 </FONT><A NAME="620"></A>     * @param newStart
+<FONT ID="LN">621 </FONT><A NAME="621"></A>     *            the split location
+<FONT ID="LN">622 </FONT><A NAME="622"></A>     * @param oldStop
+<FONT ID="LN">623 </FONT><A NAME="623"></A>     *            the split location
+<FONT ID="LN">624 </FONT><A NAME="624"></A>     * @return the new NRange which begins at the split position and runs to the
+<FONT ID="LN">625 </FONT><A NAME="625"></A>     *         end of this previously whole range.
+<FONT ID="LN">626 </FONT><A NAME="626"></A>     */</FONT>
+<FONT ID="LN">627 </FONT><A NAME="627"></A>
+<FONT ID="LN">628 </FONT><A NAME="628"></A>    <FONT ID="Public">public</FONT> NRange splitRange(<FONT ID="Int">int</FONT> newStart, <FONT ID="Int">int</FONT> oldStop) {
+<FONT ID="LN">629 </FONT><A NAME="629"></A>        NRange newRange = <FONT ID="New">new</FONT> NRange(newStart, stop);
+<FONT ID="LN">630 </FONT><A NAME="630"></A>        <FONT ID="This">this</FONT>.stop = oldStop;
+<FONT ID="LN">631 </FONT><A NAME="631"></A>
+<FONT ID="LN">632 </FONT><A NAME="632"></A>        <FONT ID="Return">return</FONT> newRange;
+<FONT ID="LN">633 </FONT><A NAME="633"></A>    }
+<FONT ID="LN">634 </FONT><A NAME="634"></A>
+<FONT ID="LN">635 </FONT><A NAME="635"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">636 </FONT><A NAME="636"></A>     * Does this liveness range overlap with another?
+<FONT ID="LN">637 </FONT><A NAME="637"></A>     * 
+<FONT ID="LN">638 </FONT><A NAME="638"></A>     * @param a
+<FONT ID="LN">639 </FONT><A NAME="639"></A>     *            The other range.
+<FONT ID="LN">640 </FONT><A NAME="640"></A>     * @return {@code true} if this liveness range overlaps;
+<FONT ID="LN">641 </FONT><A NAME="641"></A>     *         {@code false} otherwise.
+<FONT ID="LN">642 </FONT><A NAME="642"></A>     */</FONT>
+<FONT ID="LN">643 </FONT><A NAME="643"></A>
+<FONT ID="LN">644 </FONT><A NAME="644"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> rangeOverlaps(NRange a) {
+<FONT ID="LN">645 </FONT><A NAME="645"></A>        <FONT ID="Return">return</FONT> (a.start &lt;= <FONT ID="This">this</FONT>.stop &amp;&amp; <FONT ID="This">this</FONT>.start &lt;= a.stop);
+<FONT ID="LN">646 </FONT><A NAME="646"></A>    }
+<FONT ID="LN">647 </FONT><A NAME="647"></A>
+<FONT ID="LN">648 </FONT><A NAME="648"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">649 </FONT><A NAME="649"></A>     * One liveness range comes before another if its start position comes
+<FONT ID="LN">650 </FONT><A NAME="650"></A>     * before the other's start position.
+<FONT ID="LN">651 </FONT><A NAME="651"></A>     * 
+<FONT ID="LN">652 </FONT><A NAME="652"></A>     * @param other
+<FONT ID="LN">653 </FONT><A NAME="653"></A>     *            the other range.
+<FONT ID="LN">654 </FONT><A NAME="654"></A>     * 
+<FONT ID="LN">655 </FONT><A NAME="655"></A>     * @return comparison.
+<FONT ID="LN">656 </FONT><A NAME="656"></A>     */</FONT>
+<FONT ID="LN">657 </FONT><A NAME="657"></A>
+<FONT ID="LN">658 </FONT><A NAME="658"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> compareTo(NRange other) {
+<FONT ID="LN">659 </FONT><A NAME="659"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.start - other.start;
+<FONT ID="LN">660 </FONT><A NAME="660"></A>    }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>
+<FONT ID="LN">662 </FONT><A NAME="662"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">663 </FONT><A NAME="663"></A>     * Returns the string representation of the range.
+<FONT ID="LN">664 </FONT><A NAME="664"></A>     * 
+<FONT ID="LN">665 </FONT><A NAME="665"></A>     * @return "[start,stop]"
+<FONT ID="LN">666 </FONT><A NAME="666"></A>     */</FONT>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>
+<FONT ID="LN">668 </FONT><A NAME="668"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">669 </FONT><A NAME="669"></A>        <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"["</FONT> + start + <FONT ID="StringLiteral">", "</FONT> + stop + <FONT ID="StringLiteral">"]"</FONT>;
+<FONT ID="LN">670 </FONT><A NAME="670"></A>    }
+<FONT ID="LN">671 </FONT><A NAME="671"></A>
+<FONT ID="LN">672 </FONT><A NAME="672"></A>}
+<FONT ID="LN">673 </FONT><A NAME="673"></A></pre>
+</BODY>
+</HTML>

@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>jminusminus.JThis (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">JThis.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Copyright 2013 Bill Campbell, Swami Iyer and Bahar Akbal-Delibas
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Package">package</FONT> jminusminus;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/CLConstants.java.html">jminusminus.CLConstants</A>.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * The AST for a "this" expression. It serves as a target of some field
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * selection or message.
+<FONT ID="LN">10  </FONT><A NAME="10"></A> */</FONT>
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Class">class</FONT> JThis <FONT ID="Extends">extends</FONT> <A HREF="../jminusminus/JExpression.java.html">JExpression</A> {
+<FONT ID="LN">13  </FONT><A NAME="13"></A>
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">15  </FONT><A NAME="15"></A>     * Constructs an AST node for a "this" expression given its line number.
+<FONT ID="LN">16  </FONT><A NAME="16"></A>     * 
+<FONT ID="LN">17  </FONT><A NAME="17"></A>     * @param line
+<FONT ID="LN">18  </FONT><A NAME="18"></A>     *            line in which the expression occurs in the source file.
+<FONT ID="LN">19  </FONT><A NAME="19"></A>     */</FONT>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="Public">public</FONT> JThis(<FONT ID="Int">int</FONT> line) {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        <FONT ID="Super">super</FONT>(line);
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">26  </FONT><A NAME="26"></A>     * Analysis involves simply determining the class in which we are in, since that
+<FONT ID="LN">27  </FONT><A NAME="27"></A>     * determines the type of this target.
+<FONT ID="LN">28  </FONT><A NAME="28"></A>     * 
+<FONT ID="LN">29  </FONT><A NAME="29"></A>     * @param context
+<FONT ID="LN">30  </FONT><A NAME="30"></A>     *            context in which names are resolved.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>     * @return the analyzed (and possibly rewritten) AST subtree.
+<FONT ID="LN">32  </FONT><A NAME="32"></A>     */</FONT>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/JExpression.java.html">JExpression</A> analyze(<A HREF="../jminusminus/Context.java.html">Context</A> context) {
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        type = ((<A HREF="../jminusminus/JClassDeclaration.java.html">JClassDeclaration</A>) context.classContext.definition())
+<FONT ID="LN">36  </FONT><A NAME="36"></A>                .thisType();
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">41  </FONT><A NAME="41"></A>     * Simply generates code to load "this" onto the stack.
+<FONT ID="LN">42  </FONT><A NAME="42"></A>     * 
+<FONT ID="LN">43  </FONT><A NAME="43"></A>     * @param output
+<FONT ID="LN">44  </FONT><A NAME="44"></A>     *            the code emitter (basically an abstraction for producing the
+<FONT ID="LN">45  </FONT><A NAME="45"></A>     *            .class file).
+<FONT ID="LN">46  </FONT><A NAME="46"></A>     */</FONT>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> codegen(<A HREF="../jminusminus/CLEmitter.java.html">CLEmitter</A> output) {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>        output.addNoArgInstruction(ALOAD_0);
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    }
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">53  </FONT><A NAME="53"></A>     * {@inheritDoc}
+<FONT ID="LN">54  </FONT><A NAME="54"></A>     */</FONT>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut(PrettyPrinter p) {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>        p.println(<FONT ID="StringLiteral">"&lt;JThis/&gt;"</FONT>);
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    }
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>}
+<FONT ID="LN">61  </FONT><A NAME="61"></A></pre>
+</BODY>
+</HTML>

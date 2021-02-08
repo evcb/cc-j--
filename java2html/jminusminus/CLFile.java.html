@@ -1,0 +1,424 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>jminusminus.CLFile (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CLFile.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Copyright 2013 Bill Campbell, Swami Iyer and Bahar Akbal-Delibas
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Package">package</FONT> jminusminus;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../jminusminus/CLConstants.java.html">jminusminus.CLConstants</A>.*;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * Representation of the ClassFile structure (JVM Spec Section 4.2). An instance
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * of {@code CLFile} is created when a class is read using {@link CLAbsorber} or
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * constructed using {@link CLEmitter}.
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * &lt;p&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * We have our own representation and don't use java.lang.Class because Java
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * does not offer an interface to programmatically create a class file in memory
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * other than creating it in one shot from a byte stream.
+<FONT ID="LN">17  </FONT><A NAME="17"></A> */</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>
+<FONT ID="LN">19  </FONT><A NAME="19"></A><FONT ID="Class">class</FONT> CLFile {
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="SingleLineComment">// The fields below represent the members of the ClassFile
+<FONT ID="LN">22  </FONT><A NAME="22"></A></FONT>    <FONT ID="SingleLineComment">// structure. See JVM Spec Section 4.2 for details.
+<FONT ID="LN">23  </FONT><A NAME="23"></A></FONT>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    <FONT ID="FormalComment">/** ClassFile.magic item. */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> magic; <FONT ID="SingleLineComment">// 0xCAFEBABE
+<FONT ID="LN">26  </FONT><A NAME="26"></A></FONT>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="FormalComment">/** ClassFile.minor_version item. */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> minorVersion;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    <FONT ID="FormalComment">/** ClassFile.major_version item. */</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> majorVersion;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="FormalComment">/** ClassFile.constant_pool_count item. */</FONT>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> constantPoolCount;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="FormalComment">/** ClassFile.constant_pool item. */</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="Public">public</FONT> <A HREF="../jminusminus/CLConstantPool.java.html">CLConstantPool</A> constantPool;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    <FONT ID="FormalComment">/** ClassFile.access_flags item. */</FONT>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> accessFlags;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="FormalComment">/** ClassFile.this_class item. */</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> thisClass;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="FormalComment">/** ClassFile.super_class item. */</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> superClass;
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="FormalComment">/** ClassFile.interfaces_count item. */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> interfacesCount;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="FormalComment">/** ClassFile.interfaces item. */</FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;Integer&gt; interfaces;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="FormalComment">/** ClassFile.fields_count item. */</FONT>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> fieldsCount;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="FormalComment">/** ClassFile.fields item. */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;CLFieldInfo&gt; fields;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="FormalComment">/** ClassFile.methods_count item. */</FONT>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> methodsCount;
+<FONT ID="LN">62  </FONT><A NAME="62"></A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="FormalComment">/** ClassFile.methods item. */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;CLMethodInfo&gt; methods;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="FormalComment">/** ClassFile.attributes_count item. */</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> attributesCount;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="FormalComment">/** ClassFile.attributes item. */</FONT>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    <FONT ID="Public">public</FONT> ArrayList&lt;<A HREF="../jminusminus/CLAttributeInfo.java.html">CLAttributeInfo</A>&gt; attributes;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">73  </FONT><A NAME="73"></A>     * Writes the contents of this class to the specified output stream.
+<FONT ID="LN">74  </FONT><A NAME="74"></A>     * 
+<FONT ID="LN">75  </FONT><A NAME="75"></A>     * @param out
+<FONT ID="LN">76  </FONT><A NAME="76"></A>     *            output stream.
+<FONT ID="LN">77  </FONT><A NAME="77"></A>     * @throws IOException
+<FONT ID="LN">78  </FONT><A NAME="78"></A>     *             if an error occurs while writing.
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     */</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(CLOutputStream out) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">82  </FONT><A NAME="82"></A>        out.writeInt(magic);
+<FONT ID="LN">83  </FONT><A NAME="83"></A>        out.writeShort(minorVersion);
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        out.writeShort(majorVersion);
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        out.writeShort(constantPoolCount);
+<FONT ID="LN">86  </FONT><A NAME="86"></A>        constantPool.write(out);
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        out.writeShort(accessFlags);
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        out.writeShort(thisClass);
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        out.writeShort(superClass);
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        out.writeShort(interfacesCount);
+<FONT ID="LN">91  </FONT><A NAME="91"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; interfaces.size(); i++) {
+<FONT ID="LN">92  </FONT><A NAME="92"></A>            Integer index = interfaces.get(i);
+<FONT ID="LN">93  </FONT><A NAME="93"></A>            out.writeShort(index.intValue());
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        }
+<FONT ID="LN">95  </FONT><A NAME="95"></A>        out.writeShort(fieldsCount);
+<FONT ID="LN">96  </FONT><A NAME="96"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; fields.size(); i++) {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>            <A HREF="../jminusminus/CLMemberInfo.java.html">CLMemberInfo</A> fieldInfo = fields.get(i);
+<FONT ID="LN">98  </FONT><A NAME="98"></A>            <FONT ID="If">if</FONT> (fieldInfo != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">99  </FONT><A NAME="99"></A>                fieldInfo.write(out);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>            }
+<FONT ID="LN">101 </FONT><A NAME="101"></A>        }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        out.writeShort(methodsCount);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; methods.size(); i++) {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>            <A HREF="../jminusminus/CLMemberInfo.java.html">CLMemberInfo</A> methodInfo = methods.get(i);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>            <FONT ID="If">if</FONT> (methodInfo != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">106 </FONT><A NAME="106"></A>                methodInfo.write(out);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>            }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>        }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>        out.writeShort(attributesCount);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; attributes.size(); i++) {
+<FONT ID="LN">111 </FONT><A NAME="111"></A>            <A HREF="../jminusminus/CLAttributeInfo.java.html">CLAttributeInfo</A> attributeInfo = attributes.get(i);
+<FONT ID="LN">112 </FONT><A NAME="112"></A>            <FONT ID="If">if</FONT> (attributeInfo != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>                attributeInfo.write(out);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>            }
+<FONT ID="LN">115 </FONT><A NAME="115"></A>        }
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    }
+<FONT ID="LN">117 </FONT><A NAME="117"></A>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">119 </FONT><A NAME="119"></A>     * Writes the contents of the class file to STDOUT in a format similar to
+<FONT ID="LN">120 </FONT><A NAME="120"></A>     * that of javap.
+<FONT ID="LN">121 </FONT><A NAME="121"></A>     */</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> writeToStdOut() {
+<FONT ID="LN">124 </FONT><A NAME="124"></A>        PrettyPrinter p = <FONT ID="New">new</FONT> PrettyPrinter();
+<FONT ID="LN">125 </FONT><A NAME="125"></A>        p.printf(<FONT ID="StringLiteral">"Magic Number: %x\n"</FONT>, magic);
+<FONT ID="LN">126 </FONT><A NAME="126"></A>        p.printf(<FONT ID="StringLiteral">"Minor Version: %d\n"</FONT>, minorVersion);
+<FONT ID="LN">127 </FONT><A NAME="127"></A>        p.printf(<FONT ID="StringLiteral">"Major Version: %d\n"</FONT>, majorVersion);
+<FONT ID="LN">128 </FONT><A NAME="128"></A>        p.printf(<FONT ID="StringLiteral">"Access Flags: %s\n"</FONT>, classAccessFlagsToString(accessFlags));
+<FONT ID="LN">129 </FONT><A NAME="129"></A>        p.println();
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        constantPool.writeToStdOut(p);
+<FONT ID="LN">131 </FONT><A NAME="131"></A>        p.println();
+<FONT ID="LN">132 </FONT><A NAME="132"></A>        p.printf(<FONT ID="StringLiteral">"This Class Index: %d\n"</FONT>, thisClass);
+<FONT ID="LN">133 </FONT><A NAME="133"></A>        p.printf(<FONT ID="StringLiteral">"Super Class Index: %d\n"</FONT>, superClass);
+<FONT ID="LN">134 </FONT><A NAME="134"></A>        p.println();
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        p.printf(<FONT ID="StringLiteral">"// Fields (%d Items)\n"</FONT>, fieldsCount);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; fields.size(); i++) {
+<FONT ID="LN">137 </FONT><A NAME="137"></A>            <A HREF="../jminusminus/CLMemberInfo.java.html">CLMemberInfo</A> fieldInfo = fields.get(i);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>            <FONT ID="If">if</FONT> (fieldInfo != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>                fieldInfo.writeToStdOut(p);
+<FONT ID="LN">140 </FONT><A NAME="140"></A>            }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>        }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>        p.println();
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        p.printf(<FONT ID="StringLiteral">"// Methods (%d Items)\n"</FONT>, methodsCount);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; methods.size(); i++) {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>            <A HREF="../jminusminus/CLMemberInfo.java.html">CLMemberInfo</A> methodInfo = methods.get(i);
+<FONT ID="LN">146 </FONT><A NAME="146"></A>            <FONT ID="If">if</FONT> (methodInfo != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>                methodInfo.writeToStdOut(p);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>            }
+<FONT ID="LN">149 </FONT><A NAME="149"></A>        }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>        p.println();
+<FONT ID="LN">151 </FONT><A NAME="151"></A>        p.printf(<FONT ID="StringLiteral">"// Attributes (%d Items)\n"</FONT>, attributesCount);
+<FONT ID="LN">152 </FONT><A NAME="152"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; attributes.size(); i++) {
+<FONT ID="LN">153 </FONT><A NAME="153"></A>            <A HREF="../jminusminus/CLAttributeInfo.java.html">CLAttributeInfo</A> attributeInfo = attributes.get(i);
+<FONT ID="LN">154 </FONT><A NAME="154"></A>            attributeInfo.writeToStdOut(p);
+<FONT ID="LN">155 </FONT><A NAME="155"></A>        }
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    }
+<FONT ID="LN">157 </FONT><A NAME="157"></A>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">159 </FONT><A NAME="159"></A>     * Returns (as a string) the class access permissions and properties
+<FONT ID="LN">160 </FONT><A NAME="160"></A>     * contained in the specified mask of flags.
+<FONT ID="LN">161 </FONT><A NAME="161"></A>     * 
+<FONT ID="LN">162 </FONT><A NAME="162"></A>     * @param accessFlags
+<FONT ID="LN">163 </FONT><A NAME="163"></A>     *            mask of access flags.
+<FONT ID="LN">164 </FONT><A NAME="164"></A>     * @return a string identifying class access permissions and properties.
+<FONT ID="LN">165 </FONT><A NAME="165"></A>     */</FONT>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String classAccessFlagsToString(<FONT ID="Int">int</FONT> accessFlags) {
+<FONT ID="LN">168 </FONT><A NAME="168"></A>        StringBuffer b = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PUBLIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">170 </FONT><A NAME="170"></A>            b.append(<FONT ID="StringLiteral">"public "</FONT>);
+<FONT ID="LN">171 </FONT><A NAME="171"></A>        }
+<FONT ID="LN">172 </FONT><A NAME="172"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_FINAL) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">173 </FONT><A NAME="173"></A>            b.append(<FONT ID="StringLiteral">"final "</FONT>);
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_SUPER) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">176 </FONT><A NAME="176"></A>            b.append(<FONT ID="StringLiteral">"super "</FONT>);
+<FONT ID="LN">177 </FONT><A NAME="177"></A>        }
+<FONT ID="LN">178 </FONT><A NAME="178"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_INTERFACE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">179 </FONT><A NAME="179"></A>            b.append(<FONT ID="StringLiteral">"interface "</FONT>);
+<FONT ID="LN">180 </FONT><A NAME="180"></A>        }
+<FONT ID="LN">181 </FONT><A NAME="181"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ABSTRACT) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">182 </FONT><A NAME="182"></A>            b.append(<FONT ID="StringLiteral">"abstract "</FONT>);
+<FONT ID="LN">183 </FONT><A NAME="183"></A>        }
+<FONT ID="LN">184 </FONT><A NAME="184"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_SYNTHETIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">185 </FONT><A NAME="185"></A>            b.append(<FONT ID="StringLiteral">"synthetic "</FONT>);
+<FONT ID="LN">186 </FONT><A NAME="186"></A>        }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ANNOTATION) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">188 </FONT><A NAME="188"></A>            b.append(<FONT ID="StringLiteral">"annotation "</FONT>);
+<FONT ID="LN">189 </FONT><A NAME="189"></A>        }
+<FONT ID="LN">190 </FONT><A NAME="190"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ENUM) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>            b.append(<FONT ID="StringLiteral">"enum "</FONT>);
+<FONT ID="LN">192 </FONT><A NAME="192"></A>        }
+<FONT ID="LN">193 </FONT><A NAME="193"></A>        <FONT ID="Return">return</FONT> b.toString().trim();
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    }
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">197 </FONT><A NAME="197"></A>     * Returns (as a string) the inner class access permissions and properties
+<FONT ID="LN">198 </FONT><A NAME="198"></A>     * contained in the specified mask of flags.
+<FONT ID="LN">199 </FONT><A NAME="199"></A>     * 
+<FONT ID="LN">200 </FONT><A NAME="200"></A>     * @param accessFlags
+<FONT ID="LN">201 </FONT><A NAME="201"></A>     *            mask of access flags.
+<FONT ID="LN">202 </FONT><A NAME="202"></A>     * @return a string identifying the inner class access permissions and
+<FONT ID="LN">203 </FONT><A NAME="203"></A>     *         properties.
+<FONT ID="LN">204 </FONT><A NAME="204"></A>     */</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String innerClassAccessFlagsToString(<FONT ID="Int">int</FONT> accessFlags) {
+<FONT ID="LN">207 </FONT><A NAME="207"></A>        StringBuffer b = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">208 </FONT><A NAME="208"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PUBLIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">209 </FONT><A NAME="209"></A>            b.append(<FONT ID="StringLiteral">"public "</FONT>);
+<FONT ID="LN">210 </FONT><A NAME="210"></A>        }
+<FONT ID="LN">211 </FONT><A NAME="211"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PRIVATE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">212 </FONT><A NAME="212"></A>            b.append(<FONT ID="StringLiteral">"private "</FONT>);
+<FONT ID="LN">213 </FONT><A NAME="213"></A>        }
+<FONT ID="LN">214 </FONT><A NAME="214"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PROTECTED) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">215 </FONT><A NAME="215"></A>            b.append(<FONT ID="StringLiteral">"protected "</FONT>);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>        }
+<FONT ID="LN">217 </FONT><A NAME="217"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_STATIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">218 </FONT><A NAME="218"></A>            b.append(<FONT ID="StringLiteral">"static "</FONT>);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>        }
+<FONT ID="LN">220 </FONT><A NAME="220"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_FINAL) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">221 </FONT><A NAME="221"></A>            b.append(<FONT ID="StringLiteral">"final "</FONT>);
+<FONT ID="LN">222 </FONT><A NAME="222"></A>        }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_INTERFACE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">224 </FONT><A NAME="224"></A>            b.append(<FONT ID="StringLiteral">"interface "</FONT>);
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        }
+<FONT ID="LN">226 </FONT><A NAME="226"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ABSTRACT) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">227 </FONT><A NAME="227"></A>            b.append(<FONT ID="StringLiteral">"abstract "</FONT>);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>        }
+<FONT ID="LN">229 </FONT><A NAME="229"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_SYNTHETIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>            b.append(<FONT ID="StringLiteral">"synthetic "</FONT>);
+<FONT ID="LN">231 </FONT><A NAME="231"></A>        }
+<FONT ID="LN">232 </FONT><A NAME="232"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ANNOTATION) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">233 </FONT><A NAME="233"></A>            b.append(<FONT ID="StringLiteral">"annotation "</FONT>);
+<FONT ID="LN">234 </FONT><A NAME="234"></A>        }
+<FONT ID="LN">235 </FONT><A NAME="235"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ENUM) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">236 </FONT><A NAME="236"></A>            b.append(<FONT ID="StringLiteral">"enum "</FONT>);
+<FONT ID="LN">237 </FONT><A NAME="237"></A>        }
+<FONT ID="LN">238 </FONT><A NAME="238"></A>        <FONT ID="Return">return</FONT> b.toString().trim();
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     * Returns (as a string) the field access permissions and properties
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     * contained in the specified mask of flags.
+<FONT ID="LN">244 </FONT><A NAME="244"></A>     * 
+<FONT ID="LN">245 </FONT><A NAME="245"></A>     * @param accessFlags
+<FONT ID="LN">246 </FONT><A NAME="246"></A>     *            mask of access flags.
+<FONT ID="LN">247 </FONT><A NAME="247"></A>     * @return a string identifying the field access permissions and properties.
+<FONT ID="LN">248 </FONT><A NAME="248"></A>     */</FONT>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String fieldAccessFlagsToString(<FONT ID="Int">int</FONT> accessFlags) {
+<FONT ID="LN">251 </FONT><A NAME="251"></A>        StringBuffer b = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">252 </FONT><A NAME="252"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PUBLIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">253 </FONT><A NAME="253"></A>            b.append(<FONT ID="StringLiteral">"public "</FONT>);
+<FONT ID="LN">254 </FONT><A NAME="254"></A>        }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PRIVATE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">256 </FONT><A NAME="256"></A>            b.append(<FONT ID="StringLiteral">"private "</FONT>);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        }
+<FONT ID="LN">258 </FONT><A NAME="258"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PROTECTED) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">259 </FONT><A NAME="259"></A>            b.append(<FONT ID="StringLiteral">"protected "</FONT>);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>        }
+<FONT ID="LN">261 </FONT><A NAME="261"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_STATIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">262 </FONT><A NAME="262"></A>            b.append(<FONT ID="StringLiteral">"static "</FONT>);
+<FONT ID="LN">263 </FONT><A NAME="263"></A>        }
+<FONT ID="LN">264 </FONT><A NAME="264"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_FINAL) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>            b.append(<FONT ID="StringLiteral">"final "</FONT>);
+<FONT ID="LN">266 </FONT><A NAME="266"></A>        }
+<FONT ID="LN">267 </FONT><A NAME="267"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_VOLATILE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">268 </FONT><A NAME="268"></A>            b.append(<FONT ID="StringLiteral">"volatile "</FONT>);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>        }
+<FONT ID="LN">270 </FONT><A NAME="270"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_TRANSIENT) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">271 </FONT><A NAME="271"></A>            b.append(<FONT ID="StringLiteral">"transient "</FONT>);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>        }
+<FONT ID="LN">273 </FONT><A NAME="273"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_NATIVE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">274 </FONT><A NAME="274"></A>            b.append(<FONT ID="StringLiteral">"native "</FONT>);
+<FONT ID="LN">275 </FONT><A NAME="275"></A>        }
+<FONT ID="LN">276 </FONT><A NAME="276"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_SYNTHETIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>            b.append(<FONT ID="StringLiteral">"synthetic "</FONT>);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>        }
+<FONT ID="LN">279 </FONT><A NAME="279"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ENUM) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">280 </FONT><A NAME="280"></A>            b.append(<FONT ID="StringLiteral">"enum "</FONT>);
+<FONT ID="LN">281 </FONT><A NAME="281"></A>        }
+<FONT ID="LN">282 </FONT><A NAME="282"></A>        <FONT ID="Return">return</FONT> b.toString().trim();
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    }
+<FONT ID="LN">284 </FONT><A NAME="284"></A>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">286 </FONT><A NAME="286"></A>     * Returns (as a string) the method access permissions and properties
+<FONT ID="LN">287 </FONT><A NAME="287"></A>     * contained in the specified mask of flags.
+<FONT ID="LN">288 </FONT><A NAME="288"></A>     * 
+<FONT ID="LN">289 </FONT><A NAME="289"></A>     * @param accessFlags
+<FONT ID="LN">290 </FONT><A NAME="290"></A>     *            mask of access flags.
+<FONT ID="LN">291 </FONT><A NAME="291"></A>     * @return a string identifying the method access permissions and
+<FONT ID="LN">292 </FONT><A NAME="292"></A>     *         properties.
+<FONT ID="LN">293 </FONT><A NAME="293"></A>     */</FONT>
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String methodAccessFlagsToString(<FONT ID="Int">int</FONT> accessFlags) {
+<FONT ID="LN">296 </FONT><A NAME="296"></A>        StringBuffer b = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">297 </FONT><A NAME="297"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PUBLIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">298 </FONT><A NAME="298"></A>            b.append(<FONT ID="StringLiteral">"public "</FONT>);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>        }
+<FONT ID="LN">300 </FONT><A NAME="300"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PRIVATE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">301 </FONT><A NAME="301"></A>            b.append(<FONT ID="StringLiteral">"private "</FONT>);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>        }
+<FONT ID="LN">303 </FONT><A NAME="303"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_PROTECTED) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">304 </FONT><A NAME="304"></A>            b.append(<FONT ID="StringLiteral">"protected "</FONT>);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>        }
+<FONT ID="LN">306 </FONT><A NAME="306"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_STATIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">307 </FONT><A NAME="307"></A>            b.append(<FONT ID="StringLiteral">"static "</FONT>);
+<FONT ID="LN">308 </FONT><A NAME="308"></A>        }
+<FONT ID="LN">309 </FONT><A NAME="309"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_FINAL) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">310 </FONT><A NAME="310"></A>            b.append(<FONT ID="StringLiteral">"final "</FONT>);
+<FONT ID="LN">311 </FONT><A NAME="311"></A>        }
+<FONT ID="LN">312 </FONT><A NAME="312"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_SYNCHRONIZED) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">313 </FONT><A NAME="313"></A>            b.append(<FONT ID="StringLiteral">"synchronized "</FONT>);
+<FONT ID="LN">314 </FONT><A NAME="314"></A>        }
+<FONT ID="LN">315 </FONT><A NAME="315"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_BRIDGE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>            b.append(<FONT ID="StringLiteral">"bridge "</FONT>);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>        }
+<FONT ID="LN">318 </FONT><A NAME="318"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_VARARGS) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">319 </FONT><A NAME="319"></A>            b.append(<FONT ID="StringLiteral">"varargs "</FONT>);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>        }
+<FONT ID="LN">321 </FONT><A NAME="321"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_NATIVE) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">322 </FONT><A NAME="322"></A>            b.append(<FONT ID="StringLiteral">"native "</FONT>);
+<FONT ID="LN">323 </FONT><A NAME="323"></A>        }
+<FONT ID="LN">324 </FONT><A NAME="324"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_ABSTRACT) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">325 </FONT><A NAME="325"></A>            b.append(<FONT ID="StringLiteral">"abstract "</FONT>);
+<FONT ID="LN">326 </FONT><A NAME="326"></A>        }
+<FONT ID="LN">327 </FONT><A NAME="327"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_STRICT) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">328 </FONT><A NAME="328"></A>            b.append(<FONT ID="StringLiteral">"strict "</FONT>);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>        }
+<FONT ID="LN">330 </FONT><A NAME="330"></A>        <FONT ID="If">if</FONT> ((accessFlags &amp; ACC_SYNTHETIC) != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">331 </FONT><A NAME="331"></A>            b.append(<FONT ID="StringLiteral">"synthetic "</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>        }
+<FONT ID="LN">333 </FONT><A NAME="333"></A>        <FONT ID="Return">return</FONT> b.toString().trim();
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    }
+<FONT ID="LN">335 </FONT><A NAME="335"></A>
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">337 </FONT><A NAME="337"></A>     * Returns the integer value (mask) corresponding to the specified access
+<FONT ID="LN">338 </FONT><A NAME="338"></A>     * flag.
+<FONT ID="LN">339 </FONT><A NAME="339"></A>     * 
+<FONT ID="LN">340 </FONT><A NAME="340"></A>     * @param accessFlag
+<FONT ID="LN">341 </FONT><A NAME="341"></A>     *            access flag.
+<FONT ID="LN">342 </FONT><A NAME="342"></A>     * @return the integer mask.
+<FONT ID="LN">343 </FONT><A NAME="343"></A>     */</FONT>
+<FONT ID="LN">344 </FONT><A NAME="344"></A>
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> accessFlagToInt(String accessFlag) {
+<FONT ID="LN">346 </FONT><A NAME="346"></A>        <FONT ID="Int">int</FONT> flag = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"public"</FONT>)) {
+<FONT ID="LN">348 </FONT><A NAME="348"></A>            flag = ACC_PUBLIC;
+<FONT ID="LN">349 </FONT><A NAME="349"></A>        }
+<FONT ID="LN">350 </FONT><A NAME="350"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"private"</FONT>)) {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>            flag = ACC_PRIVATE;
+<FONT ID="LN">352 </FONT><A NAME="352"></A>        }
+<FONT ID="LN">353 </FONT><A NAME="353"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"protected"</FONT>)) {
+<FONT ID="LN">354 </FONT><A NAME="354"></A>            flag = ACC_PROTECTED;
+<FONT ID="LN">355 </FONT><A NAME="355"></A>        }
+<FONT ID="LN">356 </FONT><A NAME="356"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"static"</FONT>)) {
+<FONT ID="LN">357 </FONT><A NAME="357"></A>            flag = ACC_STATIC;
+<FONT ID="LN">358 </FONT><A NAME="358"></A>        }
+<FONT ID="LN">359 </FONT><A NAME="359"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"final"</FONT>)) {
+<FONT ID="LN">360 </FONT><A NAME="360"></A>            flag = ACC_FINAL;
+<FONT ID="LN">361 </FONT><A NAME="361"></A>        }
+<FONT ID="LN">362 </FONT><A NAME="362"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"super"</FONT>)) {
+<FONT ID="LN">363 </FONT><A NAME="363"></A>            flag = ACC_SUPER;
+<FONT ID="LN">364 </FONT><A NAME="364"></A>        }
+<FONT ID="LN">365 </FONT><A NAME="365"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"synchronized"</FONT>)) {
+<FONT ID="LN">366 </FONT><A NAME="366"></A>            flag = ACC_SYNCHRONIZED;
+<FONT ID="LN">367 </FONT><A NAME="367"></A>        }
+<FONT ID="LN">368 </FONT><A NAME="368"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"volatile"</FONT>)) {
+<FONT ID="LN">369 </FONT><A NAME="369"></A>            flag = ACC_VOLATILE;
+<FONT ID="LN">370 </FONT><A NAME="370"></A>        }
+<FONT ID="LN">371 </FONT><A NAME="371"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"bridge"</FONT>)) {
+<FONT ID="LN">372 </FONT><A NAME="372"></A>            flag = ACC_BRIDGE;
+<FONT ID="LN">373 </FONT><A NAME="373"></A>        }
+<FONT ID="LN">374 </FONT><A NAME="374"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"transient"</FONT>)) {
+<FONT ID="LN">375 </FONT><A NAME="375"></A>            flag = ACC_TRANSIENT;
+<FONT ID="LN">376 </FONT><A NAME="376"></A>        }
+<FONT ID="LN">377 </FONT><A NAME="377"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"varargs"</FONT>)) {
+<FONT ID="LN">378 </FONT><A NAME="378"></A>            flag = ACC_VARARGS;
+<FONT ID="LN">379 </FONT><A NAME="379"></A>        }
+<FONT ID="LN">380 </FONT><A NAME="380"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"native"</FONT>)) {
+<FONT ID="LN">381 </FONT><A NAME="381"></A>            flag = ACC_NATIVE;
+<FONT ID="LN">382 </FONT><A NAME="382"></A>        }
+<FONT ID="LN">383 </FONT><A NAME="383"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"interface"</FONT>)) {
+<FONT ID="LN">384 </FONT><A NAME="384"></A>            flag = ACC_INTERFACE;
+<FONT ID="LN">385 </FONT><A NAME="385"></A>        }
+<FONT ID="LN">386 </FONT><A NAME="386"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"abstract"</FONT>)) {
+<FONT ID="LN">387 </FONT><A NAME="387"></A>            flag = ACC_ABSTRACT;
+<FONT ID="LN">388 </FONT><A NAME="388"></A>        }
+<FONT ID="LN">389 </FONT><A NAME="389"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"strict"</FONT>)) {
+<FONT ID="LN">390 </FONT><A NAME="390"></A>            flag = ACC_STRICT;
+<FONT ID="LN">391 </FONT><A NAME="391"></A>        }
+<FONT ID="LN">392 </FONT><A NAME="392"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"synthetic"</FONT>)) {
+<FONT ID="LN">393 </FONT><A NAME="393"></A>            flag = ACC_SYNTHETIC;
+<FONT ID="LN">394 </FONT><A NAME="394"></A>        }
+<FONT ID="LN">395 </FONT><A NAME="395"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"annotation"</FONT>)) {
+<FONT ID="LN">396 </FONT><A NAME="396"></A>            flag = ACC_ANNOTATION;
+<FONT ID="LN">397 </FONT><A NAME="397"></A>        }
+<FONT ID="LN">398 </FONT><A NAME="398"></A>        <FONT ID="If">if</FONT> (accessFlag.equals(<FONT ID="StringLiteral">"enum"</FONT>)) {
+<FONT ID="LN">399 </FONT><A NAME="399"></A>            flag = ACC_ENUM;
+<FONT ID="LN">400 </FONT><A NAME="400"></A>        }
+<FONT ID="LN">401 </FONT><A NAME="401"></A>        <FONT ID="Return">return</FONT> flag;
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    }
+<FONT ID="LN">403 </FONT><A NAME="403"></A>
+<FONT ID="LN">404 </FONT><A NAME="404"></A>}
+<FONT ID="LN">405 </FONT><A NAME="405"></A></pre>
+</BODY>
+</HTML>
