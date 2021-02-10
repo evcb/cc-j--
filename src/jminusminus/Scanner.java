@@ -112,7 +112,8 @@ class Scanner {
                         nextCh();
                     }
                 } else {
-                    reportScannerError("Operator / is not supported in j--.");
+                    //reportScannerError("Operator / is not supported in j--.");
+                    return new TokenInfo(DIV, line);
                 }
             } else {
                 moreWhiteSpace = false;
@@ -158,6 +159,10 @@ class Scanner {
         case '*':
             nextCh();
             return new TokenInfo(STAR, line);
+        //modulo
+        case '%':
+             nextCh();
+             return new TokenInfo(REM, line);
         case '+':
             nextCh();
             if (ch == '=') {
