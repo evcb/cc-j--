@@ -3,7 +3,9 @@ classes
 out
 pass
 ant
-ant
 j--
 j--.iml
 java
+.DS_Store
+.vscode
+tmp
