@@ -13,8 +13,7 @@ the Technical University of Denmark, spring 2021.
 
 ## Installation
 
-Check out the [installation wiki](https://github.com/umbcsops/j--/wiki/Installation)
-for more information.
+Using the course's source version.
 
 ## Requirements and Notes
 
