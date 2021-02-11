@@ -10,4 +10,5 @@ java
 **/.DS_Store
 .vscode
 tmp
-lib/
+lib/j--.jar
+lib/spim.jar
