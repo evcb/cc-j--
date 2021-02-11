@@ -99,6 +99,7 @@ simpleUnaryExpression ::= LNOT unaryExpression
                             referenceType
                           RPAREN simpleUnaryExpression
                         | postfixExpression 
+                        | UCOM simpleUnaryExpression
 
 postfixExpression ::= primary {selector} {DEC}
 
