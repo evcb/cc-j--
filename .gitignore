@@ -6,6 +6,6 @@ ant
 j--
 j--.iml
 java
-.DS_Store
+**/.DS_Store
 .vscode
 tmp
