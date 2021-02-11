@@ -19,7 +19,7 @@ for more information.
 ## Requirements and Notes
 
 Make sure to install ant > 1.10.9. Unpack it preferebly outside the project folder. 
-Make sure to update .gignore to ignore your editor¨ files.
+Make sure to update .gignore to ignore your editor files.
 
 ## Copyright
 
