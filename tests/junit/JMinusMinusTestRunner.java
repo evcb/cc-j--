@@ -22,6 +22,7 @@ public class JMinusMinusTestRunner {
         suite.addTestSuite(DivisionTest.class);
         suite.addTestSuite(RemainderTest.class);
         suite.addTestSuite(UnaryComplementTest.class);
+        suite.addTestSuite(BitwiseOrTest.class);
         return suite;
     }
 

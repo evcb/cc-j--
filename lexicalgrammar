@@ -48,6 +48,7 @@ STAR        ::= "*"
 DIV         ::= "/"
 REM         ::= "%"
 UCOM        ::= "~"
+BOR         ::= "|"
 
 // Separators
 COMMA       ::= ","
