@@ -1139,7 +1139,9 @@ public class Parser {
                 lhs = new JRemainderOp(line, lhs, unaryExpression());
             } else if(have(SHL)) {
                 lhs = new JShiftLeftOp(line, lhs, unaryExpression());
-            }else {
+            }else if(have(SHR)) {
+                lhs = new JShiftRightOp(line, lhs, unaryExpression());
+            } else {
                 more = false;
             }
         }

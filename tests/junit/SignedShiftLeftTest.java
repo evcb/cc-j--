@@ -17,7 +17,7 @@ public class SignedShiftLeftTest extends TestCase{
 
     public void testSignedShiftLeft(){
         this.assertEquals(signedShiftLeft.shiftLeft(0,4), 0);
-        this.assertEquals(signedShiftLeft.shiftLeft(2,3), 16);
+        this.assertEquals(signedShiftLeft.shiftLeft(-4,1), -8);
         this.assertEquals(signedShiftLeft.shiftLeft(127,5), 4064);
 
     }
