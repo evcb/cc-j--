@@ -79,15 +79,19 @@ conditionalAndExpression ::= equalityExpression // level 10
 equalityExpression ::= relationalExpression  // level 6
                          {EQUAL relationalExpression}
 
-relationalExpression ::= additiveExpression       // level 5
-                           [(GT | LE) additiveExpression
+relationalExpression ::= shiftExpression       // level 5
+                           [(GT | LE) shiftExpression
                            | INSTANCEOF referenceType]
+
+shiftExpression ::= additiveExpression
+		    {URSHIFT AdditiveExpression}
 
 additiveExpression ::= multiplicativeExpression // level 3
                          {(PLUS | MINUS) multiplicativeExpression}
 
-multiplicativeExpression ::= unaryExpression       // level 2
-                               {STAR unaryExpression}
+multiplicativeExpression ::= unaryExpression // level 2 
+                              {(STAR | DIV | REM) unaryExpression} 
+
 
 unaryExpression ::= INC unaryExpression  // level 1
                   | MINUS unaryExpression
@@ -126,5 +130,3 @@ newArrayDeclarator ::= LBRACK expression RBRACK
 literal ::= INT_LITERAL | CHAR_LITERAL | STRING_LITERAL
           | TRUE        | FALSE        | NULL
 
-multiplicativeExpression ::= unaryExpression // level 2 
-                              {(STAR | DIV | REM) unaryExpression}
