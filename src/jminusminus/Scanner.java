@@ -187,8 +187,20 @@ class Scanner {
                 return getNextToken();
             }
         case '>':
-            nextCh();
-            return new TokenInfo(GT, line);
+	    nextCh();
+	    if (ch == '>') {
+		nextCh();
+		if (ch == '>') {
+		    nextCh();
+		    return new TokenInfo(URSHIFT, line);
+		} else {
+		    reportScannerError("Operator >> is not supported in j--.");
+		    return getNextToken();
+		}
+	    } else {
+		nextCh();
+		return new TokenInfo(GT, line);
+	    }
         case '<':
             nextCh();
             if (ch == '=') {
@@ -198,7 +210,7 @@ class Scanner {
                 reportScannerError("Operator < is not supported in j--.");
                 return getNextToken();
             }
-        case '\'':
+	case '\'':
             buffer = new StringBuffer();
             buffer.append('\'');
             nextCh();

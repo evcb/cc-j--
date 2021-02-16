@@ -1066,8 +1066,8 @@ public class Parser {
      * Parse a relational expression.
      * 
      * <pre>
-     *   relationalExpression ::= additiveExpression  // level 5
-     *                              [(GT | LE) additiveExpression 
+     *   relationalExpression ::= shiftExpression  // level 5
+     *                              [(GT | LE) shiftExpression 
      *                              | INSTANCEOF referenceType]
      * </pre>
      * 
@@ -1076,11 +1076,11 @@ public class Parser {
 
     private JExpression relationalExpression() {
         int line = scanner.token().line();
-        JExpression lhs = additiveExpression();
+        JExpression lhs = shiftExpression();
         if (have(GT)) {
-            return new JGreaterThanOp(line, lhs, additiveExpression());
+            return new JGreaterThanOp(line, lhs, shiftExpression());
         } else if (have(LE)) {
-            return new JLessEqualOp(line, lhs, additiveExpression());
+            return new JLessEqualOp(line, lhs, shiftExpression());
         } else if (have(INSTANCEOF)) {
             return new JInstanceOfOp(line, lhs, referenceType());
         } else {
@@ -1088,6 +1088,27 @@ public class Parser {
         }
     }
 
+    /**
+     * Parse a shift expression.
+     * 
+     * <pre>
+     *   shiftExpression ::= additiveExpression // level 3
+     *                            {URShift additive Expression}
+     * </pre>
+     * 
+     * @return an AST for a shiftExpression.
+     */
+
+    private JExpression shiftExpression() {
+        int line = scanner.token().line();
+        JExpression lhs = additiveExpression();
+        if (have(URSHIFT)) {
+	    return new JUShiftOp(line, lhs, additiveExpression());
+        } else {
+            return lhs;
+        }
+    }
+    
     /**
      * Parse an additive expression.
      * 
