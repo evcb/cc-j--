@@ -3,7 +3,7 @@
 
 compilationUnit ::= [PACKAGE qualifiedIdentifier SEMI]
                     {IMPORT  qualifiedIdentifier SEMI}
-                    {typeDeclaration} EOF 
+                    {typeDeclaration} EOF
 
 qualifiedIdentifier ::= IDENTIFIER {DOT IDENTIFIER}
 
@@ -11,8 +11,8 @@ typeDeclaration ::= modifiers classDeclaration
 
 modifiers ::= {PUBLIC | PROTECTED | PRIVATE | STATIC | ABSTRACT}
 
-classDeclaration ::= CLASS IDENTIFIER 
-                       [EXTENDS qualifiedIdentifier] 
+classDeclaration ::= CLASS IDENTIFIER
+                       [EXTENDS qualifiedIdentifier]
                        classBody
 
 classBody ::= LCURLY {modifiers memberDecl} RCURLY
@@ -24,19 +24,19 @@ memberDecl ::= IDENTIFIER            // constructor
                  (block | SEMI)
              | type variableDeclarators SEMI // field
 
-block ::= LCURLY {blockStatement} RCURLY 
+block ::= LCURLY {blockStatement} RCURLY
 
 blockStatement ::= localVariableDeclarationStatement
                  | statement
 
 statement ::= block
             | IF parExpression statement [ELSE statement]
-            | WHILE parExpression statement 
+            | WHILE parExpression statement
             | RETURN [expression] SEMI
-            | SEMI 
+            | SEMI
             | statementExpression SEMI
 
-formalParameters ::= LPAREN 
+formalParameters ::= LPAREN
                        [formalParameter {COMMA formalParameter}]
                      RPAREN
 
@@ -49,19 +49,19 @@ localVariableDeclarationStatement ::= type variableDeclarators SEMI
 variableDeclarators ::= variableDeclarator {COMMA variableDeclarator}
 
 variableDeclarator ::= IDENTIFIER [ASSIGN variableInitializer]
-                    
+
 variableInitializer ::= arrayInitializer | expression
 
-arrayInitializer ::= LCURLY 
+arrayInitializer ::= LCURLY
                        [variableInitializer
                          {COMMA variableInitializer} [COMMA]]
-                     RCURLY 
+                     RCURLY
 
 arguments ::= LPAREN [expression {COMMA expression}] RPAREN
 
 type ::= referenceType | basicType
 
-basicType ::= BOOLEAN | CHAR | INT 
+basicType ::= BOOLEAN | CHAR | INT
 
 referenceType ::= basicType LBRACK RBRACK {LBRACK RBRACK}
                 | qualifiedIdentifier {LBRACK RBRACK}
@@ -90,15 +90,15 @@ multiplicativeExpression ::= unaryExpression       // level 2
                                {(STAR | DIV | REM | SHL | SHR) unaryExpression}
 
 unaryExpression ::= INC unaryExpression  // level 1
-                  | MINUS unaryExpression
+                  | (PLUS | MINUS) unaryExpression
                   | simpleUnaryExpression
 
 simpleUnaryExpression ::= LNOT unaryExpression
                         | LPAREN basicType RPAREN unaryExpression //casted
-                        | LPAREN // casted               
+                        | LPAREN // casted
                             referenceType
                           RPAREN simpleUnaryExpression
-                        | postfixExpression 
+                        | postfixExpression
 
 postfixExpression ::= primary {selector} {DEC}
 
@@ -107,20 +107,20 @@ selector ::= DOT qualifiedIdentifier [arguments]
 
 primary ::= parExpression
           | THIS [arguments]
-          | SUPER ( arguments 
-                  | DOT IDENTIFIER [arguments] 
+          | SUPER ( arguments
+                  | DOT IDENTIFIER [arguments]
                   )
           | literal
           | NEW creator
           | qualifiedIdentifier [arguments]
 
-creator ::= (basicType | qualifiedIdentifier) 
+creator ::= (basicType | qualifiedIdentifier)
               ( arguments
               | LBRACK RBRACK {LBRACK RBRACK} [arrayInitializer]
               | newArrayDeclarator
               )
 
-newArrayDeclarator ::= LBRACK expression RBRACK 
+newArrayDeclarator ::= LBRACK expression RBRACK
                          {LBRACK expression RBRACK} {LBRACK RBRACK}
 
 literal ::= INT_LITERAL | CHAR_LITERAL | STRING_LITERAL
