@@ -9,12 +9,12 @@ import static jminusminus.TokenKind.*;
 /**
  * A recursive descent parser that, given a lexical analyzer (a
  * {@link LookaheadScanner}), parses a Java compilation unit (program file),
- * taking tokens from the LookaheadScanner, and produces an abstract syntax 
- * tree (AST) for it.
+ * taking tokens from the LookaheadScanner, and produces an abstract syntax tree
+ * (AST) for it.
  * <p>
  * See Appendix C.2.2 in the textbook or the
- * <a href="https://docs.oracle.com/javase/specs/jls/se8/html/index.html">Java Language Specifications</a>
- * for the full syntactic grammar.
+ * <a href="https://docs.oracle.com/javase/specs/jls/se8/html/index.html">Java
+ * Language Specifications</a> for the full syntactic grammar.
  */
 
 public class Parser {
@@ -30,9 +30,8 @@ public class Parser {
 
     /**
      * Constructs a parser from the given lexical analyzer.
-     * 
-     * @param scanner
-     *            the lexical analyzer with which tokens are scanned.
+     *
+     * @param scanner the lexical analyzer with which tokens are scanned.
      */
 
     public Parser(LookaheadScanner scanner) {
@@ -44,7 +43,7 @@ public class Parser {
 
     /**
      * Has a parser error occurred up to now?
-     * 
+     *
      * @return {@code true} if a parser error occurred; {@code false} otherwise.
      */
 
@@ -58,9 +57,8 @@ public class Parser {
 
     /**
      * Is the current token this one?
-     * 
-     * @param sought
-     *            the token we're looking for.
+     *
+     * @param sought the token we're looking for.
      * @return true iff they match; false otherwise.
      */
 
@@ -69,12 +67,11 @@ public class Parser {
     }
 
     /**
-     * Look at the current (unscanned) token to see if it's one we're looking
-     * for. If so, scan it and return true; otherwise return false (without
-     * scanning a thing).
-     * 
-     * @param sought
-     *            the token we're looking for.
+     * Look at the current (unscanned) token to see if it's one we're looking for.
+     * If so, scan it and return true; otherwise return false (without scanning a
+     * thing).
+     *
+     * @param sought the token we're looking for.
      * @return true iff they match; false otherwise.
      */
 
@@ -88,17 +85,16 @@ public class Parser {
     }
 
     /**
-     * Attempt to match a token we're looking for with the current input token.
-     * If we succeed, scan the token and go into a "isRecovered" state. If we
-     * fail, then what we do next depends on whether or not we're currently in a
-     * "isRecovered" state: if so, we report the error and go into an
-     * "Unrecovered" state; if not, we repeatedly scan tokens until we find the
-     * one we're looking for (or EOF) and then return to a "isRecovered" state.
-     * This gives us a kind of poor man's syntactic error recovery. The strategy
-     * is due to David Turner and Ron Morrison.
-     * 
-     * @param sought
-     *            the token we're looking for.
+     * Attempt to match a token we're looking for with the current input token. If
+     * we succeed, scan the token and go into a "isRecovered" state. If we fail,
+     * then what we do next depends on whether or not we're currently in a
+     * "isRecovered" state: if so, we report the error and go into an "Unrecovered"
+     * state; if not, we repeatedly scan tokens until we find the one we're looking
+     * for (or EOF) and then return to a "isRecovered" state. This gives us a kind
+     * of poor man's syntactic error recovery. The strategy is due to David Turner
+     * and Ron Morrison.
+     *
+     * @param sought the token we're looking for.
      */
 
     private void mustBe(TokenKind sought) {
@@ -107,8 +103,7 @@ public class Parser {
             isRecovered = true;
         } else if (isRecovered) {
             isRecovered = false;
-            reportParserError("%s found where %s sought", scanner.token()
-                    .image(), sought.image());
+            reportParserError("%s found where %s sought", scanner.token().image(), sought.image());
         } else {
             // Do not report the (possibly spurious) error,
             // but rather attempt to recover by forcing a match.
@@ -124,9 +119,8 @@ public class Parser {
 
     /**
      * Pull out the ambiguous part of a name and return it.
-     * 
-     * @param name
-     *            with an ambiguos part (possibly).
+     *
+     * @param name with an ambiguos part (possibly).
      * @return ambiguous part or null.
      */
 
@@ -135,24 +129,20 @@ public class Parser {
         int lastDotIndex = qualifiedName.lastIndexOf('.');
         return lastDotIndex == -1 ? null // It was a simple
                 // name
-                : new AmbiguousName(name.line(), qualifiedName.substring(0,
-                        lastDotIndex));
+                : new AmbiguousName(name.line(), qualifiedName.substring(0, lastDotIndex));
     }
 
     /**
      * Report a syntax error.
-     * 
-     * @param message
-     *            message identifying the error.
-     * @param args
-     *            related values.
+     *
+     * @param message message identifying the error.
+     * @param args    related values.
      */
 
     private void reportParserError(String message, Object... args) {
         isInError = true;
         isRecovered = false;
-        System.err
-                .printf("%s:%d: ", scanner.fileName(), scanner.token().line());
+        System.err.printf("%s:%d: ", scanner.fileName(), scanner.token().line());
         System.err.printf(message, args);
         System.err.println();
     }
@@ -162,9 +152,8 @@ public class Parser {
     // ////////////////////////////////////////////////
 
     /**
-     * Are we looking at an IDENTIFIER followed by a LPAREN? Look ahead to find
-     * out.
-     * 
+     * Are we looking at an IDENTIFIER followed by a LPAREN? Look ahead to find out.
+     *
      * @return true iff we're looking at IDENTIFIER LPAREN; false otherwise.
      */
 
@@ -177,13 +166,13 @@ public class Parser {
 
     /**
      * Are we looking at a cast? ie.
-     * 
+     *
      * <pre>
      *   LPAREN type RPAREN ...
      * </pre>
-     * 
+     *
      * Look ahead to find out.
-     * 
+     *
      * @return true iff we're looking at a cast; false otherwise.
      */
 
@@ -226,13 +215,13 @@ public class Parser {
 
     /**
      * Are we looking at a local variable declaration? ie.
-     * 
+     *
      * <pre>
      *   type IDENTIFIER {LBRACK RBRACK} ...
      * </pre>
-     * 
+     *
      * Look ahead to determine.
-     * 
+     *
      * @return true iff we are looking at local variable declaration; false
      *         otherwise.
      */
@@ -275,11 +264,11 @@ public class Parser {
 
     /**
      * Are we looking at a basic type? ie.
-     * 
+     *
      * <pre>
      * BOOLEAN | CHAR | INT
      * </pre>
-     * 
+     *
      * @return true iff we're looking at a basic type; false otherwise.
      */
 
@@ -289,12 +278,12 @@ public class Parser {
 
     /**
      * Are we looking at a reference type? ie.
-     * 
+     *
      * <pre>
      *   referenceType ::= basicType LBRACK RBRACK {LBRACK RBRACK}
      *                   | qualifiedIdentifier {LBRACK RBRACK}
      * </pre>
-     * 
+     *
      * @return true iff we're looking at a reference type; false otherwise.
      */
 
@@ -316,7 +305,7 @@ public class Parser {
 
     /**
      * Are we looking at []?
-     * 
+     *
      * @return true iff we're looking at a [] pair; false otherwise.
      */
 
@@ -334,14 +323,14 @@ public class Parser {
     /**
      * Parses a compilation unit (a program file) and constructs an AST for it.
      * After constructing the Parser, this is its entry point.
-     * 
+     *
      * <pre>
      *   compilationUnit ::= [PACKAGE qualifiedIdentifier SEMI]
      *                       {IMPORT  qualifiedIdentifier SEMI}
      *                       {typeDeclaration}
      *                       EOF
      * </pre>
-     * 
+     *
      * @return an AST for a compilationUnit.
      */
 
@@ -365,18 +354,16 @@ public class Parser {
             }
         }
         mustBe(EOF);
-        return new JCompilationUnit(scanner.fileName(),
-                                    line, packageName,
-                                    imports, typeDeclarations);
+        return new JCompilationUnit(scanner.fileName(), line, packageName, imports, typeDeclarations);
     }
 
     /**
      * Parse a qualified identifier.
-     * 
+     *
      * <pre>
      *   qualifiedIdentifier ::= IDENTIFIER {DOT IDENTIFIER}
      * </pre>
-     * 
+     *
      * @return an instance of TypeName.
      */
 
@@ -393,11 +380,11 @@ public class Parser {
 
     /**
      * Parse a type declaration.
-     * 
+     *
      * <pre>
      *   typeDeclaration ::= modifiers classDeclaration
      * </pre>
-     * 
+     *
      * @return an AST for a typeDeclaration.
      */
 
@@ -408,15 +395,15 @@ public class Parser {
 
     /**
      * Parse modifiers.
-     * 
+     *
      * <pre>
-     *   modifiers ::= {PUBLIC | PROTECTED | PRIVATE | STATIC | 
+     *   modifiers ::= {PUBLIC | PROTECTED | PRIVATE | STATIC |
      *                  ABSTRACT}
      * </pre>
-     * 
+     *
      * Check for duplicates, and conflicts among access modifiers (public,
      * protected, and private). Otherwise, no checks.
-     * 
+     *
      * @return a list of modifiers.
      */
 
@@ -476,18 +463,17 @@ public class Parser {
 
     /**
      * Parse a class declaration.
-     * 
+     *
      * <pre>
-     *   classDeclaration ::= CLASS IDENTIFIER 
-     *                        [EXTENDS qualifiedIdentifier] 
+     *   classDeclaration ::= CLASS IDENTIFIER
+     *                        [EXTENDS qualifiedIdentifier]
      *                        classBody
      * </pre>
-     * 
+     *
      * A class which doesn't explicitly extend another (super) class implicitly
      * extends the superclass java.lang.Object.
-     * 
-     * @param mods
-     *            the class modifiers.
+     *
+     * @param mods the class modifiers.
      * @return an AST for a classDeclaration.
      */
 
@@ -507,13 +493,13 @@ public class Parser {
 
     /**
      * Parse a class body.
-     * 
+     *
      * <pre>
      *   classBody ::= LCURLY
      *                   {modifiers memberDecl}
      *                 RCURLY
      * </pre>
-     * 
+     *
      * @return list of members in the class body.
      */
 
@@ -529,7 +515,7 @@ public class Parser {
 
     /**
      * Parse a member declaration.
-     * 
+     *
      * <pre>
      *   memberDecl ::= IDENTIFIER            // constructor
      *                    formalParameters
@@ -539,9 +525,8 @@ public class Parser {
      *                    (block | SEMI)
      *                | type variableDeclarators SEMI
      * </pre>
-     * 
-     * @param mods
-     *            the class member modifiers.
+     *
+     * @param mods the class member modifiers.
      * @return an AST for a memberDecl.
      */
 
@@ -554,8 +539,7 @@ public class Parser {
             String name = scanner.previousToken().image();
             ArrayList<JFormalParameter> params = formalParameters();
             JBlock body = block();
-            memberDecl = new JConstructorDeclaration(line, mods, name, params,
-                    body);
+            memberDecl = new JConstructorDeclaration(line, mods, name, params, body);
         } else {
             Type type = null;
             if (have(VOID)) {
@@ -565,8 +549,7 @@ public class Parser {
                 String name = scanner.previousToken().image();
                 ArrayList<JFormalParameter> params = formalParameters();
                 JBlock body = have(SEMI) ? null : block();
-                memberDecl = new JMethodDeclaration(line, mods, name, type,
-                        params, body);
+                memberDecl = new JMethodDeclaration(line, mods, name, type, params, body);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
@@ -575,12 +558,10 @@ public class Parser {
                     String name = scanner.previousToken().image();
                     ArrayList<JFormalParameter> params = formalParameters();
                     JBlock body = have(SEMI) ? null : block();
-                    memberDecl = new JMethodDeclaration(line, mods, name, type,
-                            params, body);
+                    memberDecl = new JMethodDeclaration(line, mods, name, type, params, body);
                 } else {
                     // Field
-                    memberDecl = new JFieldDeclaration(line, mods,
-                            variableDeclarators(type));
+                    memberDecl = new JFieldDeclaration(line, mods, variableDeclarators(type));
                     mustBe(SEMI);
                 }
             }
@@ -590,11 +571,11 @@ public class Parser {
 
     /**
      * Parse a block.
-     * 
+     *
      * <pre>
      *   block ::= LCURLY {blockStatement} RCURLY
      * </pre>
-     * 
+     *
      * @return an AST for a block.
      */
 
@@ -611,12 +592,12 @@ public class Parser {
 
     /**
      * Parse a block statement.
-     * 
+     *
      * <pre>
      *   blockStatement ::= localVariableDeclarationStatement
      *                    | statement
      * </pre>
-     * 
+     *
      * @return an AST for a blockStatement.
      */
 
@@ -630,16 +611,16 @@ public class Parser {
 
     /**
      * Parse a statement.
-     * 
+     *
      * <pre>
      *   statement ::= block
      *               | IF parExpression statement [ELSE statement]
-     *               | WHILE parExpression statement 
+     *               | WHILE parExpression statement
      *               | RETURN [expression] SEMI
-     *               | SEMI 
+     *               | SEMI
      *               | statementExpression SEMI
      * </pre>
-     * 
+     *
      * @return an AST for a statement.
      */
 
@@ -675,14 +656,14 @@ public class Parser {
 
     /**
      * Parse formal parameters.
-     * 
+     *
      * <pre>
-     *   formalParameters ::= LPAREN 
-     *                          [formalParameter 
+     *   formalParameters ::= LPAREN
+     *                          [formalParameter
      *                            {COMMA  formalParameter}]
      *                        RPAREN
      * </pre>
-     * 
+     *
      * @return a list of formal parameters.
      */
 
@@ -700,11 +681,11 @@ public class Parser {
 
     /**
      * Parse a formal parameter.
-     * 
+     *
      * <pre>
      *   formalParameter ::= type IDENTIFIER
      * </pre>
-     * 
+     *
      * @return an AST for a formalParameter.
      */
 
@@ -718,11 +699,11 @@ public class Parser {
 
     /**
      * Parse a parenthesized expression.
-     * 
+     *
      * <pre>
      *   parExpression ::= LPAREN expression RPAREN
      * </pre>
-     * 
+     *
      * @return an AST for a parExpression.
      */
 
@@ -735,13 +716,13 @@ public class Parser {
 
     /**
      * Parse a local variable declaration statement.
-     * 
+     *
      * <pre>
-     *   localVariableDeclarationStatement ::= type 
-     *                                           variableDeclarators 
+     *   localVariableDeclarationStatement ::= type
+     *                                           variableDeclarators
      *                                             SEMI
      * </pre>
-     * 
+     *
      * @return an AST for a variableDeclaration.
      */
 
@@ -755,20 +736,18 @@ public class Parser {
 
     /**
      * Parse variable declarators.
-     * 
+     *
      * <pre>
-     *   variableDeclarators ::= variableDeclarator 
+     *   variableDeclarators ::= variableDeclarator
      *                             {COMMA variableDeclarator}
      * </pre>
-     * 
-     * @param type
-     *            type of the variables.
+     *
+     * @param type type of the variables.
      * @return a list of variable declarators.
      */
 
     private ArrayList<JVariableDeclarator> variableDeclarators(Type type) {
-        ArrayList<JVariableDeclarator> variableDeclarators = 
-                                       new ArrayList<JVariableDeclarator>();
+        ArrayList<JVariableDeclarator> variableDeclarators = new ArrayList<JVariableDeclarator>();
         do {
             variableDeclarators.add(variableDeclarator(type));
         } while (have(COMMA));
@@ -777,14 +756,13 @@ public class Parser {
 
     /**
      * Parse a variable declarator.
-     * 
+     *
      * <pre>
      *   variableDeclarator ::= IDENTIFIER
      *                          [ASSIGN variableInitializer]
      * </pre>
-     * 
-     * @param type
-     *            type of the variable.
+     *
+     * @param type type of the variable.
      * @return an AST for a variableDeclarator.
      */
 
@@ -798,14 +776,13 @@ public class Parser {
 
     /**
      * Parse a variable initializer.
-     * 
+     *
      * <pre>
      *   variableInitializer ::= arrayInitializer
      *                         | expression
      * </pre>
-     * 
-     * @param type
-     *            type of the variable.
+     *
+     * @param type type of the variable.
      * @return an AST for a variableInitializer.
      */
 
@@ -818,16 +795,15 @@ public class Parser {
 
     /**
      * Parse an array initializer.
-     * 
+     *
      * <pre>
-     *   arrayInitializer ::= LCURLY 
-     *                          [variableInitializer 
+     *   arrayInitializer ::= LCURLY
+     *                          [variableInitializer
      *                            {COMMA variableInitializer} [COMMA]]
      *                        RCURLY
      * </pre>
-     * 
-     * @param type
-     *            type of the array.
+     *
+     * @param type type of the array.
      * @return an AST for an arrayInitializer.
      */
 
@@ -840,8 +816,7 @@ public class Parser {
         }
         initials.add(variableInitializer(type.componentType()));
         while (have(COMMA)) {
-            initials.add(see(RCURLY) ? null : variableInitializer(type
-                    .componentType()));
+            initials.add(see(RCURLY) ? null : variableInitializer(type.componentType()));
         }
         mustBe(RCURLY);
         return new JArrayInitializer(line, type, initials);
@@ -849,11 +824,11 @@ public class Parser {
 
     /**
      * Parse arguments.
-     * 
+     *
      * <pre>
      *   arguments ::= LPAREN [expression {COMMA expression}] RPAREN
      * </pre>
-     * 
+     *
      * @return a list of expressions.
      */
 
@@ -872,12 +847,12 @@ public class Parser {
 
     /**
      * Parse a type.
-     * 
+     *
      * <pre>
-     *   type ::= referenceType 
+     *   type ::= referenceType
      *          | basicType
      * </pre>
-     * 
+     *
      * @return an instance of Type.
      */
 
@@ -890,11 +865,11 @@ public class Parser {
 
     /**
      * Parse a basic type.
-     * 
+     *
      * <pre>
      *   basicType ::= BOOLEAN | CHAR | INT
      * </pre>
-     * 
+     *
      * @return an instance of Type.
      */
 
@@ -906,20 +881,19 @@ public class Parser {
         } else if (have(INT)) {
             return Type.INT;
         } else {
-            reportParserError("Type sought where %s found", scanner.token()
-                    .image());
+            reportParserError("Type sought where %s found", scanner.token().image());
             return Type.ANY;
         }
     }
 
     /**
      * Parse a reference type.
-     * 
+     *
      * <pre>
      *   referenceType ::= basicType LBRACK RBRACK {LBRACK RBRACK}
      *                   | qualifiedIdentifier {LBRACK RBRACK}
      * </pre>
-     * 
+     *
      * @return an instance of Type.
      */
 
@@ -943,41 +917,36 @@ public class Parser {
 
     /**
      * Parse a statement expression.
-     * 
+     *
      * <pre>
-     *   statementExpression ::= expression // but must have 
+     *   statementExpression ::= expression // but must have
      *                                      // side-effect, eg i++
      * </pre>
-     * 
+     *
      * @return an AST for a statementExpression.
      */
 
     private JStatement statementExpression() {
         int line = scanner.token().line();
         JExpression expr = expression();
-        if (expr instanceof JAssignment || expr instanceof JPreIncrementOp
-                                        || expr instanceof JPostDecrementOp
-                                        || expr instanceof JMessageExpression
-                                        || expr instanceof JSuperConstruction
-                                        || expr instanceof JThisConstruction 
-                                        || expr instanceof JNewOp
-                                        || expr instanceof JNewArrayOp) {
+        if (expr instanceof JAssignment || expr instanceof JPreIncrementOp || expr instanceof JPostDecrementOp
+                || expr instanceof JMessageExpression || expr instanceof JSuperConstruction
+                || expr instanceof JThisConstruction || expr instanceof JNewOp || expr instanceof JNewArrayOp) {
             // So as not to save on stack
             expr.isStatementExpression = true;
         } else {
-            reportParserError("Invalid statement expression; "
-                    + "it does not have a side-effect");
+            reportParserError("Invalid statement expression; " + "it does not have a side-effect");
         }
         return new JStatementExpression(line, expr);
     }
 
     /**
      * An expression.
-     * 
+     *
      * <pre>
      *   expression ::= assignmentExpression
      * </pre>
-     * 
+     *
      * @return an AST for an expression.
      */
 
@@ -987,16 +956,16 @@ public class Parser {
 
     /**
      * Parse an assignment expression.
-     * 
+     *
      * <pre>
-     *   assignmentExpression ::= 
+     *   assignmentExpression ::=
      *       conditionalAndExpression // level 13
      *           [( ASSIGN  // conditionalExpression
      *            | PLUS_ASSIGN // must be valid lhs
      *            )
      *            assignmentExpression]
      * </pre>
-     * 
+     *
      * @return an AST for an assignmentExpression.
      */
 
@@ -1014,12 +983,12 @@ public class Parser {
 
     /**
      * Parse a conditional-and expression.
-     * 
+     *
      * <pre>
      *   conditionalAndExpression ::= equalityExpression // level 10
      *                                  {LAND equalityExpression}
      * </pre>
-     * 
+     *
      * @return an AST for a conditionalExpression.
      */
 
@@ -1039,12 +1008,12 @@ public class Parser {
 
     /**
      * Parse an equality expression.
-     * 
+     *
      * <pre>
      *   equalityExpression ::= relationalExpression  // level 6
      *                            {EQUAL relationalExpression}
      * </pre>
-     * 
+     *
      * @return an AST for an equalityExpression.
      */
 
@@ -1064,13 +1033,13 @@ public class Parser {
 
     /**
      * Parse a relational expression.
-     * 
+     *
      * <pre>
      *   relationalExpression ::= additiveExpression  // level 5
-     *                              [(GT | LE) additiveExpression 
+     *                              [(GT | LE) additiveExpression
      *                              | INSTANCEOF referenceType]
      * </pre>
-     * 
+     *
      * @return an AST for a relationalExpression.
      */
 
@@ -1090,12 +1059,12 @@ public class Parser {
 
     /**
      * Parse an additive expression.
-     * 
+     *
      * <pre>
      *   additiveExpression ::= multiplicativeExpression // level 3
      *                            {MINUS multiplicativeExpression}
      * </pre>
-     * 
+     *
      * @return an AST for an additiveExpression.
      */
 
@@ -1117,12 +1086,12 @@ public class Parser {
 
     /**
      * Parse a multiplicative expression.
-     * 
+     *
      * <pre>
      *   multiplicativeExpression ::= unaryExpression  // level 2
      *                                  {STAR unaryExpression}
      * </pre>
-     * 
+     *
      * @return an AST for a multiplicativeExpression.
      */
 
@@ -1150,13 +1119,13 @@ public class Parser {
 
     /**
      * Parse an unary expression.
-     * 
+     *
      * <pre>
      *   unaryExpression ::= INC unaryExpression // level 1
      *                     | MINUS unaryExpression
      *                     | simpleUnaryExpression
      * </pre>
-     * 
+     *
      * @return an AST for an unaryExpression.
      */
 
@@ -1166,6 +1135,8 @@ public class Parser {
             return new JPreIncrementOp(line, unaryExpression());
         } else if (have(MINUS)) {
             return new JNegateOp(line, unaryExpression());
+        } else if (have(PLUS)) {
+            return new JIntPromotionOp(line, unaryExpression());
         } else {
             return simpleUnaryExpression();
         }
@@ -1173,17 +1144,17 @@ public class Parser {
 
     /**
      * Parse a simple unary expression.
-     * 
+     *
      * <pre>
      *   simpleUnaryExpression ::= LNOT unaryExpression
-     *                           | LPAREN basicType RPAREN 
+     *                           | LPAREN basicType RPAREN
      *                               unaryExpression
-     *                           | LPAREN         
+     *                           | LPAREN
      *                               referenceType
      *                             RPAREN simpleUnaryExpression
      *                           | postfixExpression
      * </pre>
-     * 
+     *
      * @return an AST for a simpleUnaryExpression.
      */
 
@@ -1196,8 +1167,7 @@ public class Parser {
             boolean isBasicType = seeBasicType();
             Type type = type();
             mustBe(RPAREN);
-            JExpression expr = isBasicType ? unaryExpression()
-                    : simpleUnaryExpression();
+            JExpression expr = isBasicType ? unaryExpression() : simpleUnaryExpression();
             return new JCastOp(line, type, expr);
         } else {
             return postfixExpression();
@@ -1206,11 +1176,11 @@ public class Parser {
 
     /**
      * Parse a postfix expression.
-     * 
+     *
      * <pre>
      *   postfixExpression ::= primary {selector} {DEC}
      * </pre>
-     * 
+     *
      * @return an AST for a postfixExpression.
      */
 
@@ -1228,14 +1198,13 @@ public class Parser {
 
     /**
      * Parse a selector.
-     * 
+     *
      * <pre>
      *   selector ::= DOT qualifiedIdentifier [arguments]
      *              | LBRACK expression RBRACK
      * </pre>
-     * 
-     * @param target
-     *            the target expression for this selector.
+     *
+     * @param target the target expression for this selector.
      * @return an AST for a selector.
      */
 
@@ -1261,18 +1230,18 @@ public class Parser {
 
     /**
      * Parse a primary expression.
-     * 
+     *
      * <pre>
      *   primary ::= parExpression
      *             | THIS [arguments]
-     *             | SUPER ( arguments 
-     *                     | DOT IDENTIFIER [arguments] 
+     *             | SUPER ( arguments
+     *                     | DOT IDENTIFIER [arguments]
      *                     )
      *             | literal
      *             | NEW creator
      *             | qualifiedIdentifier [arguments]
      * </pre>
-     * 
+     *
      * @return an AST for a primary.
      */
 
@@ -1294,8 +1263,7 @@ public class Parser {
                 String name = scanner.previousToken().image();
                 JExpression newTarget = new JSuper(line);
                 if (see(LPAREN)) {
-                    return new JMessageExpression(line, newTarget, null, name,
-                            arguments());
+                    return new JMessageExpression(line, newTarget, null, name, arguments());
                 } else {
                     return new JFieldSelection(line, newTarget, name);
                 }
@@ -1305,15 +1273,13 @@ public class Parser {
         } else if (see(IDENTIFIER)) {
             TypeName id = qualifiedIdentifier();
             if (see(LPAREN)) {
-                return new JMessageExpression(line, null, ambiguousPart(id), id
-                        .simpleName(), arguments());
+                return new JMessageExpression(line, null, ambiguousPart(id), id.simpleName(), arguments());
             } else if (ambiguousPart(id) == null) {
                 // A simple name
                 return new JVariable(line, id.simpleName());
             } else {
                 // ambiguousPart.fieldName
-                return new JFieldSelection(line, ambiguousPart(id), null, id
-                        .simpleName());
+                return new JFieldSelection(line, ambiguousPart(id), null, id.simpleName());
             }
         } else {
             return literal();
@@ -1322,16 +1288,16 @@ public class Parser {
 
     /**
      * Parse a creator.
-     * 
+     *
      * <pre>
-     *   creator ::= (basicType | qualifiedIdentifier) 
+     *   creator ::= (basicType | qualifiedIdentifier)
      *                 ( arguments
-     *                 | LBRACK RBRACK {LBRACK RBRACK} 
+     *                 | LBRACK RBRACK {LBRACK RBRACK}
      *                     [arrayInitializer]
      *                 | newArrayDeclarator
      *                 )
      * </pre>
-     * 
+     *
      * @return an AST for a creator.
      */
 
@@ -1352,25 +1318,22 @@ public class Parser {
             } else
                 return newArrayDeclarator(line, type);
         } else {
-            reportParserError("( or [ sought where %s found", scanner.token()
-                    .image());
+            reportParserError("( or [ sought where %s found", scanner.token().image());
             return new JWildExpression(line);
         }
     }
 
     /**
      * Parse a new array declarator.
-     * 
+     *
      * <pre>
-     *   newArrayDeclarator ::= LBRACK expression RBRACK 
+     *   newArrayDeclarator ::= LBRACK expression RBRACK
      *                            {LBRACK expression RBRACK}
      *                            {LBRACK RBRACK}
      * </pre>
-     * 
-     * @param line
-     *            line in which the declarator occurred.
-     * @param type
-     *            type of the array.
+     *
+     * @param line line in which the declarator occurred.
+     * @param type type of the array.
      * @return an AST for a newArrayDeclarator.
      */
 
@@ -1400,12 +1363,12 @@ public class Parser {
 
     /**
      * Parse a literal.
-     * 
+     *
      * <pre>
      *   literal ::= INT_LITERAL | CHAR_LITERAL | STRING_LITERAL
      *             | TRUE        | FALSE        | NULL
      * </pre>
-     * 
+     *
      * @return an AST for a literal.
      */
 
@@ -1424,8 +1387,7 @@ public class Parser {
         } else if (have(NULL)) {
             return new JLiteralNull(line);
         } else {
-            reportParserError("Literal sought where %s found", scanner.token()
-                    .image());
+            reportParserError("Literal sought where %s found", scanner.token().image());
             return new JWildExpression(line);
         }
     }
