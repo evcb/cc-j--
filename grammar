@@ -87,7 +87,11 @@ additiveExpression ::= multiplicativeExpression // level 3
                          {(PLUS | MINUS) multiplicativeExpression}
 
 multiplicativeExpression ::= unaryExpression       // level 2
+<<<<<<< HEAD
                                {(STAR | DIV | REM | SHL | SHR) unaryExpression}
+=======
+                               {(STAR | DIV | REM | BOR) unaryExpression}
+>>>>>>> elvis-or
 
 unaryExpression ::= INC unaryExpression  // level 1
                   | MINUS unaryExpression
@@ -99,6 +103,7 @@ simpleUnaryExpression ::= LNOT unaryExpression
                             referenceType
                           RPAREN simpleUnaryExpression
                         | postfixExpression 
+                        | UCOM simpleUnaryExpression
 
 postfixExpression ::= primary {selector} {DEC}
 
