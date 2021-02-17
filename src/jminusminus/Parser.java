@@ -1112,6 +1112,10 @@ public class Parser {
                 lhs = new JShiftRightOp(line, lhs, unaryExpression());
             } else if (have(BOR)) {
                 lhs = new JBitwiseOrOp(line, lhs, unaryExpression());
+            } else if(have(AND)) {
+                lhs = new JBitwiseAndOp(line, lhs, unaryExpression());
+            } else if(have(XOR)) {
+                lhs = new JExclusiveOrOp(line, lhs, unaryExpression());
             } else {
                 more = false;
             }
