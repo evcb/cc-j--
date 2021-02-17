@@ -23,6 +23,8 @@ public class JMinusMinusTestRunner {
         suite.addTestSuite(ClassesTest.class);
         suite.addTestSuite(DivisionTest.class);
         suite.addTestSuite(RemainderTest.class);
+        suite.addTestSuite(SignedShiftLeftTest.class);
+        suite.addTestSuite(SignedShiftRightTest.class);
         suite.addTestSuite(UnaryPlusTest.class);
         return suite;
     }
