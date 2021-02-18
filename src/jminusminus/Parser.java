@@ -995,16 +995,59 @@ public class Parser {
     private JExpression conditionalAndExpression() {
         int line = scanner.token().line();
         boolean more = true;
-        JExpression lhs = equalityExpression();
+        JExpression lhs = ExclusiveOrExpression();
         while (more) {
             if (have(LAND)) {
-                lhs = new JLogicalAndOp(line, lhs, equalityExpression());
+                lhs = new JLogicalAndOp(line, lhs, ExclusiveOrExpression());
             } else {
                 more = false;
             }
         }
         return lhs;
     }
+
+    /**
+     * Parse a ExclusiveOr Expression.
+     *
+     * <pre>
+     *   conditionalAndExpression ::= equalityExpression // level 10
+     *                                  {LAND equalityExpression}
+     * </pre>
+     *
+     * @return ExclusiveOrExpression.
+     */
+
+    private JExpression ExclusiveOrExpression() {
+        int line = scanner.token().line();
+
+        JExpression lhs = AndExpression();
+            if (have(XOR)) {
+                lhs = new JExclusiveOrOp(line, lhs, AndExpression());
+            }
+        return lhs;
+    }
+
+    /**
+     * Parse a And Expression.
+     *
+     * <pre>
+     *   AndExpression ::= equalityExpression
+     *                          {AND equalityExpression}
+     * </pre>
+     *
+     * @return AndExpression.
+     */
+
+    private JExpression AndExpression() {
+        int line = scanner.token().line();
+
+        JExpression lhs = equalityExpression();
+            if (have(AND)) {
+                lhs = new JBitwiseAndOp(line, lhs, equalityExpression());
+            }
+        return lhs;
+    }
+
 
     /**
      * Parse an equality expression.
@@ -1133,10 +1176,6 @@ public class Parser {
                 lhs = new JRemainderOp(line, lhs, unaryExpression());
             } else if (have(BOR)) {
                 lhs = new JBitwiseOrOp(line, lhs, unaryExpression());
-            } else if(have(AND)) {
-                lhs = new JBitwiseAndOp(line, lhs, unaryExpression());
-            } else if(have(XOR)) {
-                lhs = new JExclusiveOrOp(line, lhs, unaryExpression());
             } else {
                 more = false;
             }
