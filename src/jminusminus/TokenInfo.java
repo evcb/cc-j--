@@ -19,17 +19,27 @@ enum TokenKind {
     INSTANCEOF("instanceof"), INT("int"), NEW("new"), PACKAGE("package"), 
     PRIVATE("private"), PROTECTED("protected"), PUBLIC("public"), 
     RETURN("return"), STATIC("static"), SUPER("super"), THIS("this"), 
-    VOID("void"), WHILE("while"), 
+    VOID("void"), WHILE("while"), BREAK("break"), BYTE("byte"), CASE("case"),
+    CATCH("catch"), CONST("const"), CONTINUE("continue"), DEFAULT("default"),
+    DO("do"), DOUBLE("double"), FINAL("final"), FINALLY("finally"), FLOAT("float"),
+    INTERFACE("interface"), FOR("for"), LONG("long"), GOTO("goto"), NATIVE("native"),
+    IMPLEMENTS("implements"), SHORT("short"), STRICTFP("strictfp"), SWITCH("switch"),
+    SYNCHRONIZED("synchronized"), THROW("throw"), THROWS("throws"), TRANSIENT("transient"),
+    TRY("try"), VOLATILE("volatile"),
+
 
     // Operators
     ASSIGN("="), DEC("--"), EQUAL("=="), GT(">"), INC("++"), LAND("&&"), 
     LE("<="), LNOT("!"), MINUS("-"), PLUS("+"), PLUS_ASSIGN("+="), STAR("*"),
     DIV("/"), REM("%"), SHL("<<"), SHR(">>"), UCOM("~"), BOR("|"), URSHIFT(">>>"),
-    AND("&"), XOR("^"),
+    AND("&"), XOR("^"), QMARK("?"), NOTEQ("!="), DIV_PLUS_ASSIGN("/="),
+    SUB_ASSIGN("-="), MULTI_ASSIGN("*="), MOD_ASSIGN("%="), RIGHS_ASSIGN(">>="),
+    USHR(">>>"), USHL_ASSIGN("<<="), USHR_ASSIGN(">>>="), GE(">="), LT("<"), 
+    XOR_ASSIGN("^="), BOR_ASSIGN("|="), LOR("||"), AND_ASSIGN("&="),
 
     // Separators
     LPAREN("("), RPAREN(")"), LCURLY("{"), RCURLY("}"), LBRACK("["), 
-    RBRACK("]"), SEMI(";"), COMMA(","), DOT("."), 
+    RBRACK("]"), SEMI(";"), COMMA(","), DOT("."), COLON(":"),
 
     // Identifiers
     IDENTIFIER("<IDENTIFIER>"), 
