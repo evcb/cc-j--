@@ -122,7 +122,7 @@ class JIntPromotionOp extends JUnaryExpression {
      */
     public JExpression analyze(Context context) {
         arg = arg.analyze(context);
-        arg.type().mustMatchOneOf(line(), Type.CHAR, Type.INT);
+        arg.type().mustMatchExpected(line(), Type.CHAR);
         type = Type.INT;
 
         return this;
@@ -137,6 +137,56 @@ class JIntPromotionOp extends JUnaryExpression {
      */
     public void codegen(CLEmitter output) {
         arg.codegen(output);
+        output.addNoArgInstruction(ISTORE); // TODO
+    }
+}
+
+/**
+ * The AST node for a logical Unary Complement (~) expression.
+ */
+
+class JUnaryCompOp extends JUnaryExpression {
+
+    /**
+     * Constructs an AST for a logical ~ expression given its line number, and the
+     * operand.
+     * 
+     * @param line line in which the logical ~ expression occurs in the source
+     *             file.
+     * @param arg  the operand.
+     */
+
+    public JUnaryCompOp(int line, JExpression arg) {
+        super(line, "~", arg);
+    }
+
+    /**
+     * Analyzing a logical Unary Complement operation means analyzing its operand, insuring it's
+     * an integer, and setting the result to integer.
+     * 
+     * @param context context in which names are resolved.
+     */
+
+    public JExpression analyze(Context context) {
+        arg = (JExpression) arg.analyze(context);
+        arg.type().mustMatchExpected(line(), Type.INT);
+        type = Type.INT;
+        return this;
+    }
+
+    /**
+     * Generates code for the case where we actually want an integer value
+     * computed onto the stack. For example, assignment to an integer variable.
+     * 
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+
+    public void codegen(CLEmitter output) {
+        arg.codegen(output);
+        output.addNoArgInstruction(INEG);
+        output.addNoArgInstruction(ICONST_M1);
+        output.addNoArgInstruction(IADD);
     }
 }
 
