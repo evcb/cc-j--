@@ -1045,13 +1045,38 @@ public class Parser {
 
     private JExpression relationalExpression() {
         int line = scanner.token().line();
-        JExpression lhs = additiveExpression();
+        JExpression lhs = shiftExpression();
         if (have(GT)) {
-            return new JGreaterThanOp(line, lhs, additiveExpression());
+            return new JGreaterThanOp(line, lhs, shiftExpression());
         } else if (have(LE)) {
-            return new JLessEqualOp(line, lhs, additiveExpression());
+            return new JLessEqualOp(line, lhs, shiftExpression());
         } else if (have(INSTANCEOF)) {
             return new JInstanceOfOp(line, lhs, referenceType());
+        } else {
+            return lhs;
+        }
+    }
+
+    /**
+     * Parse a shift expression.
+     *
+     * <pre>
+     *   shiftExpression ::= additiveExpression // level 3
+     *                            {URShift additiveExpression}
+     * </pre>
+     *
+     * @return an AST for a shiftExpression.
+     */
+
+    private JExpression shiftExpression() {
+        int line = scanner.token().line();
+        JExpression lhs = additiveExpression();
+        if (have(URSHIFT)) {
+            return new JUShiftOp(line, lhs, additiveExpression());
+        } else if(have(SHL)) {
+            return new JShiftLeftOp(line, lhs, additiveExpression());
+        } else if(have(SHR)) {
+            return new JShiftRightOp(line, lhs, additiveExpression());
         } else {
             return lhs;
         }
@@ -1106,12 +1131,6 @@ public class Parser {
                 lhs = new JDivideOp(line, lhs, unaryExpression());
             } else if (have(REM)) {
                 lhs = new JRemainderOp(line, lhs, unaryExpression());
-            } else if(have(SHL)) {
-                lhs = new JShiftLeftOp(line, lhs, unaryExpression());
-            }else if(have(SHR)) {
-                lhs = new JShiftRightOp(line, lhs, unaryExpression());
-	    } else if (have(URSHIFT)) {
-		lhs = new JUShiftOp(line, lhs, additiveExpression()); 
             } else if (have(BOR)) {
                 lhs = new JBitwiseOrOp(line, lhs, unaryExpression());
             } else if(have(AND)) {

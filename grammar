@@ -84,13 +84,13 @@ relationalExpression ::= shiftExpression       // level 5
                            | INSTANCEOF referenceType]
 
 shiftExpression ::= additiveExpression
-		    {URSHIFT AdditiveExpression}
+		    {(URSHIFT | SHL | SHR)  AdditiveExpression}
 
 additiveExpression ::= multiplicativeExpression // level 3
                          {(PLUS | MINUS) multiplicativeExpression}
 
 multiplicativeExpression ::= unaryExpression       // level 2
-                               {(STAR | DIV | REM | SHL | SHR | BOR | AND | XOR) unaryExpression}
+                               {(STAR | DIV | REM | BOR | AND | XOR) unaryExpression}
 
 unaryExpression ::= INC unaryExpression  // level 1
                   | (PLUS | MINUS) unaryExpression
