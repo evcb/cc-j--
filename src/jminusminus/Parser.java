@@ -1093,7 +1093,7 @@ public class Parser {
      * 
      * <pre>
      *   shiftExpression ::= additiveExpression // level 3
-     *                            {URShift additive Expression}
+     *                            {URShift additiveExpression}
      * </pre>
      * 
      * @return an AST for a shiftExpression.
