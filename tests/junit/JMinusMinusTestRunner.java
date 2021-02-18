@@ -2,8 +2,6 @@
 
 package junit;
 
-import java.io.File;
-import junit.framework.TestCase;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import pass.*;
@@ -25,7 +23,12 @@ public class JMinusMinusTestRunner {
         suite.addTestSuite(RemainderTest.class);
         suite.addTestSuite(SignedShiftLeftTest.class);
         suite.addTestSuite(SignedShiftRightTest.class);
+        suite.addTestSuite(UnaryComplementTest.class);
+        suite.addTestSuite(BitwiseOrTest.class);
         suite.addTestSuite(UnaryPlusTest.class);
+	suite.addTestSuite(USignedRightShiftTest.class);
+        suite.addTestSuite(BitwiseAndTest.class);
+        suite.addTestSuite(ExclusiveOrTest.class);
         return suite;
     }
 
