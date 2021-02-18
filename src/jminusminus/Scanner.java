@@ -193,8 +193,7 @@ class Scanner {
                 nextCh();
                 return new TokenInfo(LAND, line);
             } else {
-                reportScannerError("Operator & is not supported in j--.");
-                return getNextToken();
+                return new TokenInfo(AND, line);
             }
         case '>':
             nextCh();
@@ -271,6 +270,9 @@ class Scanner {
                 buffer.append("\"");
             }
             return new TokenInfo(STRING_LITERAL, buffer.toString(), line);
+        case '^':
+            nextCh();
+            return new TokenInfo(XOR, line);
         case '.':
             nextCh();
             return new TokenInfo(DOT, line);
