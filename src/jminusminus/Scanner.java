@@ -112,8 +112,7 @@ class Scanner {
                         nextCh();
                     }
                 } else {
-                    //reportScannerError("Operator / is not supported in j--.");
-                    return new TokenInfo(DIV, line);
+		    return new TokenInfo(DIV, line);
                 }
             } else {
                 moreWhiteSpace = false;
@@ -202,7 +201,12 @@ class Scanner {
             //signed right shift
             if(ch == '>'){
                 nextCh();
-                return new TokenInfo(SHR, line);
+		if (ch == '>') {
+		    nextCh();
+		    return new TokenInfo(URSHIFT, line);
+		} else {
+		    return new TokenInfo(SHR, line);
+		}
             } else {
                 return new TokenInfo(GT, line);
             }
@@ -219,7 +223,7 @@ class Scanner {
                 reportScannerError("Operator < is not supported in j--.");
                 return getNextToken();
             }
-        case '\'':
+	case '\'':
             buffer = new StringBuffer();
             buffer.append('\'');
             nextCh();

@@ -47,13 +47,11 @@ PLUS_ASSIGN ::= "+="
 STAR        ::= "*"
 DIV         ::= "/"
 REM         ::= "%"
-<<<<<<< HEAD
 SHL         ::= "<<"
 SHR         ::= ">>"
-=======
+URSHIFT     ::= ">>>"
 UCOM        ::= "~"
 BOR         ::= "|"
->>>>>>> elvis-or
 
 // Separators
 COMMA       ::= ","
