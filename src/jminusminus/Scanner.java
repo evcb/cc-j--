@@ -86,6 +86,32 @@ class Scanner {
         reserved.put(TRUE.image(), TRUE);
         reserved.put(VOID.image(), VOID);
         reserved.put(WHILE.image(), WHILE);
+        reserved.put(BREAK.image(), BREAK);
+        reserved.put(BYTE.image(), BYTE);
+        reserved.put(CASE.image(), CASE);
+        reserved.put(CATCH.image(), CATCH);
+        reserved.put(CONST.image(), CONST);
+        reserved.put(DEFAULT.image(), DEFAULT);
+        reserved.put(DO.image(), DO);
+        reserved.put(DOUBLE.image(), DOUBLE);
+        reserved.put(FINAL.image(), FINAL);
+        reserved.put(FINALLY.image(), FINALLY);
+        reserved.put(FLOAT.image(), FLOAT);
+        reserved.put(INTERFACE.image(), INTERFACE);
+        reserved.put(FOR.image(), FOR);
+        reserved.put(LONG.image(), LONG);
+        reserved.put(GOTO.image(), GOTO);
+        reserved.put(NATIVE.image(), NATIVE);
+        reserved.put(IMPLEMENTS.image(), IMPLEMENTS);
+        reserved.put(SHORT.image(), SHORT);
+        reserved.put(STRICTFP.image(), STRICTFP);
+        reserved.put(SWITCH.image(), SWITCH);
+        reserved.put(SYNCHRONIZED.image(), SYNCHRONIZED);
+        reserved.put(THROW.image(), THROW);
+        reserved.put(THROWS.image(), THROWS);
+        reserved.put(TRANSIENT.image(), TRANSIENT);
+        reserved.put(TRY.image(), TRY);
+        reserved.put(VOLATILE.image(), VOLATILE);
 
         // Prime the pump.
         nextCh();
@@ -109,6 +135,15 @@ class Scanner {
                 if (ch == '/') {
                     // CharReader maps all new lines to '\n'
                     while (ch != '\n' && ch != EOFCH) {
+                        nextCh();
+                    }
+                } else if (ch == '*') {
+                    nextCh();
+                    while (ch != '*') {
+                        nextCh();
+                    }
+                    nextCh();
+                    if (ch == '/') {
                         nextCh();
                     }
                 } else {
