@@ -1031,7 +1031,7 @@ public class Parser {
         return lhs;
     }
 
-    /**
+     /**
      * Parse a relational expression.
      *
      * <pre>
@@ -1110,6 +1110,8 @@ public class Parser {
                 lhs = new JShiftLeftOp(line, lhs, unaryExpression());
             }else if(have(SHR)) {
                 lhs = new JShiftRightOp(line, lhs, unaryExpression());
+	    } else if (have(URSHIFT)) {
+		lhs = new JUShiftOp(line, lhs, additiveExpression()); 
             } else if (have(BOR)) {
                 lhs = new JBitwiseOrOp(line, lhs, unaryExpression());
             } else {
