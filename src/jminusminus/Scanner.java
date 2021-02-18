@@ -112,8 +112,7 @@ class Scanner {
                         nextCh();
                     }
                 } else {
-                    //reportScannerError("Operator / is not supported in j--.");
-                    return new TokenInfo(DIV, line);
+		    return new TokenInfo(DIV, line);
                 }
             } else {
                 moreWhiteSpace = false;
@@ -156,6 +155,12 @@ class Scanner {
         case '!':
             nextCh();
             return new TokenInfo(LNOT, line);
+        case '~':
+            nextCh();
+            return new TokenInfo(UCOM, line);
+        case '|':
+            nextCh();
+            return new TokenInfo(BOR, line);
         case '*':
             nextCh();
             return new TokenInfo(STAR, line);
@@ -188,15 +193,19 @@ class Scanner {
                 nextCh();
                 return new TokenInfo(LAND, line);
             } else {
-                reportScannerError("Operator & is not supported in j--.");
-                return getNextToken();
+                return new TokenInfo(AND, line);
             }
         case '>':
             nextCh();
             //signed right shift
             if(ch == '>'){
                 nextCh();
-                return new TokenInfo(SHR, line);
+		if (ch == '>') {
+		    nextCh();
+		    return new TokenInfo(URSHIFT, line);
+		} else {
+		    return new TokenInfo(SHR, line);
+		}
             } else {
                 return new TokenInfo(GT, line);
             }
@@ -213,7 +222,7 @@ class Scanner {
                 reportScannerError("Operator < is not supported in j--.");
                 return getNextToken();
             }
-        case '\'':
+	case '\'':
             buffer = new StringBuffer();
             buffer.append('\'');
             nextCh();
@@ -261,6 +270,9 @@ class Scanner {
                 buffer.append("\"");
             }
             return new TokenInfo(STRING_LITERAL, buffer.toString(), line);
+        case '^':
+            nextCh();
+            return new TokenInfo(XOR, line);
         case '.':
             nextCh();
             return new TokenInfo(DOT, line);
