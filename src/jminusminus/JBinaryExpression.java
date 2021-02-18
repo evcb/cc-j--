@@ -232,7 +232,11 @@ class JUShiftOp extends JBinaryExpression {
 	return this;
     }
 
-    public void codegen(CLEmitter output) {}
+    public void codegen(CLEmitter output) {
+	lhs.codegen(output);
+	rhs.codegen(output);
+	output.addNoArgInstruction(IUSHR);
+    }
 }
 
 /**
@@ -292,32 +296,6 @@ class JMultiplyOp extends JBinaryExpression {
     }
 
 }
-
-class JDivideOp extends JBinaryExpression{
-
-    public JDivideOp(int line, JExpression lhs, JExpression rhs){
-        super(line, "/", lhs, rhs);
-    }
-
-    public JExpression analyze(Context context){
-
-        lhs = (JExpression) lhs.analyze(context);
-        rhs = (JExpression) rhs.analyze(context);
-
-        lhs.type().mustMatchExpected(line(), Type.INT);
-        rhs.type().mustMatchExpected(line(), Type.INT);
-
-        type = Type.INT;
-        return this;
-    }
-
-    public void codegen(CLEmitter output){
-        lhs.codegen(output);
-        rhs.codegen(output);
-        output.addNoArgInstruction(IDIV);
-    }
-}
-
 
 class JBitwiseOrOp extends JBinaryExpression {
 
