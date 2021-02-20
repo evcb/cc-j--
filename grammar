@@ -73,8 +73,14 @@ expression ::= assignmentExpression
 assignmentExpression ::= conditionalAndExpression  // must be a valid lhs
                            [(ASSIGN | PLUS_ASSIGN) assignmentExpression]
 
-conditionalAndExpression ::= equalityExpression // level 10
-                               {LAND equalityExpression}
+conditionalAndExpression ::= ExclusiveOrExpression // level 10
+                               {LAND ExclusiveOrExpression}
+
+ExclusiveOrExpression ::= AndExpression
+                            {XOR AndExpression}
+
+AndExpression ::= equalityExpression
+                    {AND equalityExpression}
 
 equalityExpression ::= relationalExpression  // level 6
                          {EQUAL relationalExpression}
@@ -90,7 +96,7 @@ additiveExpression ::= multiplicativeExpression // level 3
                          {(PLUS | MINUS) multiplicativeExpression}
 
 multiplicativeExpression ::= unaryExpression       // level 2
-                               {(STAR | DIV | REM | BOR | AND | XOR) unaryExpression}
+                               {(STAR | DIV | REM | BOR) unaryExpression}
 
 unaryExpression ::= INC unaryExpression  // level 1
                   | (PLUS | MINUS) unaryExpression
