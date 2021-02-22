@@ -71,7 +71,7 @@ statementExpression ::= expression // but must have side-effect, eg i++
 expression ::= assignmentExpression
 
 assignmentExpression ::= conditionalAndExpression  // must be a valid lhs
-                           [(ASSIGN | PLUS_ASSIGN) assignmentExpression]
+                           [(ASSIGN | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN) assignmentExpression]
 
 conditionalAndExpression ::= ExclusiveOrExpression // level 10
                                {LAND ExclusiveOrExpression}
@@ -107,7 +107,7 @@ simpleUnaryExpression ::= LNOT unaryExpression
                         | LPAREN // casted
                             referenceType
                           RPAREN simpleUnaryExpression
-                        | postfixExpression 
+                        | postfixExpression
                         | UCOM simpleUnaryExpression
                         | postfixExpression
 
