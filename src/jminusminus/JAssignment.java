@@ -5,27 +5,22 @@ package jminusminus;
 import static jminusminus.CLConstants.*;
 
 /**
- * This abstract base class is the AST node for an assignment statement. 
+ * This abstract base class is the AST node for an assignment statement.
  */
 
 abstract class JAssignment extends JBinaryExpression {
 
     /**
      * Constructs an AST node for an assignment operation.
-     * 
-     * @param line
-     *            line in which the assignment operation occurs in the source
-     *            file.
-     * @param operator
-     *            the actual assignment operator.
-     * @param lhs
-     *            the lhs operand.
-     * @param rhs
-     *            the rhs operand.
+     *
+     * @param line     line in which the assignment operation occurs in the source
+     *                 file.
+     * @param operator the actual assignment operator.
+     * @param lhs      the lhs operand.
+     * @param rhs      the rhs operand.
      */
 
-    public JAssignment(int line, String operator, JExpression lhs,
-            JExpression rhs) {
+    public JAssignment(int line, String operator, JExpression lhs, JExpression rhs) {
         super(line, operator, lhs, rhs);
     }
 
@@ -41,14 +36,11 @@ class JAssignOp extends JAssignment {
     /**
      * Constructs the AST node for an assignment (=) expression given the lhs and
      * rhs operands.
-     * 
-     * @param line
-     *            line in which the assignment expression occurs in the source
-     *            file.
-     * @param lhs
-     *            lhs operand.
-     * @param rhs
-     *            rhs operand.
+     *
+     * @param line line in which the assignment expression occurs in the source
+     *             file.
+     * @param lhs  lhs operand.
+     * @param rhs  rhs operand.
      */
 
     public JAssignOp(int line, JExpression lhs, JExpression rhs) {
@@ -58,16 +50,14 @@ class JAssignOp extends JAssignment {
     /**
      * Analyzes the lhs and rhs, checking that types match, and sets the result
      * type.
-     * 
-     * @param context
-     *            context in which names are resolved.
+     *
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
 
     public JExpression analyze(Context context) {
         if (!(lhs instanceof JLhs)) {
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Illegal lhs for assignment");
+            JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
         } else {
             lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
         }
@@ -85,14 +75,13 @@ class JAssignOp extends JAssignment {
     }
 
     /**
-     * Code generation for an assignment involves, generating code for loading
-     * any necessary Lvalue onto the stack, for loading the Rvalue, for (unless
-     * a statement) copying the Rvalue to its proper place on the stack, and for
-     * doing the store.
-     * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     * Code generation for an assignment involves, generating code for loading any
+     * necessary Lvalue onto the stack, for loading the Rvalue, for (unless a
+     * statement) copying the Rvalue to its proper place on the stack, and for doing
+     * the store.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
 
     public void codegen(CLEmitter output) {
@@ -111,39 +100,29 @@ class JAssignOp extends JAssignment {
  * The AST node for a += expression. A += expression has two operands: a lhs and
  * a rhs.
  */
-
 class JPlusAssignOp extends JAssignment {
-
     /**
-     * Constructs the AST node for a += expression given its lhs and rhs
-     * operands.
-     * 
-     * @param line
-     *            line in which the assignment expression occurs in the source
-     *            file.
-     * @param lhs
-     *            the lhs operand.
-     * @param rhs
-     *            the rhs operand.
+     * Constructs the AST node for a += expression given its lhs and rhs operands.
+     *
+     * @param line line in which the assignment expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
      */
-
     public JPlusAssignOp(int line, JExpression lhs, JExpression rhs) {
         super(line, "+=", lhs, rhs);
     }
 
     /**
-     * Analyzes the lhs and rhs, rewrites rhs as lhs + rhs (string concatenation)
-     * if lhs is of type {@code String}, and sets the result type.
-     * 
-     * @param context
-     *            context in which names are resolved.
+     * Analyzes the lhs and rhs, rewrites rhs as lhs + rhs (string concatenation) if
+     * lhs is of type {@code String}, and sets the result type.
+     *
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
-
     public JExpression analyze(Context context) {
         if (!(lhs instanceof JLhs)) {
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Illegal lhs for assignment");
+            JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
             return this;
         } else {
             lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
@@ -156,23 +135,20 @@ class JPlusAssignOp extends JAssignment {
             rhs = (new JStringConcatenationOp(line, lhs, rhs)).analyze(context);
             type = Type.STRING;
         } else {
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Invalid lhs type for +=: " + lhs.type());
+            JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for +=: " + lhs.type());
         }
         return this;
     }
 
     /**
-     * Code generation for += involves, generating code for loading any
-     * necessary l-value onto the stack, for (unless a string concatenation)
-     * loading the r-value, for (unless a statement) copying the r-value to its
-     * proper place on the stack, and for doing the store.
-     * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     * Code generation for += involves, generating code for loading any necessary
+     * l-value onto the stack, for (unless a string concatenation) loading the
+     * r-value, for (unless a statement) copying the r-value to its proper place on
+     * the stack, and for doing the store.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
-
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
         if (lhs.type().equals(Type.STRING)) {
@@ -188,5 +164,228 @@ class JPlusAssignOp extends JAssignment {
         }
         ((JLhs) lhs).codegenStore(output);
     }
+}
 
+/**
+ * The AST node for a -= expression. A -= expression has two operands: a lhs and
+ * a rhs.
+ */
+class JMinusAssignOp extends JAssignment {
+    /**
+     * Constructs the AST node for a -= expression given its lhs and rhs operands.
+     *
+     * @param line line in which the assignment expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JMinusAssignOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, "-=", lhs, rhs);
+    }
+
+    /**
+     * Analyzes the lhs and rhs, and sets the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed AST subtree.
+     */
+    public JExpression analyze(Context context) {
+        lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+
+        lhs.type().mustMatchExpected(line(), Type.INT);
+        rhs.type().mustMatchExpected(line(), Type.INT);
+
+        type = Type.INT;
+
+        return this;
+    }
+
+    /**
+     * Code generation for -= involves, generating code for loading any necessary
+     * l-value onto the stack, for loading the r-value, and for doing the store.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+    public void codegen(CLEmitter output) {
+        ((JLhs) lhs).codegenLoadLhsLvalue(output);
+
+        ((JLhs) lhs).codegenLoadLhsRvalue(output);
+        rhs.codegen(output);
+        output.addNoArgInstruction(ISUB);
+
+        if (!isStatementExpression)
+            ((JLhs) lhs).codegenDuplicateRvalue(output); // Generate code to leave the r-value atop stack
+
+        ((JLhs) lhs).codegenStore(output);
+    }
+}
+
+/**
+ * The AST node for a *= expression. A *= expression has two operands: a lhs and
+ * a rhs.
+ */
+class JStarAssignOp extends JAssignment {
+    /**
+     * Constructs the AST node for a *= expression given its lhs and rhs operands.
+     *
+     * @param line line in which the assignment expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JStarAssignOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, "*=", lhs, rhs);
+    }
+
+    /**
+     * Analyzes the lhs and rhs, and sets the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed AST subtree.
+     */
+    public JExpression analyze(Context context) {
+        lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+
+        lhs.type().mustMatchExpected(line(), Type.INT);
+        rhs.type().mustMatchExpected(line(), Type.INT);
+
+        type = Type.INT;
+
+        return this;
+    }
+
+    /**
+     * Code generation for *= involves, generating code for loading any necessary
+     * l-value onto the stack, for loading the r-value, and for doing the store.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+    public void codegen(CLEmitter output) {
+        ((JLhs) lhs).codegenLoadLhsLvalue(output);
+
+        ((JLhs) lhs).codegenLoadLhsRvalue(output);
+        rhs.codegen(output);
+        output.addNoArgInstruction(IMUL);
+
+        if (!isStatementExpression)
+            ((JLhs) lhs).codegenDuplicateRvalue(output); // Generate code to leave the r-value atop stack
+
+        ((JLhs) lhs).codegenStore(output);
+    }
+}
+
+/**
+ * The AST node for a /= expression. A /= expression has two operands: a lhs and
+ * a rhs.
+ */
+class JSlashAssignOp extends JAssignment {
+    /**
+     * Constructs the AST node for a /= expression given its lhs and rhs operands.
+     *
+     * @param line line in which the assignment expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JSlashAssignOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, "/=", lhs, rhs);
+    }
+
+    /**
+     * Analyzes the lhs and rhs, and sets the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed AST subtree.
+     */
+    public JExpression analyze(Context context) {
+        lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+
+        lhs.type().mustMatchExpected(line(), Type.INT);
+        rhs.type().mustMatchExpected(line(), Type.INT);
+
+        type = Type.INT;
+
+        return this;
+    }
+
+    /**
+     * Code generation for /= involves, generating code for loading any necessary
+     * l-value onto the stack, for loading the r-value, and for doing the store.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+    public void codegen(CLEmitter output) {
+        ((JLhs) lhs).codegenLoadLhsLvalue(output);
+
+        ((JLhs) lhs).codegenLoadLhsRvalue(output);
+        rhs.codegen(output);
+        output.addNoArgInstruction(IDIV);
+
+        if (!isStatementExpression)
+            ((JLhs) lhs).codegenDuplicateRvalue(output); // Generate code to leave the r-value atop stack
+
+        ((JLhs) lhs).codegenStore(output);
+    }
+}
+
+/**
+ * The AST node for a %= expression. A %= expression has two operands: a lhs and
+ * a rhs.
+ */
+class JModAssignOp extends JAssignment {
+    /**
+     * Constructs the AST node for a %= expression given its lhs and rhs operands.
+     *
+     * @param line line in which the assignment expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JModAssignOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, "%=", lhs, rhs);
+    }
+
+    /**
+     * Analyzes the lhs and rhs, and sets the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed AST subtree.
+     */
+    public JExpression analyze(Context context) {
+        lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+
+        lhs.type().mustMatchExpected(line(), Type.INT);
+        rhs.type().mustMatchExpected(line(), Type.INT);
+
+        type = Type.INT;
+
+        return this;
+    }
+
+    /**
+     * Code generation for %= involves, generating code for loading any necessary
+     * l-value onto the stack, for loading the r-value, and for doing the store.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+    public void codegen(CLEmitter output) {
+        ((JLhs) lhs).codegenLoadLhsLvalue(output);
+
+        ((JLhs) lhs).codegenLoadLhsRvalue(output);
+        rhs.codegen(output);
+        output.addNoArgInstruction(IREM);
+
+        if (!isStatementExpression)
+            ((JLhs) lhs).codegenDuplicateRvalue(output); // Generate code to leave the r-value atop stack
+
+        ((JLhs) lhs).codegenStore(output);
+    }
 }
