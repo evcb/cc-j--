@@ -976,7 +976,6 @@ public class Parser {
         if (have(PLUS_ASSIGN)) {
             return new JPlusAssignOp(line, lhs, assignmentExpression());
         } else if (have(SUB_ASSIGN)) {
-            System.out.println("test !");
             return new JMinusAssignOp(line, lhs, assignmentExpression());
         } else if (have(MULTI_ASSIGN)) {
             return new JStarAssignOp(line, lhs, assignmentExpression());
