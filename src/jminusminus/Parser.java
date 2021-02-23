@@ -961,7 +961,7 @@ public class Parser {
      *   assignmentExpression ::=
      *       conditionalAndExpression // level 13
      *           [( ASSIGN  // conditionalExpression
-     *            | PLUS_ASSIGN // must be valid lhs
+     *            | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN // must be valid lhs
      *            )
      *            assignmentExpression]
      * </pre>
@@ -972,10 +972,19 @@ public class Parser {
     private JExpression assignmentExpression() {
         int line = scanner.token().line();
         JExpression lhs = conditionalAndExpression();
-        if (have(ASSIGN)) {
-            return new JAssignOp(line, lhs, assignmentExpression());
-        } else if (have(PLUS_ASSIGN)) {
+
+        if (have(PLUS_ASSIGN)) {
             return new JPlusAssignOp(line, lhs, assignmentExpression());
+        } else if (have(SUB_ASSIGN)) {
+            return new JMinusAssignOp(line, lhs, assignmentExpression());
+        } else if (have(MULTI_ASSIGN)) {
+            return new JStarAssignOp(line, lhs, assignmentExpression());
+        } else if (have(DIV_ASSIGN)) {
+            return new JSlashAssignOp(line, lhs, assignmentExpression());
+        } else if (have(MOD_ASSIGN)) {
+            return new JModAssignOp(line, lhs, assignmentExpression());
+        } else if (have(ASSIGN)) {
+            return new JAssignOp(line, lhs, assignmentExpression());
         } else {
             return lhs;
         }
@@ -1021,9 +1030,9 @@ public class Parser {
         int line = scanner.token().line();
 
         JExpression lhs = AndExpression();
-            if (have(XOR)) {
-                lhs = new JExclusiveOrOp(line, lhs, AndExpression());
-            }
+        if (have(XOR)) {
+            lhs = new JExclusiveOrOp(line, lhs, AndExpression());
+        }
         return lhs;
     }
 
@@ -1042,12 +1051,11 @@ public class Parser {
         int line = scanner.token().line();
 
         JExpression lhs = equalityExpression();
-            if (have(AND)) {
-                lhs = new JBitwiseAndOp(line, lhs, equalityExpression());
-            }
+        if (have(AND)) {
+            lhs = new JBitwiseAndOp(line, lhs, equalityExpression());
+        }
         return lhs;
     }
-
 
     /**
      * Parse an equality expression.
@@ -1074,7 +1082,7 @@ public class Parser {
         return lhs;
     }
 
-     /**
+    /**
      * Parse a relational expression.
      *
      * <pre>
@@ -1116,9 +1124,9 @@ public class Parser {
         JExpression lhs = additiveExpression();
         if (have(URSHIFT)) {
             return new JUShiftOp(line, lhs, additiveExpression());
-        } else if(have(SHL)) {
+        } else if (have(SHL)) {
             return new JShiftLeftOp(line, lhs, additiveExpression());
-        } else if(have(SHR)) {
+        } else if (have(SHR)) {
             return new JShiftRightOp(line, lhs, additiveExpression());
         } else {
             return lhs;

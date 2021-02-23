@@ -26,10 +26,14 @@ public class JMinusMinusTestRunner {
         suite.addTestSuite(UnaryComplementTest.class);
         suite.addTestSuite(BitwiseOrTest.class);
         suite.addTestSuite(UnaryPlusTest.class);
-	suite.addTestSuite(USignedRightShiftTest.class);
+        suite.addTestSuite(USignedRightShiftTest.class);
         suite.addTestSuite(BitwiseAndTest.class);
         suite.addTestSuite(ExclusiveOrTest.class);
         suite.addTestSuite(CommentTest.class);
+        suite.addTestSuite(MinusAssignTest.class);
+        suite.addTestSuite(StarAssignTest.class);
+        suite.addTestSuite(SlashAssignTest.class);
+        suite.addTestSuite(ModuloAssignTest.class);
         return suite;
     }
 
