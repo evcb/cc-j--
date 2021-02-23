@@ -1,6 +1,5 @@
 .vscode
 .idea
-classes
 out
 ant
 apache-ant-1.10.9
@@ -12,5 +11,4 @@ java
 tmp
 lib/j--.jar
 lib/spim.jar
-**/*.class
 **/*.iml
