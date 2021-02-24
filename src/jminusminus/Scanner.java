@@ -359,6 +359,7 @@ class Scanner {
                 return new TokenInfo(EOF, line);
             case '0':
                 // Handle only simple decimal integers for now.
+                //haven't changed this for double. don't really know what
                 nextCh();
                 return new TokenInfo(INT_LITERAL, "0", line);
             case '1':
@@ -374,6 +375,16 @@ class Scanner {
                 while (isDigit(ch)) {
                     buffer.append(ch);
                     nextCh();
+                }
+                //encountered a ., so it's a double
+                if(ch=='.'){
+                    buffer.append(ch);
+                    nextCh();
+                    while (isDigit(ch)) {
+                        buffer.append(ch);
+                        nextCh();
+                    }
+                    return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
                 }
                 return new TokenInfo(INT_LITERAL, buffer.toString(), line);
             default:
