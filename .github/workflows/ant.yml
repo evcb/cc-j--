@@ -16,6 +16,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11.0.2
+    - name: Clean
+      run: ant clean
+    - name: Compile
+      run: ant compile
     - name: Run tests
       run: ant runCompilerTests
     - name: Build with Ant
