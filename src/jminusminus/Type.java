@@ -71,6 +71,9 @@ class Type {
     /** The "any" type (denotes wild expressions). */
     public final static Type ANY = new Type(null);
 
+    /** The primitive type, double. */
+    public static Type DOUBLE = typeFor(double.class);
+
     /**
      * Constructs a Type representation for a type from its Java (Class)
      * representation. Use typeFor() -- that maps types having like classReps to
@@ -426,7 +429,8 @@ class Type {
                 : cls.isArray() ? "[" + descriptorFor(cls.getComponentType())
                         : cls.isPrimitive() ? (cls == int.class ? "I"
                                 : cls == char.class ? "C"
-                                        : cls == boolean.class ? "Z" : "?")
+                                        : cls == boolean.class ? "Z"
+                                            : cls == double.class ? "D" : "?")
                                 : "L" + cls.getName().replace('.', '/') + ";";
     }
 
