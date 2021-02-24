@@ -167,6 +167,7 @@ TOKEN: {
 | <TRUE: "true">
 | <VOID: "void">
 | <WHILE: "while">
+| <DOUBLE: "double">
 }
 
 // Operators (these could be combined with the reserved words)
