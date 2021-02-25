@@ -109,9 +109,9 @@ simpleUnaryExpression ::= LNOT unaryExpression
                           RPAREN simpleUnaryExpression
                         | postfixExpression
                         | UCOM simpleUnaryExpression
-                        | postfixExpression
+                        | prefixExpression
 
-postfixExpression ::= primary {selector} {DEC}
+postfixExpression ::= primary {selector} {(INC | DEC)}
 
 selector ::= DOT qualifiedIdentifier [arguments]
            | LBRACK expression RBRACK
