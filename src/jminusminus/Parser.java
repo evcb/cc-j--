@@ -931,7 +931,8 @@ public class Parser {
     private JStatement statementExpression() {
         int line = scanner.token().line();
         JExpression expr = expression();
-        if (expr instanceof JAssignment || expr instanceof JPreIncrementOp || expr instanceof JPostDecrementOp
+        if (expr instanceof JAssignment || expr instanceof JPreIncrementOp || expr instanceof JPreDecrementOp
+	        || expr instanceof JPostIncrementOp || expr instanceof JPostDecrementOp
                 || expr instanceof JMessageExpression || expr instanceof JSuperConstruction
                 || expr instanceof JThisConstruction || expr instanceof JNewOp || expr instanceof JNewArrayOp) {
             // So as not to save on stack
@@ -961,7 +962,7 @@ public class Parser {
      *
      * <pre>
      *   assignmentExpression ::=
-     *       conditionalAndExpression // level 13
+     *       conditionalOrExpression // level 13
      *           [( ASSIGN  // conditionalExpression
      *            | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN // must be valid lhs
      *            )
@@ -973,7 +974,7 @@ public class Parser {
 
     private JExpression assignmentExpression() {
         int line = scanner.token().line();
-        JExpression lhs = conditionalAndExpression();
+        JExpression lhs = conditionalOrExpression();
 
         if (have(PLUS_ASSIGN)) {
             return new JPlusAssignOp(line, lhs, assignmentExpression());
@@ -990,6 +991,31 @@ public class Parser {
         } else {
             return lhs;
         }
+    }
+
+        /**
+     * Parse a conditional-or expression.
+     *
+     * <pre>
+     *   conditionalOrExpression ::= conditionalAndExpression
+     *                       {LOR assignmentExpression}
+     * </pre>
+     *
+     * @return an AST for a conditionalExpression.
+     */
+
+    private JExpression conditionalOrExpression() {
+        int line = scanner.token().line();
+        boolean more = true;
+        JExpression lhs = conditionalAndExpression();
+        while (more) {
+            if (have(LOR)) {
+                lhs = new JLogicalOrOp(line, lhs, ExclusiveOrExpression());
+            } else {
+                more = false;
+            }
+        }
+        return lhs;
     }
 
     /**
@@ -1021,8 +1047,9 @@ public class Parser {
      * Parse a ExclusiveOr Expression.
      *
      * <pre>
-     *   conditionalAndExpression ::= equalityExpression // level 10
-     *                                  {LAND equalityExpression}
+     * ExclusiveOrExpression ::= AndExpression
+     *                      {XOR AndExpression}
+>>>>>>> 64704cf7be73641175de0c63897bb442a95ad155
      * </pre>
      *
      * @return ExclusiveOrExpression.
@@ -1198,7 +1225,8 @@ public class Parser {
      *
      * <pre>
      *   unaryExpression ::= INC unaryExpression // level 1
-     *                     | MINUS unaryExpression
+     *                     | DEC unaryExpression
+                           | MINUS unaryExpression
      *                     | simpleUnaryExpression
      * </pre>
      *
@@ -1209,7 +1237,9 @@ public class Parser {
         int line = scanner.token().line();
         if (have(INC)) {
             return new JPreIncrementOp(line, unaryExpression());
-        } else if (have(MINUS)) {
+        } else if (have(DEC)) {
+	    return new JPreDecrementOp(line, unaryExpression());
+	} else if (have(MINUS)) {
             return new JNegateOp(line, unaryExpression());
         } else if (have(PLUS)) {
             return new JIntPromotionOp(line, unaryExpression());
@@ -1256,7 +1286,7 @@ public class Parser {
      * Parse a postfix expression.
      *
      * <pre>
-     *   postfixExpression ::= primary {selector} {DEC}
+     *   postfixExpression ::= primary {selector} { (DEC | INC) }
      * </pre>
      *
      * @return an AST for a postfixExpression.
@@ -1268,9 +1298,13 @@ public class Parser {
         while (see(DOT) || see(LBRACK)) {
             primaryExpr = selector(primaryExpr);
         }
-        while (have(DEC)) {
-            primaryExpr = new JPostDecrementOp(line, primaryExpr);
-        }
+	while (have(DEC)) {
+	    primaryExpr = new JPostDecrementOp(line, primaryExpr);
+	}
+	while (have(INC)) {
+	    primaryExpr = new JPostIncrementOp(line, primaryExpr);
+	}
+		
         return primaryExpr;
     }
 

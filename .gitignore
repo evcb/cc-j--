@@ -4,7 +4,6 @@ out
 ant
 apache-ant-1.10.9
 j--
-j--.iml
 java
 **/.DS_Store
 .vscode
@@ -12,3 +11,4 @@ tmp
 lib/j--.jar
 lib/spim.jar
 **/*.iml
+**/*.class

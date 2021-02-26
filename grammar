@@ -70,8 +70,11 @@ statementExpression ::= expression // but must have side-effect, eg i++
 
 expression ::= assignmentExpression
 
-assignmentExpression ::= conditionalAndExpression  // must be a valid lhs
+assignmentExpression ::= conditionalOrExpression  // must be a valid lhs
                            [(ASSIGN | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN) assignmentExpression]
+
+conditionalOrExpression ::= conditionalAndExpression
+                               {LOR assignmentExpression}
 
 conditionalAndExpression ::= ExclusiveOrExpression // level 10
                                {LAND ExclusiveOrExpression}
@@ -109,9 +112,13 @@ simpleUnaryExpression ::= LNOT unaryExpression
                           RPAREN simpleUnaryExpression
                         | postfixExpression
                         | UCOM simpleUnaryExpression
+<<<<<<< HEAD
                         | postfixExpression
+=======
+                        | prefixExpression
+>>>>>>> 64704cf7be73641175de0c63897bb442a95ad155
 
-postfixExpression ::= primary {selector} {DEC}
+postfixExpression ::= primary {selector} {(INC | DEC)}
 
 selector ::= DOT qualifiedIdentifier [arguments]
            | LBRACK expression RBRACK
