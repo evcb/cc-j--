@@ -112,7 +112,11 @@ simpleUnaryExpression ::= LNOT unaryExpression
                           RPAREN simpleUnaryExpression
                         | postfixExpression
                         | UCOM simpleUnaryExpression
+<<<<<<< HEAD
+                        | postfixExpression
+=======
                         | prefixExpression
+>>>>>>> 64704cf7be73641175de0c63897bb442a95ad155
 
 postfixExpression ::= primary {selector} {(INC | DEC)}
 
