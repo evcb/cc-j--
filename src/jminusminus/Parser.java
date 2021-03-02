@@ -3,6 +3,8 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import java.util.Map.Entry;
+import java.util.AbstractMap.SimpleEntry;
 
 import static jminusminus.TokenKind.*;
 
@@ -513,15 +515,26 @@ public class Parser {
         return members;
     }
 
+    private ArrayList<Type> throwsClause() {
+        ArrayList<Type> throwsTypes = new ArrayList();
+
+        if (have(THROWS))
+            do
+                throwsTypes.add(type());
+            while (have(COMMA));
+
+        return throwsTypes;
+    }
+
     /**
      * Parse a member declaration.
      *
      * <pre>
      *   memberDecl ::= IDENTIFIER            // constructor
-     *                    formalParameters
+     *                    formalParameters [THROWS ExceptionTypeList]
      *                    block
      *                | (VOID | type) IDENTIFIER  // method
-     *                    formalParameters
+     *                    formalParameters [THROWS ExceptionTypeList]
      *                    (block | SEMI)
      *                | type variableDeclarators SEMI
      * </pre>
@@ -538,8 +551,12 @@ public class Parser {
             mustBe(IDENTIFIER);
             String name = scanner.previousToken().image();
             ArrayList<JFormalParameter> params = formalParameters();
+
+            // throws
+            ArrayList<Type> exceptionTypes = throwsClause();
+
             JBlock body = block();
-            memberDecl = new JConstructorDeclaration(line, mods, name, params, body);
+            memberDecl = new JConstructorDeclaration(line, mods, name, params, exceptionTypes, body);
         } else {
             Type type = null;
             if (have(VOID)) {
@@ -548,8 +565,12 @@ public class Parser {
                 mustBe(IDENTIFIER);
                 String name = scanner.previousToken().image();
                 ArrayList<JFormalParameter> params = formalParameters();
+
+                // throws
+                ArrayList<Type> exceptionTypes = throwsClause();
+
                 JBlock body = have(SEMI) ? null : block();
-                memberDecl = new JMethodDeclaration(line, mods, name, type, params, body);
+                memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
@@ -557,8 +578,12 @@ public class Parser {
                     mustBe(IDENTIFIER);
                     String name = scanner.previousToken().image();
                     ArrayList<JFormalParameter> params = formalParameters();
+
+                    // throws
+                    ArrayList<Type> exceptionTypes = throwsClause();
+
                     JBlock body = have(SEMI) ? null : block();
-                    memberDecl = new JMethodDeclaration(line, mods, name, type, params, body);
+                    memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
                 } else {
                     // Field
                     memberDecl = new JFieldDeclaration(line, mods, variableDeclarators(type));
@@ -616,6 +641,8 @@ public class Parser {
      *   statement ::= block
      *               | IF parExpression statement [ELSE statement]
      *               | WHILE parExpression statement
+     *               | TRY block CATCH ClassType block {CATCH ClassType block}
+     *               | TRY block {CATCH ClassType block} FINALLY block
      *               | RETURN [expression] SEMI
      *               | SEMI
      *               | statementExpression SEMI
@@ -637,6 +664,14 @@ public class Parser {
             JExpression test = parExpression();
             JStatement statement = statement();
             return new JWhileStatement(line, test, statement);
+        } else if (have(TRY))
+            return tryStatement();
+        else if (have(THROW)) {
+            JExpression expr = expression();
+
+            mustBe(SEMI);
+
+            return new JThrowStatement(line, expr);
         } else if (have(RETURN)) {
             if (have(SEMI)) {
                 return new JReturnStatement(line, null);
@@ -658,10 +693,7 @@ public class Parser {
      * Parse formal parameters.
      *
      * <pre>
-     *   formalParameters ::= LPAREN
-     *                          [formalParameter
-     *                            {COMMA  formalParameter}]
-     *                        RPAREN
+     *   formalParameters ::= LPAREN [formalParameter {COMMA  formalParameter}] RPAREN
      * </pre>
      *
      * @return a list of formal parameters.
@@ -677,6 +709,61 @@ public class Parser {
         } while (have(COMMA));
         mustBe(RPAREN);
         return parameters;
+    }
+
+    /**
+     * Parse a catch formal parameter.
+     *
+     * <pre>
+     *   catchFormalParameter ::= LPAREN [Variablemodifier] catchType {| catchType} identifier RPAREN
+     * </pre>
+     *
+     * @return an AST for a catchFormalParameter.
+     */
+    private JCatchFormalParameter catchFormalParameter() {
+        int line = scanner.token().line();
+        mustBe(LPAREN);
+
+        ArrayList<Type> catchTypes = new ArrayList();
+        do
+            catchTypes.add(type());
+        while (have(BOR));
+
+        mustBe(IDENTIFIER);
+        String name = scanner.previousToken().image();
+
+        mustBe(RPAREN);
+
+        return new JCatchFormalParameter(line, catchTypes, name);
+    }
+
+    /**
+     * Parse try statement.
+     *
+     * <pre>
+     *   TryStatement ::= TRY Block CATCH catchFormalParameter BLOCK {CATCH catchFormalParameter BLOCK}
+                        | TRY {CATCH catchFormalParameter BLOCK} FINALLY BLOCK
+     * </pre>
+     *
+     * @return an AST for a tryStatement.
+     */
+    private JTryStatement tryStatement() {
+        int line = scanner.token().line();
+        JBlock tryPart = block();
+
+        ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart = new ArrayList();
+        while (have(CATCH))
+            catchPart.add(new SimpleEntry(catchFormalParameter(), block()));
+
+        JBlock finallyPart = null;
+        if (catchPart.isEmpty()) {
+            mustBe(FINALLY);
+
+            finallyPart = block();
+        } else if (have(FINALLY))
+            finallyPart = block();
+
+        return new JTryStatement(line, tryPart, catchPart, finallyPart);
     }
 
     /**
@@ -932,7 +1019,7 @@ public class Parser {
         int line = scanner.token().line();
         JExpression expr = expression();
         if (expr instanceof JAssignment || expr instanceof JPreIncrementOp || expr instanceof JPreDecrementOp
-	        || expr instanceof JPostIncrementOp || expr instanceof JPostDecrementOp
+                || expr instanceof JPostIncrementOp || expr instanceof JPostDecrementOp
                 || expr instanceof JMessageExpression || expr instanceof JSuperConstruction
                 || expr instanceof JThisConstruction || expr instanceof JNewOp || expr instanceof JNewArrayOp) {
             // So as not to save on stack
@@ -993,7 +1080,7 @@ public class Parser {
         }
     }
 
-        /**
+    /**
      * Parse a conditional-or expression.
      *
      * <pre>
@@ -1237,8 +1324,8 @@ public class Parser {
         if (have(INC)) {
             return new JPreIncrementOp(line, unaryExpression());
         } else if (have(DEC)) {
-	    return new JPreDecrementOp(line, unaryExpression());
-	} else if (have(MINUS)) {
+            return new JPreDecrementOp(line, unaryExpression());
+        } else if (have(MINUS)) {
             return new JNegateOp(line, unaryExpression());
         } else if (have(PLUS)) {
             return new JIntPromotionOp(line, unaryExpression());
@@ -1297,13 +1384,13 @@ public class Parser {
         while (see(DOT) || see(LBRACK)) {
             primaryExpr = selector(primaryExpr);
         }
-	while (have(DEC)) {
-	    primaryExpr = new JPostDecrementOp(line, primaryExpr);
-	}
-	while (have(INC)) {
-	    primaryExpr = new JPostIncrementOp(line, primaryExpr);
-	}
-		
+        while (have(DEC)) {
+            primaryExpr = new JPostDecrementOp(line, primaryExpr);
+        }
+        while (have(INC)) {
+            primaryExpr = new JPostIncrementOp(line, primaryExpr);
+        }
+
         return primaryExpr;
     }
 

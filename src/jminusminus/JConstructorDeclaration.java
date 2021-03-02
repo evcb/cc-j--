@@ -21,53 +21,43 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
     JClassDeclaration definingClass;
 
     /**
-     * Constructs an AST node for a constructor declaration given the line
-     * number, modifiers, constructor name, formal parameters, and the
-     * constructor body.
-     * 
-     * @param line
-     *            line in which the constructor declaration occurs in the source
-     *            file.
-     * @param mods
-     *            modifiers.
-     * @param name
-     *            constructor name.
-     * @param params
-     *            the formal parameters.
-     * @param body
-     *            constructor body.
+     * Constructs an AST node for a constructor declaration given the line number,
+     * modifiers, constructor name, formal parameters, and the constructor body.
+     *
+     * @param line           line in which the constructor declaration occurs in the
+     *                       source file.
+     * @param mods           modifiers.
+     * @param name           constructor name.
+     * @param params         the formal parameters.
+     * @param exceptionTypes the exception types.
+     * @param body           constructor body.
      */
-
-    public JConstructorDeclaration(int line, ArrayList<String> mods,
-            String name, ArrayList<JFormalParameter> params, JBlock body)
-
-    {
-        super(line, mods, name, Type.CONSTRUCTOR, params, body);
+    public JConstructorDeclaration(int line, ArrayList<String> mods, String name, ArrayList<JFormalParameter> params,
+            ArrayList<Type> exceptionTypes, JBlock body) {
+        super(line, mods, name, Type.CONSTRUCTOR, params, exceptionTypes, body);
     }
 
     /**
      * Declares this constructor in the parent (class) context.
-     * 
-     * @param context
-     *            the parent (class) context.
-     * @param partial
-     *            the code emitter (basically an abstraction for producing the
-     *            partial class).
+     *
+     * @param context the parent (class) context.
+     * @param partial the code emitter (basically an abstraction for producing the
+     *                partial class).
      */
 
     public void preAnalyze(Context context, CLEmitter partial) {
         super.preAnalyze(context, partial);
         if (isStatic) {
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Constructor cannot be declared static");
+            JAST.compilationUnit.reportSemanticError(line(), "Constructor cannot be declared static");
         } else if (isAbstract) {
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Constructor cannot be declared abstract");
+            JAST.compilationUnit.reportSemanticError(line(), "Constructor cannot be declared abstract");
         }
-        if (body.statements().size() > 0
-                && body.statements().get(0) instanceof JStatementExpression) {
-            JStatementExpression first = (JStatementExpression) body
-                    .statements().get(0);
+
+        if (isThrow)
+            ; // ensure that all types are or subclass Throwable + other checks
+
+        if (body.statements().size() > 0 && body.statements().get(0) instanceof JStatementExpression) {
+            JStatementExpression first = (JStatementExpression) body.statements().get(0);
             if (first.expr instanceof JSuperConstruction) {
                 ((JSuperConstruction) first.expr).markProperUseOfConstructor();
                 invokesConstructor = true;
@@ -79,20 +69,17 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
     }
 
     /**
-     * Analysis for a constructor declaration is very much like that for a
-     * method declaration.
-     * 
-     * @param context
-     *            context in which names are resolved.
+     * Analysis for a constructor declaration is very much like that for a method
+     * declaration.
+     *
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
 
     public JAST analyze(Context context) {
         // Record the defining class declaration.
-        definingClass = (JClassDeclaration) (context.classContext()
-                                                    .definition());
-        MethodContext methodContext =
-            new MethodContext(context, isStatic, returnType);
+        definingClass = (JClassDeclaration) (context.classContext().definition());
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -101,13 +88,16 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
         }
 
         // Declare the parameters. We consider a formal parameter
-        // to be always initialized, via a function call. 
+        // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
-            LocalVariableDefn defn = new LocalVariableDefn(param.type(),
-                                             this.context.nextOffset());
+            LocalVariableDefn defn = new LocalVariableDefn(param.type(), this.context.nextOffset());
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }
+
+        if (isThrow)
+            ; // ensure that all types are or subclass Throwable + other checks
+
         if (body != null) {
             body = body.analyze(this.context);
         }
@@ -117,12 +107,10 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
 
     /**
      * Adds this constructor declaration to the partial class.
-     * 
-     * @param context
-     *            the parent (class) context.
-     * @param partial
-     *            the code emitter (basically an abstraction for producing the
-     *            partial class).
+     *
+     * @param context the parent (class) context.
+     * @param partial the code emitter (basically an abstraction for producing the
+     *                partial class).
      */
 
     public void partialCodegen(Context context, CLEmitter partial) {
@@ -130,18 +118,16 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
         if (!invokesConstructor) {
             partial.addNoArgInstruction(ALOAD_0);
             partial.addMemberAccessInstruction(INVOKESPECIAL,
-                    ((JTypeDecl) context.classContext().definition())
-                            .superType().jvmName(), "<init>", "()V");
+                    ((JTypeDecl) context.classContext().definition()).superType().jvmName(), "<init>", "()V");
         }
         partial.addNoArgInstruction(RETURN);
     }
 
     /**
      * Generates code for the constructor declaration.
-     * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
 
     public void codegen(CLEmitter output) {
@@ -149,12 +135,10 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
         if (!invokesConstructor) {
             output.addNoArgInstruction(ALOAD_0);
             output.addMemberAccessInstruction(INVOKESPECIAL,
-                    ((JTypeDecl) context.classContext().definition())
-                            .superType().jvmName(), "<init>", "()V");
+                    ((JTypeDecl) context.classContext().definition()).superType().jvmName(), "<init>", "()V");
         }
         // Field initializations
-        for (JFieldDeclaration field : definingClass
-                .instanceFieldInitializations()) {
+        for (JFieldDeclaration field : definingClass.instanceFieldInitializations()) {
             field.codegenInitializations(output);
         }
         // And then the body
@@ -167,8 +151,7 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
      */
 
     public void writeToStdOut(PrettyPrinter p) {
-        p.printf("<JConstructorDeclaration line=\"%d\" " + "name=\"%s\">\n",
-                line(), name);
+        p.printf("<JConstructorDeclaration line=\"%d\" " + "name=\"%s\">\n", line(), name);
         p.indentRight();
         if (context != null) {
             context.writeToStdOut(p);
@@ -191,6 +174,18 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
             }
             p.println("</FormalParameters>");
         }
+
+        if (isThrow) {
+            p.println("<Throws>");
+
+            p.indentRight();
+            for (Type _type : exceptionTypes)
+                p.printf("<ExceptionType name=\"%s\"/>\n", _type.toString());
+            p.indentLeft();
+
+            p.println("</Throws>");
+        }
+
         if (body != null) {
             p.println("<Body>");
             p.indentRight();
