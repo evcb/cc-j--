@@ -17,11 +17,8 @@ classDeclaration ::= CLASS IDENTIFIER
 
 classBody ::= LCURLY {modifiers memberDecl} RCURLY
 
-memberDecl ::= IDENTIFIER            // constructor
-                 formalParameters block
-             | (VOID | type) IDENTIFIER  // method
-                 formalParameters
-                 (block | SEMI)
+memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // constructor
+             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionTypeList] (block | SEMI) // method
              | type variableDeclarators SEMI // field
 
 block ::= LCURLY {blockStatement} RCURLY
@@ -32,9 +29,16 @@ blockStatement ::= localVariableDeclarationStatement
 statement ::= block
             | IF parExpression statement [ELSE statement]
             | WHILE parExpression statement
+            | TryStatement
             | RETURN [expression] SEMI
+            | RETURN expression SEMI
             | SEMI
             | statementExpression SEMI
+
+TryStatement ::= TRY Block CATCH catchFormalParameter BLOCK {CATCH catchFormalParameter BLOCK}
+               | TRY {CATCH catchFormalParameter BLOCK} FINALLY BLOCK
+
+catchFormalParameter ::= LPAREN [Variablemodifier] catchType {BOR catchType} identifier RPAREN
 
 formalParameters ::= LPAREN
                        [formalParameter {COMMA formalParameter}]
