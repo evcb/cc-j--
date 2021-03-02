@@ -28,6 +28,9 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /** Super class type. */
     private Type superType;
 
+    /** Interfaces implemented */
+    private ArrayList<TypeName> interfacesImplemented;
+
     /** This class type. */
     private Type thisType;
 
@@ -61,11 +64,12 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     public JClassDeclaration(int line, ArrayList<String> mods, String name,
-            Type superType, ArrayList<JMember> classBlock) {
+            Type superType, ArrayList<TypeName> implementations, ArrayList<JMember> classBlock) {
         super(line);
         this.mods = mods;
         this.name = name;
         this.superType = superType;
+        this.interfacesImplemented = implementations;
         this.classBlock = classBlock;
         hasExplicitConstructor = false;
         instanceFieldInitializations = new ArrayList<JFieldDeclaration>();
@@ -140,6 +144,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     public void preAnalyze(Context context) {
+        //TODO: complete method for interfaces
+
         // Construct a class context
         this.context = new ClassContext(this, context);
 
@@ -239,6 +245,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     public void codegen(CLEmitter output) {
+        //TODO: complete method for interfaces
+
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
@@ -280,6 +288,15 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             p.indentLeft();
             p.println("</Modifiers>");
         }
+        if (interfacesImplemented != null) {
+            p.println("<Implements>");
+            p.indentRight();
+            for (TypeName interfaceImplemented : interfacesImplemented) {
+                p.printf("<Implements name=\"%s\"/>\n", interfaceImplemented.toString());
+            }
+            p.indentLeft();
+            p.println("</Implements>");
+        }
         if (classBlock != null) {
             p.println("<ClassBlock>");
             p.indentRight();
@@ -303,6 +320,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     private void codegenPartialImplicitConstructor(CLEmitter partial) {
+        //TODO: complete method for interfaces
+
         // Invoke super constructor
         ArrayList<String> mods = new ArrayList<String>();
         mods.add("public");
@@ -325,6 +344,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     private void codegenImplicitConstructor(CLEmitter output) {
+        //TODO: complete method for interfaces
+
         // Invoke super constructor
         ArrayList<String> mods = new ArrayList<String>();
         mods.add("public");
