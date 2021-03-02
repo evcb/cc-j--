@@ -34,6 +34,7 @@ public class JMinusMinusTestRunner {
         suite.addTestSuite(StarAssignTest.class);
         suite.addTestSuite(SlashAssignTest.class);
         suite.addTestSuite(ModuloAssignTest.class);
+        suite.addTestSuite(TryTest.class);
         return suite;
     }
 
