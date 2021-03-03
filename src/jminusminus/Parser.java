@@ -393,7 +393,7 @@ public class Parser {
 
     private JAST typeDeclaration() {
         ArrayList<String> mods = modifiers();
-        if (see(INTERFACE)){
+        if (see(INTERFACE)) {
             return interfaceDeclaration(mods);
         }
         return classDeclaration(mods);
@@ -495,15 +495,14 @@ public class Parser {
         } else {
             superClass = Type.OBJECT;
         }
-        if(have(IMPLEMENTS)){
+        if (have(IMPLEMENTS)) {
             interfacesImplemented.add(qualifiedIdentifier());
-            while(have(COMMA)){
+            while (have(COMMA)) {
                 interfacesImplemented.add(qualifiedIdentifier());
             }
         }
         return new JClassDeclaration(line, mods, name, superClass, interfacesImplemented, classBody());
     }
-
 
     /**
      * Parse an interface declaration.
@@ -529,7 +528,7 @@ public class Parser {
         ArrayList<TypeName> interfacesExtended = new ArrayList<>();
         if (have(EXTENDS)) {
             interfacesExtended.add(qualifiedIdentifier());
-            while(have(COMMA)){
+            while (have(COMMA)) {
                 interfacesExtended.add(qualifiedIdentifier());
             }
         }
@@ -591,7 +590,6 @@ public class Parser {
         return members;
     }
 
-
     /**
      * Parse an interface member declaration.
      *
@@ -607,7 +605,7 @@ public class Parser {
      */
 
     private JMember interfaceMemberDecl(ArrayList<String> mods) {
-        //TODO: add other things that should be in an interface
+        // TODO: add other things that should be in an interface
 
         int line = scanner.token().line();
         JMember memberDecl = null;
@@ -618,8 +616,12 @@ public class Parser {
             mustBe(IDENTIFIER);
             String name = scanner.previousToken().image();
             ArrayList<JFormalParameter> params = formalParameters();
+
+            // throws
+            ArrayList<Type> exceptionTypes = throwsClause();
+
             JBlock body = have(SEMI) ? null : block();
-            memberDecl = new JMethodDeclaration(line, mods, name, type, params, body);
+            memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
         } else {
             type = type();
             if (seeIdentLParen()) {
@@ -627,8 +629,12 @@ public class Parser {
                 mustBe(IDENTIFIER);
                 String name = scanner.previousToken().image();
                 ArrayList<JFormalParameter> params = formalParameters();
+
+                // throws
+                ArrayList<Type> exceptionTypes = throwsClause();
+
                 JBlock body = have(SEMI) ? null : block();
-                memberDecl = new JMethodDeclaration(line, mods, name, type, params, body);
+                memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
             } else {
                 // Field
                 memberDecl = new JFieldDeclaration(line, mods, variableDeclarators(type));
@@ -638,8 +644,6 @@ public class Parser {
 
         return memberDecl;
     }
-
-
 
     /**
      * Parse a member declaration.
@@ -1134,7 +1138,7 @@ public class Parser {
         int line = scanner.token().line();
         JExpression expr = expression();
         if (expr instanceof JAssignment || expr instanceof JPreIncrementOp || expr instanceof JPreDecrementOp
-	        || expr instanceof JPostIncrementOp || expr instanceof JPostDecrementOp
+                || expr instanceof JPostIncrementOp || expr instanceof JPostDecrementOp
                 || expr instanceof JMessageExpression || expr instanceof JSuperConstruction
                 || expr instanceof JThisConstruction || expr instanceof JNewOp || expr instanceof JNewArrayOp) {
             // So as not to save on stack
@@ -1193,31 +1197,6 @@ public class Parser {
         } else {
             return lhs;
         }
-    }
-
-        /**
-     * Parse a conditional-or expression.
-     *
-     * <pre>
-     *   conditionalOrExpression ::= conditionalAndExpression
-     *                       {LOR assignmentExpression}
-     * </pre>
-     *
-     * @return an AST for a conditionalExpression.
-     */
-
-    private JExpression conditionalOrExpression() {
-        int line = scanner.token().line();
-        boolean more = true;
-        JExpression lhs = conditionalAndExpression();
-        while (more) {
-            if (have(LOR)) {
-                lhs = new JLogicalOrOp(line, lhs, ExclusiveOrExpression());
-            } else {
-                more = false;
-            }
-        }
-        return lhs;
     }
 
     /**
