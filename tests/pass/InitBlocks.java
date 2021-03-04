@@ -1,6 +1,8 @@
 package pass;
 
-public class Statics {
+import java.lang.System;
+
+public class InitBlocks {
 
     static int x;
     static int c;
@@ -18,6 +20,12 @@ public class Statics {
     {
         y = 7;
         System.out.println(y);
+    }
+
+    public static int tryBlocks() {
+        System.out.println(x);
+        // return x + c;
+        return x;
     }
 
     public static void main(String[] args) {
