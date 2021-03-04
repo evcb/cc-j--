@@ -4,6 +4,7 @@ package jminusminus;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
+import java.util.jar.Attributes.Name;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 
@@ -690,6 +691,9 @@ public class Parser {
 
                 JBlock body = have(SEMI) ? null : block();
                 memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
+            } else if (see(LCURLY)) {
+                JBlock body = block();
+                memberDecl = new JInstanceInitializationBlock(line, mods, body);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
