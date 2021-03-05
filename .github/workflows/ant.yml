@@ -22,5 +22,7 @@ jobs:
         run: ant compile
       - name: Run tests
         run: ant runCompilerTests
+      - name: Run tests (JavaCC)
+        run: ant runCompilerTestsJavaCC
       - name: Build with Ant
         run: ant -noinput -buildfile build.xml
