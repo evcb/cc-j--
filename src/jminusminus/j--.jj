@@ -168,6 +168,29 @@ TOKEN: {
 | <VOID: "void">
 | <WHILE: "while">
 | <DOUBLE: "double">
+| <BREAK: "break">
+| <BYTE: "byte">
+| <CASE: "case">
+| <CATCH: "catch">
+| <CONST: "const">
+| <CONTINUE: "continue">
+| <DO: "do">
+| <FINALLY: "finally">
+| <FLOAT: "float">
+| <INTERFACE: "interface">
+| <FOR: "for">
+| <LONG: "long">
+| <GOTO: "goto">
+| <NATIVE: "native">
+| <IMPLEMENTS: "implements">
+| <STRICTFP: "strictfp">
+| <SWITCH: "switch"> 
+| <SYNCHRONIZED: "synchronized">
+| <THROW: "throw">
+| <THROWS: "throws">
+| <TRANSIENT: "transient"> 
+| <TRY: "try">
+| <VOLATILE: "volatile"> 
 }
 
 // Operators (these could be combined with the reserved words)
@@ -184,6 +207,30 @@ TOKEN: {
 | <MINUS: "-">
 | <PLUS_ASSIGN: "+=">
 | <STAR: "*">
+| <DIV: "/">
+| <REM: "%"> 
+| <SHL: "<<"> 
+| <SHR: ">>"> 
+| <UCOM: "~"> 
+| <BOR: "|"> 
+| <URSHIFT: ">>>"> 
+| <AND: "&"> 
+| <XOR: "^"> 
+| <QMARK: "?"> 
+| <NOTEQ: "!="> 
+| <DIV_ASSIGN: "/="> 
+| <SUB_ASSIGN: "-="> 
+| <MULTI_ASSIGN: "*="> 
+| <MOD_ASSIGN: "%="> 
+| <RIGHS_ASSIGN: ">>="> 
+| <USHL_ASSIGN: "<<="> 
+| <USHR_ASSIGN: ">>>="> 
+| <GE: ">="> 
+| <LT: "<"> 
+| <XOR_ASSIGN: "^="> 
+| <BOR_ASSIGN: "|="> 
+| <LOR: "||"> 
+| <AND_ASSIGN: "&=">
 }
 
 // Separators (these could be combined with the reserved words)
@@ -197,6 +244,7 @@ TOKEN: {
 | <SEMI: ";">
 | <COMMA: ",">
 | <DOT: ".">
+| <COLON: ":">
 }
 
 // Identifiers
@@ -213,7 +261,7 @@ TOKEN: {
 | <CHAR_LITERAL: "'" (<ESC> | ~["'","\\","\n","\r"]) "'" >
 | <STRING_LITERAL: "\"" (<ESC> | ~["\"","\\","\n","\r"])* "\"" >
 | <#ESC: "\\" ["n","t","b","r","f","\\","'","\""] >
-| <DOUBLE_LITERAL: {"0"-"9"} [ [ . ] {"0"-"9"} [("e"|"E") ["+"|"-"] ("0"-"9") {"0"-"9"} ]] [ "d"|"D" ]>
+| <DOUBLE_LITERAL: ((<DIGIT>)* "." (<DIGIT>)*) > // TODO: this is a big hack. Needs to be properly implemented
 }
 
 // For anything else, we return an ERROR token. Without this 
