@@ -1210,7 +1210,7 @@ public class Parser {
         JStatement alternate = have(ELSE) ? statement() : null;
         
         if (have(QMARK)) {
-            new JIfStatement(line, lhs, consequent, alternate)
+            new JIfStatement(line, lhs, consequent, alternate);
         }
 
         return lhs;
