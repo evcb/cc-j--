@@ -74,11 +74,14 @@ statementExpression ::= expression // but must have side-effect, eg i++
 
 expression ::= assignmentExpression
 
-assignmentExpression ::= conditionalOrExpression  // must be a valid lhs
-                           [(ASSIGN | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN) assignmentExpression]
+assignmentExpression ::= conditionalExpression  // must be a valid lhs
+                           [(ASSIGN | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN) conditionalExpression]
+
+conditionalExpression ::= conditionalOrExpression
+                              {QMARK conditionalOrExpression}
 
 conditionalOrExpression ::= conditionalAndExpression
-                               {LOR assignmentExpression}
+                               {LOR conditionalAndExpression}
 
 conditionalAndExpression ::= ExclusiveOrExpression // level 10
                                {LAND ExclusiveOrExpression}
