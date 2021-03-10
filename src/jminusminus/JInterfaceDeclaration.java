@@ -11,7 +11,7 @@ import java.util.ArrayList;
  */
 
 
-public class JInterfaceDeclaration extends JAST implements JTypeDecl {
+public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
 
     /** Inteface modifiers. */
     private ArrayList<String> mods;
@@ -77,7 +77,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl {
         for (JMember member : interfaceBlock) {
             if (member instanceof JFieldDeclaration) {
                 JFieldDeclaration fieldDecl = (JFieldDeclaration) member;
-                    instanceFieldInitializations.add(fieldDecl);
+                instanceFieldInitializations.add(fieldDecl);
             }
         }
         return this;
@@ -145,6 +145,11 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl {
 
     }
 
+    @Override
+    public void preAnalyze(Context context, CLEmitter clEmitter) {
+        //TODO: complete method for interface
+
+    }
 
     /**
      * Returns the interface name.
