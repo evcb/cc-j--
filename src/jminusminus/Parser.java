@@ -4,6 +4,7 @@ package jminusminus;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
+import java.util.jar.Attributes.Name;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 
@@ -760,6 +761,7 @@ public class Parser {
      *   statement ::= block
      *               | IF parExpression statement [ELSE statement]
      *               | WHILE parExpression statement
+     *               | FOR  {ForInit} ; [Expression] ; {ForUpdate} ) Statement 
      *               | TRY block CATCH ClassType block {CATCH ClassType block}
      *               | TRY block {CATCH ClassType block} FINALLY block
      *               | RETURN [expression] SEMI
@@ -783,9 +785,50 @@ public class Parser {
             JExpression test = parExpression();
             JStatement statement = statement();
             return new JWhileStatement(line, test, statement);
-        } else if (have(TRY))
+        } else if (have(TRY)) {
             return tryStatement();
-        else if (have(THROW)) {
+	} else if (have(FOR)) {
+	    mustBe(LPAREN);
+
+	    scanner.recordPosition();
+	    scanner.next();
+
+	    // Enchanced For-statement
+	    if (have(IDENTIFIER)) {
+	    	scanner.returnToPosition();
+	    	Type type = type();
+	    	mustBe(IDENTIFIER);
+	    	String name = scanner.previousToken().image();
+	    	JExpression expression = expression();
+		JStatement statement = statement();
+	    	return new JEnhancedForStatement(line, type, name, expression, statement);
+	    }
+
+	    // Basic For-statement
+	    ArrayList<JStatement> forInt = null;
+	    JExpression expression;
+	    ArrayList<JStatement> forUpdate;
+
+	    scanner.returnToPosition();
+	    
+	    if (!see(SEMI)) {
+		if (seeLocalVariableDeclaration()) {
+		    forInt.add(localVariableDeclarationStatement());
+		} else {
+		    forInt = statementExpressionList();
+		}
+	    }
+	    
+	    mustBe(SEMI);
+	    expression = !see(SEMI) ? expression() : null;
+	    mustBe(SEMI);
+	    forUpdate = !see(SEMI) ? statementExpressionList() : null;
+	    mustBe(RPAREN);
+	    JStatement statement = statement();
+	   
+	    return new JBasicForStatement(line, forInt, expression, forUpdate, statement);
+	    
+        } else if (have(THROW)) {
             JExpression expr = expression();
 
             mustBe(SEMI);
@@ -1123,6 +1166,25 @@ public class Parser {
         return type;
     }
 
+    /**
+     * Parse a statement expression list.
+     *
+     * <pre>
+     *   statementExpressionList ::=  StatementExpression {, StatementExpression} 
+     * </pre>
+     *
+     * @return an AST for a statementExpressionList.
+     */
+
+    private ArrayList<JStatement> statementExpressionList() {
+	ArrayList<JStatement> statementExpressions = new ArrayList<JStatement>();
+	
+        do {
+            statementExpressions.add(statementExpression());
+        } while (have(COMMA));
+
+        return statementExpressions;
+    }
     /**
      * Parse a statement expression.
      *
