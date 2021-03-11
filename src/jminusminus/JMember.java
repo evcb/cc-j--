@@ -12,7 +12,7 @@ interface JMember {
      * Declares the member name(s) in the specified (class) context. Generates 
      * the member header(s) in the (partial) class. All members must support 
      * this method.
-     * 
+     *
      * @param context
      *            class context in which names are resolved.
      * @param partial

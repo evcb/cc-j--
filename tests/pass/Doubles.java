@@ -6,13 +6,13 @@ import java.lang.System;
 
 public class Doubles {
 
-    //double dblf = 2.1;
+   // double dblf = 2.1;
 
-    // static double staticdblf = 2.2;
+    //static double staticdblf = 2.2;
 
     public int testMethod() {
 
-       /* double[] dbls = { 2.3, 2.4 };
+        /*double[] dbls = { 2.3, 2.4 };
         double dbl = 2.5;
 
         dbl += 2.6;
@@ -24,8 +24,8 @@ public class Doubles {
         return 3;
     }
 
-    public static void main(String[] args) {
+  /*  public static void main(String[] args) {
         (new Doubles()).testMethod();
-    }
+    }*/
 
 }

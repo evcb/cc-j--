@@ -307,6 +307,7 @@ class JavaCCParser implements JavaCCParserConstants {
     String name = "";
     Type superClass = Type.OBJECT;
     ArrayList<JMember> classBody = null;
+    ArrayList<TypeName> interfaces = null;
     try {
       jj_consume_token(CLASS);
                   line = token.beginLine;
@@ -325,7 +326,7 @@ class JavaCCParser implements JavaCCParserConstants {
     } catch (ParseException e) {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
-        {if (true) return new JClassDeclaration(line, mods, name, superClass, classBody);}
+        {if (true) return new JClassDeclaration(line, mods, name, superClass, interfaces, classBody);}
     throw new Error("Missing return statement in function");
   }
 
@@ -374,6 +375,7 @@ class JavaCCParser implements JavaCCParserConstants {
     JBlock body = null;
     ArrayList<JVariableDeclarator> variableDeclarators = null;
     JMember memberDecl = null;
+    ArrayList<Type> exceptionTypes = null;
     try {
       if (jj_2_2(2147483647)) {
         jj_consume_token(IDENTIFIER);
@@ -382,7 +384,7 @@ class JavaCCParser implements JavaCCParserConstants {
         params = formalParameters();
         body = block();
                 memberDecl = new JConstructorDeclaration(line, mods,
-                                                         name, params, body);
+                                                         name, params, exceptionTypes, body);
       } else if (jj_2_3(2147483647)) {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case VOID:
@@ -417,7 +419,7 @@ class JavaCCParser implements JavaCCParserConstants {
           throw new ParseException();
         }
                 memberDecl = new JMethodDeclaration(line, mods, name,
-                                                    type, params, body);
+                                                    type, params, exceptionTypes, body);
       } else {
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case BOOLEAN:
@@ -1796,12 +1798,6 @@ class JavaCCParser implements JavaCCParserConstants {
     return false;
   }
 
-  final private boolean jj_3_1() {
-    if (jj_scan_token(DOT)) return true;
-    if (jj_scan_token(IDENTIFIER)) return true;
-    return false;
-  }
-
   final private boolean jj_3R_113() {
     if (jj_3R_27()) return true;
     return false;
@@ -1815,6 +1811,12 @@ class JavaCCParser implements JavaCCParserConstants {
   final private boolean jj_3R_107() {
     if (jj_scan_token(LBRACK)) return true;
     if (jj_scan_token(RBRACK)) return true;
+    return false;
+  }
+
+  final private boolean jj_3_1() {
+    if (jj_scan_token(DOT)) return true;
+    if (jj_scan_token(IDENTIFIER)) return true;
     return false;
   }
 
@@ -1892,16 +1894,6 @@ class JavaCCParser implements JavaCCParserConstants {
     return false;
   }
 
-  final private boolean jj_3R_37() {
-    if (jj_scan_token(IDENTIFIER)) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_41()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
   final private boolean jj_3_5() {
     if (jj_scan_token(ELSE)) return true;
     return false;
@@ -1910,6 +1902,16 @@ class JavaCCParser implements JavaCCParserConstants {
   final private boolean jj_3R_53() {
     if (jj_scan_token(LE)) return true;
     if (jj_3R_48()) return true;
+    return false;
+  }
+
+  final private boolean jj_3R_37() {
+    if (jj_scan_token(IDENTIFIER)) return true;
+    Token xsp;
+    while (true) {
+      xsp = jj_scanpos;
+      if (jj_3R_41()) { jj_scanpos = xsp; break; }
+    }
     return false;
   }
 
