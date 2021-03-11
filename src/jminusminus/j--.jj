@@ -486,6 +486,7 @@ private JClassDeclaration classDeclaration(ArrayList<String> mods): {
     String name = "";
     Type superClass = Type.OBJECT;
     ArrayList<JMember> classBody = null;
+    ArrayList<TypeName> interfaces = new ArrayList<TypeName>();
 }
 {
     try {
@@ -500,7 +501,7 @@ private JClassDeclaration classDeclaration(ArrayList<String> mods): {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
     {
-        return new JClassDeclaration(line, mods, name, superClass, classBody);
+        return new JClassDeclaration(line, mods, name, superClass, interfaces, classBody);
     }
 }
 
@@ -562,6 +563,7 @@ private JMember memberDecl(ArrayList<String> mods): {
     JBlock body = null;
     ArrayList<JVariableDeclarator> variableDeclarators = null;
     JMember memberDecl = null;
+    ArrayList<Type> exceptionTypes = new ArrayList<Type>();
 }
 {
     try {
@@ -576,7 +578,7 @@ private JMember memberDecl(ArrayList<String> mods): {
             body = block()
             {
                 memberDecl = new JConstructorDeclaration(line, mods,
-                                                         name, params, body);
+                                                         name, params, exceptionTypes, body);
             }
         ) |
         LOOKAHEAD((<VOID> | type()) <IDENTIFIER> <LPAREN>)
@@ -594,7 +596,7 @@ private JMember memberDecl(ArrayList<String> mods): {
             )
             {
                 memberDecl = new JMethodDeclaration(line, mods, name,
-                                                    type, params, body);
+                                                    type, params, exceptionTypes, body);
             }
         ) |
         (

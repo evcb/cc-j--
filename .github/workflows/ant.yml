@@ -3,7 +3,14 @@
 
 name: Java CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+  
+    types: [opened]
 
 jobs:
   build:
@@ -16,13 +23,15 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11.0.2
-      - name: Clean
+      - name: Cleaning...
         run: ant clean
-      - name: Compile
-        run: ant compile
-      - name: Run tests
+      - name: Run tests (Manual)
         run: ant runCompilerTests
+      - name: Cleanig...
+        run: ant clean
       - name: Run tests (JavaCC)
         run: ant runCompilerTestsJavaCC
+      - name: Cleaning...
+        run: ant clean
       - name: Build with Ant
         run: ant -noinput -buildfile build.xml

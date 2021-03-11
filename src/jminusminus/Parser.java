@@ -509,16 +509,13 @@ public class Parser {
      * Parse an interface declaration.
      *
      * <pre>
-     *   classDeclaration ::= CLASS IDENTIFIER
-     *                        [EXTENDS qualifiedIdentifier]
-     *                        classBody
+     *   interfaceDeclaration ::= INTERFACE IDENTIFIER
+     *                        interfaceBody
      * </pre>
      *
-     * A class which doesn't explicitly extend another (super) class implicitly
-     * extends the superclass java.lang.Object.
      *
-     * @param mods the class modifiers.
-     * @return an AST for a classDeclaration.
+     * @param mods the interface modifiers.
+     * @return an AST for a interfaceDeclaration.
      */
 
     private JInterfaceDeclaration interfaceDeclaration(ArrayList<String> mods) {
@@ -606,12 +603,15 @@ public class Parser {
      */
 
     private JMember interfaceMemberDecl(ArrayList<String> mods) {
-        // TODO: add other things that should be in an interface
-
         int line = scanner.token().line();
         JMember memberDecl = null;
         Type type = null;
-        if (have(VOID)) {
+
+        if (see(INTERFACE)){
+            memberDecl = (JMember) interfaceDeclaration(mods);
+        } else if(see(CLASS)){
+            memberDecl = (JMember) classDeclaration(mods);
+        } else if (have(VOID)) {
             // void method
             type = Type.VOID;
             mustBe(IDENTIFIER);
@@ -865,7 +865,7 @@ public class Parser {
      *
      * <pre>
      *   TryStatement ::= TRY Block CATCH catchFormalParameter BLOCK {CATCH catchFormalParameter BLOCK}
-                        | TRY {CATCH catchFormalParameter BLOCK} FINALLY BLOCK
+     | TRY {CATCH catchFormalParameter BLOCK} FINALLY BLOCK
      * </pre>
      *
      * @return an AST for a tryStatement.
@@ -1435,7 +1435,7 @@ public class Parser {
      * <pre>
      *   unaryExpression ::= INC unaryExpression // level 1
      *                     | DEC unaryExpression
-                           | MINUS unaryExpression
+     | MINUS unaryExpression
      *                     | simpleUnaryExpression
      * </pre>
      *
