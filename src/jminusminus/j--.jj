@@ -1124,6 +1124,8 @@ private JStatement statementExpression(): {
             line = expr.line();
             if (expr instanceof JAssignment
              || expr instanceof JPreIncrementOp
+	     || expr instanceof JPreDecrementOp
+	     || expr instanceof JPostIncrementOp
              || expr instanceof JPostDecrementOp
              || expr instanceof JMessageExpression
              || expr instanceof JSuperConstruction
@@ -1389,8 +1391,12 @@ private JExpression unaryExpression(): {
     try {
         <INC> { line = token.beginLine; }
         unaryExpr = unaryExpression()
-        { expr = new JPreIncrementOp(line, unaryExpr); } |
+        { expr = new JPreDecrementOp(line, unaryExpr); } |
 
+	 <DEC> { line = token.beginLine; }
+        unaryExpr = unaryExpression()
+        { expr = new JPreDecrementOp(line, unaryExpr); } |
+	
         <MINUS> { line = token.beginLine; }
         unaryExpr = unaryExpression()
         { expr = new JNegateOp(line, unaryExpr); } |
@@ -1473,6 +1479,9 @@ private JExpression postfixExpression(): {
             primaryExpr = selector(primaryExpr)
         )*
         (
+	    <INC>
+	    { primaryExpr = new JPostIncrementOp(line, primaryExpr); } |
+	    
             <DEC>
             { primaryExpr = new JPostDecrementOp(line, primaryExpr); }
         )*
