@@ -14,7 +14,7 @@ import static jminusminus.CLConstants.*;
  * @see ClassContext
  */
 
-class JClassDeclaration extends JAST implements JTypeDecl {
+class JClassDeclaration extends JAST implements JTypeDecl, JMember {
 
     /** Class modifiers. */
     private ArrayList<String> mods;
@@ -50,7 +50,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      * Constructs an AST node for a class declaration given the line number, list
      * of class modifiers, name of the class, its super class type, and the
      * class block.
-     * 
+     *
      * @param line
      *            line in which the class declaration occurs in the source file.
      * @param mods
@@ -64,7 +64,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     public JClassDeclaration(int line, ArrayList<String> mods, String name,
-            Type superType, ArrayList<TypeName> implementations, ArrayList<JMember> classBlock) {
+                             Type superType, ArrayList<TypeName> implementations, ArrayList<JMember> classBlock) {
         super(line);
         this.mods = mods;
         this.name = name;
@@ -78,7 +78,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     /**
      * Returns the class name.
-     * 
+     *
      * @return the class name.
      */
 
@@ -88,7 +88,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     /**
      * Returns the class' super class type.
-     * 
+     *
      * @return the super class type.
      */
 
@@ -98,7 +98,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     /**
      * Returns the type that this class declaration defines.
-     * 
+     *
      * @return the defined type.
      */
 
@@ -107,9 +107,9 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     }
 
     /**
-     * Returns the initializations for instance fields (now expressed as 
+     * Returns the initializations for instance fields (now expressed as
      * assignment statements).
-     * 
+     *
      * @return the field declarations having initializations.
      */
 
@@ -119,7 +119,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     /**
      * Declares this class in the parent (compilation unit) context.
-     * 
+     *
      * @param context
      *            the parent (compilation unit) context.
      */
@@ -138,11 +138,12 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      * Pre-analyzes the members of this declaration in the parent context.
      * Pre-analysis extends to the member headers (including method headers) but
      * not into the bodies.
-     * 
+     *
      * @param context
      *            the parent (compilation unit) context.
      */
 
+    @Override
     public void preAnalyze(Context context) {
         //TODO: complete method for interfaces
 
@@ -193,11 +194,18 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         }
     }
 
+    @Override
+    public void preAnalyze(Context context, CLEmitter clEmitter) {
+        //TODO: complete method for interface
+
+    }
+
+
     /**
      * Performs semantic analysis on the class and all of its members within the
      * given context. Analysis includes field initializations and the method
      * bodies.
-     * 
+     *
      * @param context
      *            the parent (compilation unit) context. Ignored here.
      * @return the analyzed (and possibly rewritten) AST subtree.
@@ -238,7 +246,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     /**
      * Generates code for the class declaration.
-     * 
+     *
      * @param output
      *            the code emitter (basically an abstraction for producing the
      *            .class file).
@@ -313,7 +321,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /**
      * Generates code for an implicit empty constructor. (Necessary only if there
      * is not already an explicit one.)
-     * 
+     *
      * @param partial
      *            the code emitter (basically an abstraction for producing a
      *            Java class).
@@ -337,7 +345,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /**
      * Generates code for an implicit empty constructor. (Necessary only if there
      * is not already an explicit one.
-     * 
+     *
      * @param output
      *            the code emitter (basically an abstraction for producing the
      *            .class file).
@@ -367,7 +375,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /**
      * Generates code for class initialization, in j-- this means static field
      * initializations.
-     * 
+     *
      * @param output
      *            the code emitter (basically an abstraction for producing the
      *            .class file).
