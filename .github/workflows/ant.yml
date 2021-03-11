@@ -9,7 +9,7 @@ on:
       - master
 
   pull_request:
-    types: [closed]
+    types: [opened]
 
 jobs:
   build:
