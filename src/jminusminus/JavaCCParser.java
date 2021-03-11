@@ -307,7 +307,7 @@ class JavaCCParser implements JavaCCParserConstants {
     String name = "";
     Type superClass = Type.OBJECT;
     ArrayList<JMember> classBody = null;
-    ArrayList<TypeName> interfaces = null;
+    ArrayList<TypeName> interfaces = new ArrayList<TypeName>();
     try {
       jj_consume_token(CLASS);
                   line = token.beginLine;
@@ -375,7 +375,7 @@ class JavaCCParser implements JavaCCParserConstants {
     JBlock body = null;
     ArrayList<JVariableDeclarator> variableDeclarators = null;
     JMember memberDecl = null;
-    ArrayList<Type> exceptionTypes = null;
+    ArrayList<Type> exceptionTypes = new ArrayList<Type>();
     try {
       if (jj_2_2(2147483647)) {
         jj_consume_token(IDENTIFIER);

@@ -486,7 +486,8 @@ private JClassDeclaration classDeclaration(ArrayList<String> mods): {
     String name = "";
     Type superClass = Type.OBJECT;
     ArrayList<JMember> classBody = null;
-    ArrayList<TypeName> interfaces = null;
+    //TODO: remember to change this
+    ArrayList<TypeName> interfaces = new ArrayList<TypeName>();
 }
 {
     try {
@@ -563,7 +564,8 @@ private JMember memberDecl(ArrayList<String> mods): {
     JBlock body = null;
     ArrayList<JVariableDeclarator> variableDeclarators = null;
     JMember memberDecl = null;
-    ArrayList<Type> exceptionTypes = null;
+    //TODO: remember to change this
+    ArrayList<Type> exceptionTypes = new ArrayList<Type>();
 }
 {
     try {
