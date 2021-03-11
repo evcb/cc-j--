@@ -799,7 +799,9 @@ public class Parser {
 	    	Type type = type();
 	    	mustBe(IDENTIFIER);
 	    	String name = scanner.previousToken().image();
+		mustBe(COLON);
 	    	JExpression expression = expression();
+		mustBe(RPAREN);
 		JStatement statement = statement();
 	    	return new JEnhancedForStatement(line, type, name, expression, statement);
 	    }
@@ -822,7 +824,7 @@ public class Parser {
 	    mustBe(SEMI);
 	    expression = !see(SEMI) ? expression() : null;
 	    mustBe(SEMI);
-	    forUpdate = !see(SEMI) ? statementExpressionList() : null;
+	    forUpdate = !see(RPAREN) ? statementExpressionList() : null;
 	    mustBe(RPAREN);
 	    JStatement statement = statement();
 	   

@@ -4,31 +4,35 @@ import static jminusminus.CLConstants.*;
 import java.util.ArrayList;
 
 /**
- * The AST node for a basic for-statement.
+ * The AST node for an enhanced for-statement.
  */
 
 class JEnhancedForStatement extends JStatement {
 
+    /** Iterator type */
     private Type type;
 
+    /** Iterator identifier */
     private String name;
 
+    /** Expression to iterate over */
     private JExpression expression;
 
+    /** For-loop body */
     private JStatement statement;
     
     /**
-     * Constructs an AST node for a basic-statement given its line number, the 
-     * for initialiser, the expression, and the for update.
+     * Constructs an AST node for an enhanced-statement given its line number, 
+     * iterator, expression, and loop body/
      * 
      * @param line
-     *            line in which the basic for-statement occurs in the source file.
-     * @param forInit
-     *            for-loop initialiser statement(s).
+     *            line in which the enhanced for-statement occurs in the source file.
+     * @param type
+     *            type of the iterator.
+     * @param name
+     *            iterator identifier.
      * @param expression
-     *            test expression.
-     * @param forUpdate
-     *            for-loop update statement(s).
+     *            expression to iterate over.
      * @param statement
      *            for-loop body.
      */
@@ -42,7 +46,7 @@ class JEnhancedForStatement extends JStatement {
     }
 
     /**
-     * Analyzing the basic for-statement means analyzing its components and checking
+     * Analyzing the enhanced for-statement means analyzing its components and checking
      * that the test is a boolean.
      * 
      * @param context
@@ -63,7 +67,7 @@ class JEnhancedForStatement extends JStatement {
     }
 
     /**
-     * Code generation for a basic for-statement. We generate code to branch over the
+     * Code generation for an enhanced for-statement. We generate code to branch over the
      * consequent if !test; the consequent is followed by an unconditonal branch
      * over (any) alternate.
      * 
@@ -95,21 +99,21 @@ class JEnhancedForStatement extends JStatement {
 	p.printf("<JEnhancedForStatement line=\"%d\">\n", line());
 	p.indentRight();
 	
-	p.printf("<Local variable line=\"%d\" name=\"%s\" "
-		 + " type=\"%s\"/>\n", line(), name,
+	p.printf("<ForIterator line=\"%d\" name=\"%s\" "
+		 + "type=\"%s\"/>\n", line(), name,
 		 (type == null) ? "" : type.toString());
 	       
-	p.printf("<expression>\n");
+	p.printf("<JExpression>\n");
 	p.indentRight();
 	expression.writeToStdOut(p);
 	p.indentLeft();
-	p.printf("</expression>\n");
+	p.printf("</JExpression>\n");
 	
-	p.printf("<statement>\n");
+	p.printf("<JStatement>\n");
 	p.indentRight();
 	statement.writeToStdOut(p);
 	p.indentLeft();
-	p.printf("</statement>\n");
+	p.printf("</JStatement>\n");
 	p.indentLeft();
 	p.printf("</JEnhancedForStatement>\n");	
     }

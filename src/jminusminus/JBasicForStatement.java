@@ -99,7 +99,7 @@ class JBasicForStatement extends JStatement {
 	p.printf("<JBasicForStatement line=\"%d\">\n", line());
 	p.indentRight();
 	if (forInt != null) {
-	    p.printf("<forInt>\n");
+	    p.printf("<ForInt>\n");
 	    p.indentRight();
 	    for (JStatement statement : forInt) {
 		p.indentRight();
@@ -107,17 +107,17 @@ class JBasicForStatement extends JStatement {
 		p.indentLeft();
 	    }
 	    p.indentLeft();
-	    p.printf("</forInt>\n");
+	    p.printf("</ForInt>\n");
 	}
 	if (expression != null) {
-	    p.printf("<expression>\n");
+	    p.printf("<JExpression>\n");
 	    p.indentRight();
 	    expression.writeToStdOut(p);
 	    p.indentLeft();
-	    p.printf("/expression\n");
+	    p.printf("/JExpression\n");
 	}
 	if (forUpdate != null) {
-	    p.printf("<forUpdate>\n");
+	    p.printf("<ForUpdate>\n");
 	    p.indentRight();
 	    for (JStatement statement : forUpdate) {
 		p.indentRight();
@@ -125,13 +125,13 @@ class JBasicForStatement extends JStatement {
 		p.indentLeft();
 	    }
 	    p.indentLeft();
-	    p.printf("</forUpdate>\n");
+	    p.printf("</ForUpdate>\n");
 	}
-	p.printf("<statement>\n");
+	p.printf("<JStatement>\n");
 	p.indentRight();
 	statement.writeToStdOut(p);
 	p.indentLeft();
-	p.printf("</statement>\n");
+	p.printf("</JStatement>\n");
 	p.indentLeft();
 	p.printf("</JBasicForStatement>\n");	
     }
