@@ -19,6 +19,7 @@ classBody ::= LCURLY {modifiers memberDecl} RCURLY
 
 memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // constructor
              | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionTypeList] (block | SEMI) // method
+             | STATIC LCURL block RCURLY // field initializer
              | type variableDeclarators SEMI // field
 
 block ::= LCURLY {blockStatement} RCURLY
