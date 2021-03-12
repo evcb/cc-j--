@@ -592,7 +592,9 @@ public class Parser {
      * Parse an interface member declaration.
      *
      * <pre>
-     *   memberDecl ::=  (VOID | type) IDENTIFIER  // method
+     *   memberDecl ::=  IDENTIFIER            // interface or class
+     *                     block
+     *                  | (VOID | type) IDENTIFIER  // method
      *                    formalParameters
      *                    (SEMI)
      *                | type variableDeclarators SEMI
