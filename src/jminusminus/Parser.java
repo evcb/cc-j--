@@ -609,9 +609,9 @@ public class Parser {
         JMember memberDecl = null;
         Type type = null;
 
-        if (see(INTERFACE)){
+        if (see(INTERFACE)) {
             memberDecl = (JMember) interfaceDeclaration(mods);
-        } else if(see(CLASS)){
+        } else if (see(CLASS)) {
             memberDecl = (JMember) classDeclaration(mods);
         } else if (have(VOID)) {
             // void method
@@ -768,6 +768,7 @@ public class Parser {
      *               | WHILE parExpression statement
      *               | TRY block CATCH ClassType block {CATCH ClassType block}
      *               | TRY block {CATCH ClassType block} FINALLY block
+     *               | THROW expression SEMI
      *               | RETURN [expression] SEMI
      *               | SEMI
      *               | statementExpression SEMI
