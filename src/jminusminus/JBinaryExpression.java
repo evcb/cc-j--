@@ -221,9 +221,14 @@ class JDivideOp extends JBinaryExpression {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
 
-        if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
+        //TODO : check these conditions...
+        if (lhs.type() == Type.INT || rhs.type() == Type.INT) {
+            lhs.type().mustMatchExpected(line(), Type.INT);
+            rhs.type().mustMatchExpected(line(), Type.INT);
             type = Type.INT;
-        } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
+        } else if (lhs.type() == Type.DOUBLE || rhs.type() == Type.DOUBLE) {
+            lhs.type().mustMatchExpected(line(), Type.DOUBLE);
+            rhs.type().mustMatchExpected(line(), Type.DOUBLE);
             type = Type.DOUBLE;
         } else {
             type = Type.ANY;

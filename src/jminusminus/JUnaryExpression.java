@@ -79,12 +79,13 @@ class JNegateOp extends JUnaryExpression {
 
     public JExpression analyze(Context context) {
         arg = arg.analyze(context);
+        //TODO: check these conditions
         if(arg.type()==Type.INT){
             type= Type.INT;
         } else if(arg.type()==Type.DOUBLE){
             type=Type.DOUBLE;
         } else {
-            type = Type.ANY;
+            type = Type.INT; //to not have nullpointer exeception
             JAST.compilationUnit.reportSemanticError(line(),
                     "Invalid operand types for -");
         }
@@ -299,12 +300,13 @@ class JPostDecrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
+            //TODO: check these conditions
             if(arg.type()==Type.INT){
                 type= Type.INT;
             } else if(arg.type()==Type.DOUBLE){
                 type=Type.DOUBLE;
             } else {
-                type = Type.ANY;
+                type = Type.INT; //to not have null pointer exception
                 JAST.compilationUnit.reportSemanticError(line(),
                         "Invalid operand types for expr--");
             }
@@ -388,14 +390,15 @@ class JPostIncrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            if(arg.type()==Type.INT){
+            //TODO: check these conditions
+           if(arg.type()==Type.INT){
                 type= Type.INT;
             } else if(arg.type()==Type.DOUBLE){
                 type=Type.DOUBLE;
             } else {
-                type = Type.ANY;
-                JAST.compilationUnit.reportSemanticError(line(),
-                        "Invalid operand types for expr++");
+               type = Type.INT; //otherwise gives null pointer exception
+               JAST.compilationUnit.reportSemanticError(line(),
+                       "Invalid operand type for expr++");
             }
 
         }
@@ -439,12 +442,13 @@ class JPreIncrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
+            //TODO: check these conditions
             if(arg.type()==Type.INT){
                 type= Type.INT;
             } else if(arg.type()==Type.DOUBLE){
                 type=Type.DOUBLE;
             } else {
-                type = Type.ANY;
+                type = Type.INT; //so it doesn't give null pointer exception
                 JAST.compilationUnit.reportSemanticError(line(),
                         "Invalid operand types for ++expr");
             }
