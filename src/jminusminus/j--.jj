@@ -143,6 +143,9 @@ SKIP: {" "|"\t"|"\n"|"\r"|"\f"}
 // Single line comment -- ignored
 SKIP: {<SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>}
 
+// Multi line comment -- ignored
+SKIP: {<MULTI_LINE_COMMENT: "/*" (~["\n","\r"]|["\n","\r"])* "*/">}
+
 // Reserved words
 TOKEN: {
   <ABSTRACT: "abstract">
