@@ -1715,6 +1715,10 @@ private JExpression unaryExpression(): {
         unaryExpr = unaryExpression()
         { expr = new JNegateOp(line, unaryExpr); } |
 
+        <UCOM> { line = token.beginLine; }
+        unaryExpr = unaryExpression()
+        { expr = new JUnaryCompOp(line, unaryExpr); } |
+
         expr = simpleUnaryExpression()
     }
     catch (ParseException e) {
