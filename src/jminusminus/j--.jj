@@ -650,6 +650,12 @@ private JMember memberDecl(ArrayList<String> mods): {
             }
         ) |
         (
+            body = block()
+            {
+                memberDecl = new JInstanceInitializationBlock(line, mods, body);
+            }
+        ) |
+        (
             type = type() { line = token.beginLine; }
             variableDeclarators = variableDeclarators(type)
             <SEMI>
