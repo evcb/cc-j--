@@ -143,6 +143,9 @@ SKIP: {" "|"\t"|"\n"|"\r"|"\f"}
 // Single line comment -- ignored
 SKIP: {<SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>}
 
+// Multi line comment -- ignored
+SKIP: {<MULTI_LINE_COMMENT: "/*" (~["\n","\r"]|["\n","\r"])* "*/">}
+
 // Reserved words
 TOKEN: {
   <ABSTRACT: "abstract">
@@ -644,6 +647,12 @@ private JMember memberDecl(ArrayList<String> mods): {
             {
                 memberDecl = new JMethodDeclaration(line, mods, name,
                                                     type, params, exceptionTypes, body);
+            }
+        ) |
+        (
+            body = block()
+            {
+                memberDecl = new JInstanceInitializationBlock(line, mods, body);
             }
         ) |
         (
@@ -1665,6 +1674,10 @@ private JExpression multiplicativeExpression(): {
     try {
         lhs = unaryExpression() { line = lhs.line(); }
         (
+            <DIV>
+            rhs = unaryExpression()
+            { lhs = new JDivideOp(line, lhs, rhs); } |
+
             <STAR>
             rhs = unaryExpression()
             { lhs = new JMultiplyOp(line, lhs, rhs); }
@@ -1701,6 +1714,10 @@ private JExpression unaryExpression(): {
         <MINUS> { line = token.beginLine; }
         unaryExpr = unaryExpression()
         { expr = new JNegateOp(line, unaryExpr); } |
+
+        <UCOM> { line = token.beginLine; }
+        unaryExpr = unaryExpression()
+        { expr = new JUnaryCompOp(line, unaryExpr); } |
 
         expr = simpleUnaryExpression()
     }
