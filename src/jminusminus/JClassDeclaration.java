@@ -29,7 +29,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
     private Type superType;
 
     /** Interfaces implemented */
-    private ArrayList<TypeName> interfacesImplemented;
+    private ArrayList<Type> interfacesImplemented;
 
     /** This class type. */
     private Type thisType;
@@ -59,12 +59,14 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      *            class name.
      * @param superType
      *            super class type.
+     * @param implementations
+     *             class implemented interfaces.
      * @param classBlock
      *            class block.
      */
 
     public JClassDeclaration(int line, ArrayList<String> mods, String name,
-                             Type superType, ArrayList<TypeName> implementations, ArrayList<JMember> classBlock) {
+                             Type superType, ArrayList<Type> implementations, ArrayList<JMember> classBlock) {
         super(line);
         this.mods = mods;
         this.name = name;
@@ -299,7 +301,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
         if (interfacesImplemented != null) {
             p.println("<Implements>");
             p.indentRight();
-            for (TypeName interfaceImplemented : interfacesImplemented) {
+            for (Type interfaceImplemented : interfacesImplemented) {
                 p.printf("<Implements name=\"%s\"/>\n", interfaceImplemented.toString());
             }
             p.indentLeft();

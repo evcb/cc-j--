@@ -490,7 +490,7 @@ public class Parser {
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
         Type superClass;
-        ArrayList<TypeName> interfacesImplemented = new ArrayList<>();
+        ArrayList<Type> interfacesImplemented = new ArrayList<>();
         if (have(EXTENDS)) {
             superClass = qualifiedIdentifier();
         } else {
@@ -523,7 +523,7 @@ public class Parser {
         mustBe(INTERFACE);
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
-        ArrayList<TypeName> interfacesExtended = new ArrayList<>();
+        ArrayList<Type> interfacesExtended = new ArrayList<>();
         if (have(EXTENDS)) {
             interfacesExtended.add(qualifiedIdentifier());
             while (have(COMMA)) {
