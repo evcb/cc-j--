@@ -694,6 +694,12 @@ private JStatement statement(): {
     JStatement alternate  = null;
     JStatement body       = null;
     JExpression expr      = null;
+    String name = "";
+    Type type = null;
+    JStatement forStatement = null;
+    ArrayList<JStatement> forInt = null;
+    JStatement forIntTemp = null;
+    ArrayList<JStatement> forUpdate = null;
 }
 {
     try {
@@ -713,11 +719,48 @@ private JStatement statement(): {
         ]
         { statement = new JIfStatement(line, test, consequent, alternate); } |
 
+	<FOR> { line = token.beginLine; }
+	(
+		LOOKAHEAD( <LPAREN>  <COLON> expression() <RPAREN> statement() )
+		<LPAREN>
+		type = type()
+		<IDENTIFIER> { name = token.image; }
+		<COLON>
+		expr = expression()
+		<RPAREN>
+		forStatement = statement()
+		{ statement = new JEnhancedForStatement(line, type, name, expr, forStatement); } |
+
+		LOOKAHEAD( <LPAREN> localVariableDeclarationStatement() [expression()]
+		<SEMI> statementExpressionList() <RPAREN> statement() )
+		<LPAREN>
+		forIntTemp = localVariableDeclarationStatement() {forInt = new ArrayList<JStatement>(); forInt.add(forIntTemp); }
+		[expr = expression()]
+		<SEMI>
+		forUpdate = statementExpressionList()
+		<RPAREN>
+		forStatement = statement()
+		{ statement = new JBasicForStatement(line, forInt, expr, forUpdate, forStatement); } |
+		
+		LOOKAHEAD( <LPAREN> statementExpressionList()
+		<SEMI> [expression()] <SEMI> statementExpressionList() <RPAREN> statement() )
+		<LPAREN>
+		forInt = statementExpressionList()
+		<SEMI>
+		[expr = expression()]
+		<SEMI>
+		forUpdate = statementExpressionList()
+		<RPAREN>
+		forStatement = statement()
+		{ statement = new JBasicForStatement(line, forInt, expr, forUpdate, forStatement); }
+
+	) |
+	
         <WHILE> { line = token.beginLine; }
         test = parExpression()
         body = statement()
-        { statement = new JWhileStatement(line, test, body); } |
-
+        { statement = new JWhileStatement(line, test, body); }
+	|
         <RETURN> { line = token.beginLine; }
         [
             expr = expression()
@@ -1100,6 +1143,37 @@ private Type referenceType(): {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
     { return type; }
+}
+
+/**
+ * Parse a statement expression list.
+ * 
+ * <pre>
+ *   statementExpressionList ::= expression 
+ *                                      {DOT expression}
+ * </pre>
+ * 
+ * @return an AST for a statementExpression.
+ */
+ private ArrayList<JStatement> statementExpressionList(): {
+    int line = 0;
+    ArrayList<JStatement> statementExpressionList = new ArrayList<JStatement>();
+    JStatement statement = null; 
+}
+{
+    try {
+    	statement = statementExpression()
+        { statementExpressionList.add(statement); }
+        (
+		<COMMA>
+		statement = statementExpression()
+        	{ statementExpressionList.add(statement); }
+        )*
+    }
+    catch (ParseException e) {
+        recoverFromError(new int[] { SEMI, EOF }, e);
+    }
+    { return statementExpressionList; }
 }
 
 /**
