@@ -172,7 +172,10 @@ class JMethodDeclaration extends JAST implements JMember {
         } else if (returnType == Type.INT || returnType == Type.BOOLEAN || returnType == Type.CHAR) {
             partial.addNoArgInstruction(ICONST_0);
             partial.addNoArgInstruction(IRETURN);
-        } else {
+        } else if(returnType == Type.DOUBLE) {
+            partial.addNoArgInstruction(DCONST_0);
+            partial.addNoArgInstruction(DRETURN);
+        }else {
             // A reference type.
             partial.addNoArgInstruction(ACONST_NULL);
             partial.addNoArgInstruction(ARETURN);
@@ -248,5 +251,15 @@ class JMethodDeclaration extends JAST implements JMember {
         }
         p.indentLeft();
         p.println("</JMethodDeclaration>");
+    }
+
+    public void makeAbstractAndPublic(){
+        if(!mods.contains(TokenKind.PUBLIC.image())) {
+            mods.add(TokenKind.PUBLIC.image());
+        }
+        if(this.body == null && !mods.contains(TokenKind.ABSTRACT.image())){
+            isAbstract=true;
+            mods.add(TokenKind.ABSTRACT.image());
+        }
     }
 }

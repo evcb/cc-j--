@@ -2,9 +2,11 @@
 
 import java.lang.System;
 
-public class Interfaces {
+public interface Interfaces {
+    public void methodDeclaration();
+    //public int variable;
 }
-
+/*
 interface InterfaceDeclaration {
 }*/
 /*

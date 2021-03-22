@@ -14,7 +14,7 @@ import static jminusminus.CLConstants.*;
  * @see ClassContext
  */
 
-class JClassDeclaration extends JAST implements JTypeDecl, JMember {
+class JClassDeclaration extends JAST implements JTypeDecl {
 
     /** Class modifiers. */
     private ArrayList<String> mods;
@@ -195,13 +195,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
             id.setClassRep(partial.toClass());
         }
     }
-
-    @Override
-    public void preAnalyze(Context context, CLEmitter clEmitter) {
-        //TODO: complete method for interface
-
-    }
-
+    
 
     /**
      * Performs semantic analysis on the class and all of its members within the
@@ -255,7 +249,6 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      */
 
     public void codegen(CLEmitter output) {
-        //TODO: complete method for interfaces
 
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name

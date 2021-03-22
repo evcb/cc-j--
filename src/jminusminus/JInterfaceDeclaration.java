@@ -11,7 +11,7 @@ import java.util.ArrayList;
  */
 
 
-public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
+public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
     /** Inteface modifiers. */
     private ArrayList<String> mods;
@@ -31,11 +31,8 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
     /** Context for this interface. */
     private ClassContext context;
 
-    /** Whether this interface has an explicit constructor. */
-    private boolean hasExplicitConstructor;
-
-    /** Instance fields of this class. */
-    private ArrayList<JFieldDeclaration> instanceFieldInitializations;
+    private Type superType;
+    
 
     /**
      * Constructs an AST node for an interface declaration given the line number, list
@@ -60,8 +57,14 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
         this.name=name;
         this.interfacesExtended=interfacesExtended;
         this.interfaceBlock = interfaceBlock;
-        hasExplicitConstructor = false;
-        instanceFieldInitializations = new ArrayList<JFieldDeclaration>();
+
+        if(!mods.contains(TokenKind.PUBLIC.image())){
+            mods.add(TokenKind.PUBLIC.image());
+        }
+        if(!mods.contains(TokenKind.ABSTRACT.image())){
+            mods.add(TokenKind.ABSTRACT.image());
+        }
+        this.superType=Type.OBJECT;
     }
 
     @Override
@@ -80,9 +83,11 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        for(Type interfaceExtended: interfacesExtended){
+
+        for (Type interfaceExtended : interfacesExtended) {
             output.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
         }
+
 
         // The members
         for (JMember member : interfaceBlock) {
@@ -152,7 +157,16 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
         // Construct a class context
         this.context = new ClassContext(this, context);
 
+        // Resolve superclass
+        superType = superType.resolve(this.context);
+        thisType.checkAccess(line, superType);
+        if (superType.isFinal()) {
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Cannot extend a final type: %s", superType.toString());
+        }
+
         // Resolve interfaces implemented
+
 
         for (int i=0; i<interfacesExtended.size(); i++){
             interfacesExtended.set(i, interfacesExtended.get(i).resolve(this.context));
@@ -181,6 +195,12 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
 
         // Pre-analyze the members and add them to the partial
         for (JMember member : interfaceBlock) {
+            if (member instanceof JMethodDeclaration) {
+                ((JMethodDeclaration) member).makeAbstractAndPublic();
+            }
+            if (member instanceof JFieldDeclaration) {
+                ((JFieldDeclaration) member).makeForInterface();
+            }
             member.preAnalyze(this.context, partial);
         }
 
@@ -195,11 +215,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
 
     }
 
-    @Override
-    public void preAnalyze(Context context, CLEmitter clEmitter) {
-        //TODO: complete method for interface
-
-    }
 
     /**
      * Returns the interface name.
@@ -215,7 +230,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
     //there's no super type for interfaces, but mandatory to override
     @Override
     public Type superType() {
-        return null;
+        return this.superType;
     }
 
     /**
@@ -229,14 +244,5 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl, JMember {
         return thisType;
     }
 
-    /**
-     * Returns the initializations for instance fields (now expressed as
-     * assignment statements).
-     *
-     * @return the field declarations having initializations.
-     */
 
-    public ArrayList<JFieldDeclaration> instanceFieldInitializations() {
-        return instanceFieldInitializations;
-    }
 }

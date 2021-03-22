@@ -609,11 +609,7 @@ public class Parser {
         JMember memberDecl = null;
         Type type = null;
 
-        if (see(INTERFACE)) {
-            memberDecl = (JMember) interfaceDeclaration(mods);
-        } else if (see(CLASS)) {
-            memberDecl = (JMember) classDeclaration(mods);
-        } else if (have(VOID)) {
+         if (have(VOID)) {
             // void method
             type = Type.VOID;
             mustBe(IDENTIFIER);

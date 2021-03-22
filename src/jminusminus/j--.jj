@@ -266,7 +266,7 @@ TOKEN: {
 | <CHAR_LITERAL: "'" (<ESC> | ~["'","\\","\n","\r"]) "'" >
 | <STRING_LITERAL: "\"" (<ESC> | ~["\"","\\","\n","\r"])* "\"" >
 | <#ESC: "\\" ["n","t","b","r","f","\\","'","\""] >
-| <DOUBLE_LITERAL: ((<DIGIT>)* "." (<DIGIT>)*) >
+| <DOUBLE_LITERAL: <DIGIT> "." <DIGIT>>
 }
 
 // For anything else, we return an ERROR token. Without this
