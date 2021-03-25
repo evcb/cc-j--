@@ -9,6 +9,7 @@ public class ClassesTest extends TestCase {
 
     public void testMessage() {
         this.assertEquals(Classes.message(), "Hello, World!");
+        this.assertEquals(Classes.extendsMessage(), "Hello, World!");
     }
 
 }

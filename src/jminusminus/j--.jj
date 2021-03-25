@@ -266,7 +266,7 @@ TOKEN: {
 | <CHAR_LITERAL: "'" (<ESC> | ~["'","\\","\n","\r"]) "'" >
 | <STRING_LITERAL: "\"" (<ESC> | ~["\"","\\","\n","\r"])* "\"" >
 | <#ESC: "\\" ["n","t","b","r","f","\\","'","\""] >
-| <DOUBLE_LITERAL: ((<DIGIT>)* "." (<DIGIT>)*) >
+| <DOUBLE_LITERAL: ((<DIGIT>)*) "." (<DIGIT> (<DIGIT>)*)>
 }
 
 // For anything else, we return an ERROR token. Without this
@@ -498,7 +498,7 @@ private JClassDeclaration classDeclaration(ArrayList<String> mods): {
     String name = "";
     Type superClass = Type.OBJECT;
     ArrayList<JMember> classBody = null;
-    ArrayList<TypeName> interfacesImplemented = new ArrayList<TypeName>();
+    ArrayList<Type> interfacesImplemented = new ArrayList<Type>();
 }
 {
     try {
@@ -690,9 +690,9 @@ private JMember memberDecl(ArrayList<String> mods): {
 private JInterfaceDeclaration interfaceDeclaration(ArrayList<String> mods): {
     int line = 0;
     String name = "";
-    TypeName interfaceExtended = null;
+    Type interfaceExtended = null;
     ArrayList<JMember> interfaceBody = null;
-    ArrayList<TypeName> interfacesExtended = new ArrayList<TypeName>();
+    ArrayList<Type> interfacesExtended = new ArrayList<Type>();
 }
 {
     try {
@@ -2058,7 +2058,7 @@ private JExpression literal(): {
 
         <DOUBLE_LITERAL>
         { expr = new JLiteralDouble(token.beginLine, token.image); }
-
+        |
         <TRUE>
         { expr = new JLiteralTrue(token.beginLine); } |
 
