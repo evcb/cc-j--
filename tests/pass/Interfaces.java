@@ -3,9 +3,9 @@
 import java.lang.System;
 
 public interface Interfaces {
-    public void methodDeclaration();
+    //public void methodDeclaration();
     //public int variable;
-}
+}*/
 /*
 interface InterfaceDeclaration {
 }*/

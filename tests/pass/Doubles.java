@@ -9,7 +9,7 @@ public class Doubles {
 
     double dblf = 2.1;
 
-    static double staticdblf = 2.2;
+  /*  static double staticdblf = 2.2;
 
     public void testMethod() {
 
@@ -26,6 +26,6 @@ public class Doubles {
 
     public static void main(String[] args) {
         new Doubles().testMethod();
-    }
+    }*/
 
 }

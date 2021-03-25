@@ -28,6 +28,9 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     /** Interfaces extended. */
     private ArrayList<Type> interfacesExtended;
 
+    /** Interfaces extended jvm names */
+    private ArrayList<String> interfacesExtendedNames;
+
     /** Context for this interface. */
     private ClassContext context;
 
@@ -83,7 +86,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-
+        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
         for (Type interfaceExtended : interfacesExtended) {
             output.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
         }
@@ -166,8 +169,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         }
 
         // Resolve interfaces implemented
-
-
         for (int i=0; i<interfacesExtended.size(); i++){
             interfacesExtended.set(i, interfacesExtended.get(i).resolve(this.context));
         }
@@ -186,9 +187,12 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 
+
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
+
+        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
         for (Type interfaceExtended: interfacesExtended){
             partial.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
         }
@@ -227,7 +231,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         return name;
     }
 
-    //there's no super type for interfaces, but mandatory to override
     @Override
     public Type superType() {
         return this.superType;
