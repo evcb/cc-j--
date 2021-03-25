@@ -1183,7 +1183,7 @@ public class Parser {
 
     private JExpression assignmentExpression() {
         int line = scanner.token().line();
-        JExpression lhs = conditionalOrExpression();
+        JExpression lhs = conditionalExpression();
 
         if (have(PLUS_ASSIGN)) {
             return new JPlusAssignOp(line, lhs, assignmentExpression());
@@ -1201,6 +1201,20 @@ public class Parser {
             return lhs;
         }
     }
+
+    private JExpression conditionalExpression() {
+        int line = scanner.token().line();
+        JExpression lhs = conditionalOrExpression();
+
+        if (have(QMARK)) {
+           JExpression thenPart = conditionalExpression();
+           mustBe(COLON);
+           JExpression elsePart = conditionalExpression();
+            new JConditionalOperator(line, lhs, thenPart, elsePart);
+        }
+        return lhs;
+    }
+
 
     /**
      * Parse a conditional-or expression.

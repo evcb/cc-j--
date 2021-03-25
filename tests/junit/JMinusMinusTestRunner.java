@@ -36,6 +36,7 @@ public class JMinusMinusTestRunner {
         suite.addTestSuite(ModuloAssignTest.class);
         suite.addTestSuite(TryTest.class);
         suite.addTestSuite(InitBlockTest.class);
+        suite.addTestSuite(ConditionalExpressTest.class);
         return suite;
     }
 
