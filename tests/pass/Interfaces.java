@@ -1,11 +1,12 @@
-/*package pass;
+package pass;
 
 import java.lang.System;
 
+//just methods or fields
 public interface Interfaces {
-    //public void methodDeclaration();
-    //public int variable;
-}*/
+    public void methodDeclaration();
+    public int variable = 3;
+}
 /*
 interface InterfaceDeclaration {
 }*/

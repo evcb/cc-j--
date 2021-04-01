@@ -323,8 +323,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     private void codegenPartialImplicitConstructor(CLEmitter partial) {
-        //TODO: complete method for interfaces
-
         // Invoke super constructor
         ArrayList<String> mods = new ArrayList<String>();
         mods.add("public");
@@ -347,8 +345,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      */
 
     private void codegenImplicitConstructor(CLEmitter output) {
-        //TODO: complete method for interfaces
-
         // Invoke super constructor
         ArrayList<String> mods = new ArrayList<String>();
         mods.add("public");

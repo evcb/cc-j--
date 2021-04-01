@@ -1,6 +1,7 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import static jminusminus.CLConstants.*;
 
 /**
  * An interface declaration has a list of modifiers, a name, a list of extended interfaces and an
@@ -31,6 +32,9 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     /** Interfaces extended jvm names */
     private ArrayList<String> interfacesExtendedNames;
 
+    /** Static (interface) fields of this interface. */
+    private ArrayList<JFieldDeclaration> staticFieldInitializations;
+
     /** Context for this interface. */
     private ClassContext context;
 
@@ -60,6 +64,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         this.name=name;
         this.interfacesExtended=interfacesExtended;
         this.interfaceBlock = interfaceBlock;
+        this.staticFieldInitializations = new ArrayList<JFieldDeclaration>();
 
         if(!mods.contains(TokenKind.PUBLIC.image())){
             mods.add(TokenKind.PUBLIC.image());
@@ -68,6 +73,10 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             mods.add(TokenKind.ABSTRACT.image());
         }
         this.superType=Type.OBJECT;
+
+        for (Type interfaceExtended : interfacesExtended) {
+            interfacesExtendedNames.add(interfaceExtended.jvmName());
+        }
     }
 
     @Override
@@ -75,7 +84,17 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
         // Analyze all members
         for (JMember member : interfaceBlock) {
+
             ((JAST) member).analyze(this.context);
+        }
+
+        // Copy declared fields for purposes of initialization.
+        for (JMember member : interfaceBlock) {
+            if (member instanceof JFieldDeclaration) {
+                JFieldDeclaration fieldDecl = (JFieldDeclaration) member;
+                //in the pre-analyze step, we have made sure to add "static" in the modifiers of all field declarations
+                staticFieldInitializations.add(fieldDecl);
+            }
         }
 
         return this;
@@ -86,10 +105,8 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
-        for (Type interfaceExtended : interfacesExtended) {
-            output.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
-        }
+
+        output.addClass(mods, qualifiedName, superType.jvmName(), interfacesExtendedNames, false);
 
 
         // The members
@@ -97,6 +114,36 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             ((JAST) member).codegen(output);
         }
 
+        // Generate a class initialization method?
+        if (staticFieldInitializations.size() > 0) {
+            codegenInterfaceInit(output);
+        }
+
+    }
+
+    /**
+     * Generates code for interface initialization, in j-- this means static field
+     * initializations.
+     *
+     * @param output
+     *            the code emitter (basically an abstraction for producing the
+     *            .class file).
+     */
+
+    private void codegenInterfaceInit(CLEmitter output) {
+        ArrayList<String> mods = new ArrayList<String>();
+        mods.add("public");
+        mods.add("static");
+        output.addMethod(mods, "<clinit>", "()V", null, false);
+
+        // If there are instance initializations, generate code
+        // for them
+        for (JFieldDeclaration staticField : staticFieldInitializations) {
+            staticField.codegenInitializations(output);
+        }
+
+        // Return
+        output.addNoArgInstruction(RETURN);
     }
 
     /**
@@ -148,8 +195,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
         CLEmitter partial = new CLEmitter(false);
-        partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null,
-                false);
+        partial.addClass(mods, qualifiedName, superType.jvmName(), interfacesExtendedNames, false);
         thisType = Type.typeFor(partial.toClass());
         context.addType(line, thisType);
 
@@ -192,10 +238,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
 
-        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
-        for (Type interfaceExtended: interfacesExtended){
-            partial.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
-        }
+        partial.addClass(mods, qualifiedName, superType.jvmName(), interfacesExtendedNames, false);
 
         // Pre-analyze the members and add them to the partial
         for (JMember member : interfaceBlock) {
