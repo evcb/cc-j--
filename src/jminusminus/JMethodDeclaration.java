@@ -46,7 +46,7 @@ class JMethodDeclaration extends JAST implements JMember {
     protected boolean isPrivate;
 
     /** Does this method throws ? */
-    protected boolean isThrow;
+    protected boolean isThrows;
 
     /**
      * Constructs an AST node for a method declaration given the line number, method
@@ -63,9 +63,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JMethodDeclaration(int line, ArrayList<String> mods, String name, Type returnType,
-            ArrayList<JFormalParameter> params, ArrayList<Type> exceptionTypes, JBlock body)
-
-    {
+            ArrayList<JFormalParameter> params, ArrayList<Type> exceptionTypes, JBlock body) {
         super(line);
         this.mods = mods;
         this.name = name;
@@ -76,7 +74,7 @@ class JMethodDeclaration extends JAST implements JMember {
         this.isAbstract = mods.contains("abstract");
         this.isStatic = mods.contains("static");
         this.isPrivate = mods.contains("private");
-        this.isThrow = !exceptionTypes.isEmpty();
+        isThrows = !exceptionTypes.isEmpty();
     }
 
     /**
@@ -129,7 +127,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JAST analyze(Context context) {
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType);
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -144,6 +142,28 @@ class JMethodDeclaration extends JAST implements JMember {
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }
+
+        // https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.18
+        // https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.4.6
+
+        if (exceptionTypes != null)
+            for (Type t : exceptionTypes) {
+                Type current = t.superClass();
+                bool throwable = false;
+
+                while (current != null) {
+                    if (current.matchesExpected("Throwable")) {
+                        throwable = true;
+                        break;
+                    }
+
+                    current = current.superClass();
+                }
+
+                if (!throwable)
+                    JAST.compilationUnit.reportSemanticError(line(), "must be a subtype of Throwable");
+            }
+
         if (body != null) {
             body = body.analyze(this.context);
             if (returnType != Type.VOID && !methodContext.methodHasReturn()) {

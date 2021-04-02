@@ -79,7 +79,7 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
     public JAST analyze(Context context) {
         // Record the defining class declaration.
         definingClass = (JClassDeclaration) (context.classContext().definition());
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType);
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes);
         this.context = methodContext;
 
         if (!isStatic) {
