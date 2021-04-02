@@ -173,6 +173,15 @@ class Type {
     }
 
     /**
+     *
+     * @param name an FQN for the target class (example: "java.lang.Throwable")
+     * @return
+     */
+    public bool isOrIsSubClass(String name) {
+        return toString().equals(name) || (superClass() != null && superClass().isOrIsSubClass(name));
+    }
+
+    /**
      * Is this a primitive type?
      *
      * @return true or false.
