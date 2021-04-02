@@ -254,12 +254,20 @@ class JMethodDeclaration extends JAST implements JMember {
     }
 
     public void makeAbstractAndPublic(){
+
         if(!mods.contains(TokenKind.PUBLIC.image())) {
+            isPrivate=false;
             mods.add(TokenKind.PUBLIC.image());
         }
-        if(this.body == null && !mods.contains(TokenKind.ABSTRACT.image())){
+        if(!mods.contains(TokenKind.ABSTRACT.image())){
             isAbstract=true;
             mods.add(TokenKind.ABSTRACT.image());
+        }
+    }
+
+    public void checkForForbiddenModifiers(){
+        if(mods.contains(TokenKind.STATIC.image()) || mods.contains(TokenKind.FINAL.image())){
+            JAST.compilationUnit.reportSemanticError(line(), "An interface’s method can't be declared static or final");
         }
     }
 }

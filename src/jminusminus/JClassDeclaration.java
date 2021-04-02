@@ -31,6 +31,9 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /** Interfaces implemented */
     private ArrayList<Type> interfacesImplemented;
 
+    /** Interfaces implemented jvm names */
+    private ArrayList<String> interfacesImplementedNames;
+
     /** This class type. */
     private Type thisType;
 
@@ -76,6 +79,12 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         hasExplicitConstructor = false;
         instanceFieldInitializations = new ArrayList<JFieldDeclaration>();
         staticFieldInitializations = new ArrayList<JFieldDeclaration>();
+        this.interfacesImplementedNames = new ArrayList<String>();
+
+        for (Type interfaceImplemented : interfacesImplemented) {
+            interfacesImplementedNames.add(interfaceImplemented.jvmName());
+        }
+
     }
 
     /**
@@ -131,7 +140,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
                 : JAST.compilationUnit.packageName() + "/" + name;
         CLEmitter partial = new CLEmitter(false);
         partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null,
-                false); // Object for superClass, just for now
+                false); // Object for superClass, just for now, also null for implemented interfaces for now
         thisType = Type.typeFor(partial.toClass());
         context.addType(line, thisType);
     }
@@ -148,7 +157,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     @Override
     public void preAnalyze(Context context) {
         //TODO: complete method for interfaces
-
         // Construct a class context
         this.context = new ClassContext(this, context);
 
@@ -164,13 +172,29 @@ class JClassDeclaration extends JAST implements JTypeDecl {
                     "Cannot extend a final type: %s", superType.toString());
         }
 
+        for (int i=0; i<interfacesImplemented.size(); i++){
+            interfacesImplemented.set(i, interfacesImplemented.get(i).resolve(this.context));
+        }
+
+        // Creating a partial class in memory can result in a
+        // java.lang.VerifyError if the semantics below are
+        // violated, so we can't defer these checks to analyze()
+        for (Type interfaceImplemented: interfacesImplemented){
+            thisType.checkAccess(line, interfaceImplemented);
+            if(interfaceImplemented.isFinal()){
+                JAST.compilationUnit.reportSemanticError(line,
+                        "Cannot extend a final type: %s", interfaceImplemented.toString());
+            }
+        }
+
+
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        partial.addClass(mods, qualifiedName, superType.jvmName(), interfacesImplementedNames, false);
 
         // Pre-analyze the members and add them to the partial
         // class
@@ -253,7 +277,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        output.addClass(mods, qualifiedName, superType.jvmName(), interfacesImplementedNames, false);
 
         // The implicit empty constructor?
         if (!hasExplicitConstructor) {

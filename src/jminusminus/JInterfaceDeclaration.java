@@ -26,12 +26,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     /** This interface type. */
     private Type thisType;
 
-    /** Interfaces extended. */
-    private ArrayList<Type> interfacesExtended;
-
-    /** Interfaces extended jvm names */
-    private ArrayList<String> interfacesExtendedNames;
-
     /** Static (interface) fields of this interface. */
     private ArrayList<JFieldDeclaration> staticFieldInitializations;
 
@@ -52,17 +46,16 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
      *            class modifiers.
      * @param name
      *            class name.
-     * @param interfacesExtended
-     *            list of interfaces extended.
+     * @param superType
+     *            super interface type.
      * @param interfaceBlock
      *            inteface block.
      */
     public JInterfaceDeclaration(int line, ArrayList<String> mods, String name,
-                                 ArrayList<Type> interfacesExtended, ArrayList<JMember> interfaceBlock){
+                                 Type superType, ArrayList<JMember> interfaceBlock){
         super(line);
         this.mods=mods;
         this.name=name;
-        this.interfacesExtended=interfacesExtended;
         this.interfaceBlock = interfaceBlock;
         this.staticFieldInitializations = new ArrayList<JFieldDeclaration>();
 
@@ -72,11 +65,68 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         if(!mods.contains(TokenKind.ABSTRACT.image())){
             mods.add(TokenKind.ABSTRACT.image());
         }
-        this.superType=Type.OBJECT;
+       /* if(!mods.contains(TokenKind.INTERFACE.image())){
+            mods.add(TokenKind.INTERFACE.image());
+        }*/
+        this.superType=superType;
 
-        for (Type interfaceExtended : interfacesExtended) {
-            interfacesExtendedNames.add(interfaceExtended.jvmName());
+    }
+
+
+    @Override
+    public void declareThisType(Context context) {
+        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
+                : JAST.compilationUnit.packageName() + "/" + name;
+        CLEmitter partial = new CLEmitter(false);
+        partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null, false);
+        thisType = Type.typeFor(partial.toClass());
+        context.addType(line, thisType);
+
+    }
+
+    @Override
+    public void preAnalyze(Context context) {
+        // Construct a class context
+        this.context = new ClassContext(this, context);
+
+        // Resolve superclass
+        superType = superType.resolve(this.context);
+        thisType.checkAccess(line, superType);
+        if (superType.isFinal()) {
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Cannot extend a final type: %s", superType.toString());
         }
+
+        // Create the (partial) class
+        CLEmitter partial = new CLEmitter(false);
+
+
+        // Add the class header to the partial class
+        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
+                : JAST.compilationUnit.packageName() + "/" + name;
+        partial.addClass(mods, qualifiedName, superType.jvmName(),null, false);
+
+        // Pre-analyze the members and add them to the partial
+        for (JMember member : interfaceBlock) {
+            if (member instanceof JMethodDeclaration) {
+                ((JMethodDeclaration) member).checkForForbiddenModifiers();
+                ((JMethodDeclaration) member).makeAbstractAndPublic();
+            }
+            if (member instanceof JFieldDeclaration) {
+                ((JFieldDeclaration) member).makeForInterface();
+            }
+            member.preAnalyze(this.context, partial);
+        }
+
+
+        // Get the Class rep for the (partial) class and make it
+        // the
+        // representation for this type
+        Type id = this.context.lookupType(name);
+        if (id != null && !JAST.compilationUnit.errorHasOccurred()) {
+            id.setClassRep(partial.toClass());
+        }
+
     }
 
     @Override
@@ -84,7 +134,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
         // Analyze all members
         for (JMember member : interfaceBlock) {
-
             ((JAST) member).analyze(this.context);
         }
 
@@ -106,7 +155,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
 
-        output.addClass(mods, qualifiedName, superType.jvmName(), interfacesExtendedNames, false);
+        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
 
 
         // The members
@@ -151,7 +200,8 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
      */
     @Override
     public void writeToStdOut(PrettyPrinter p) {
-        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\">\n", line(), name);
+        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\""
+                + " super=\"%s\">\n", line(), name, superType.toString());
         p.indentRight();
         if (context != null) {
             context.writeToStdOut(p);
@@ -164,16 +214,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             }
             p.indentLeft();
             p.println("</Modifiers>");
-        }
-
-        if (interfacesExtended != null) {
-            p.println("<Extends>");
-            p.indentRight();
-            for (Type interfaceExtended : interfacesExtended) {
-                p.printf("<Extends name=\"%s\"/>\n", interfaceExtended.toString());
-            }
-            p.indentLeft();
-            p.println("</Extends>");
         }
 
         if (interfaceBlock != null) {
@@ -190,77 +230,8 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
     }
 
-    @Override
-    public void declareThisType(Context context) {
-        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
-                : JAST.compilationUnit.packageName() + "/" + name;
-        CLEmitter partial = new CLEmitter(false);
-        partial.addClass(mods, qualifiedName, superType.jvmName(), interfacesExtendedNames, false);
-        thisType = Type.typeFor(partial.toClass());
-        context.addType(line, thisType);
-
-    }
-
-    @Override
-    public void preAnalyze(Context context) {
-        // Construct a class context
-        this.context = new ClassContext(this, context);
-
-        // Resolve superclass
-        superType = superType.resolve(this.context);
-        thisType.checkAccess(line, superType);
-        if (superType.isFinal()) {
-            JAST.compilationUnit.reportSemanticError(line,
-                    "Cannot extend a final type: %s", superType.toString());
-        }
-
-        // Resolve interfaces implemented
-        for (int i=0; i<interfacesExtended.size(); i++){
-            interfacesExtended.set(i, interfacesExtended.get(i).resolve(this.context));
-        }
-
-        // Creating a partial class in memory can result in a
-        // java.lang.VerifyError if the semantics below are
-        // violated, so we can't defer these checks to analyze()
-        for (Type interfaceExtended: interfacesExtended){
-            thisType.checkAccess(line, interfaceExtended);
-            if(interfaceExtended.isFinal()){
-                JAST.compilationUnit.reportSemanticError(line,
-                        "Cannot extend a final type: %s", interfaceExtended.toString());
-            }
-        }
-
-        // Create the (partial) class
-        CLEmitter partial = new CLEmitter(false);
 
 
-        // Add the class header to the partial class
-        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
-                : JAST.compilationUnit.packageName() + "/" + name;
-
-        partial.addClass(mods, qualifiedName, superType.jvmName(), interfacesExtendedNames, false);
-
-        // Pre-analyze the members and add them to the partial
-        for (JMember member : interfaceBlock) {
-            if (member instanceof JMethodDeclaration) {
-                ((JMethodDeclaration) member).makeAbstractAndPublic();
-            }
-            if (member instanceof JFieldDeclaration) {
-                ((JFieldDeclaration) member).makeForInterface();
-            }
-            member.preAnalyze(this.context, partial);
-        }
-
-
-        // Get the Class rep for the (partial) class and make it
-        // the
-        // representation for this type
-        Type id = this.context.lookupType(name);
-        if (id != null && !JAST.compilationUnit.errorHasOccurred()) {
-            id.setClassRep(partial.toClass());
-        }
-
-    }
 
 
     /**
