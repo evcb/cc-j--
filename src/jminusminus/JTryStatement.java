@@ -20,6 +20,8 @@ import static jminusminus.CLConstants.*;
  * CatchType: - UnannClassType {| ClassType}
  *
  * Finally: - finally Block
+ *
+ * @see https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.20
  */
 public class JTryStatement extends JStatement {
 	/** Try clause. */
@@ -123,3 +125,5 @@ public class JTryStatement extends JStatement {
 		p.printf("</JTryStatement>\n");
 	}
 }
+
+// define catchClause ?
