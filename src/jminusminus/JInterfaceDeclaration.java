@@ -80,6 +80,8 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         CLEmitter partial = new CLEmitter(false);
         partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null, false);
         thisType = Type.typeFor(partial.toClass());
+       // JAST.compilationUnit.reportSemanticError(line,
+         //       "this type: %s", thisType);
         context.addType(line, thisType);
 
     }

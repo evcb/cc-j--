@@ -81,9 +81,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         staticFieldInitializations = new ArrayList<JFieldDeclaration>();
         this.interfacesImplementedNames = new ArrayList<String>();
 
-        for (Type interfaceImplemented : interfacesImplemented) {
-            interfacesImplementedNames.add(interfaceImplemented.jvmName());
-        }
 
     }
 
@@ -174,6 +171,10 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
         for (int i=0; i<interfacesImplemented.size(); i++){
             interfacesImplemented.set(i, interfacesImplemented.get(i).resolve(this.context));
+        }
+
+        for (Type interfaceImplemented : interfacesImplemented) {
+            interfacesImplementedNames.add(interfaceImplemented.jvmName());
         }
 
         // Creating a partial class in memory can result in a
