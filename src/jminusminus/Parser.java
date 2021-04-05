@@ -523,14 +523,14 @@ public class Parser {
         mustBe(INTERFACE);
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
-        ArrayList<Type> interfacesExtended = new ArrayList<>();
+        //interface can extend 1 other interface
+        Type superInterface;
         if (have(EXTENDS)) {
-            interfacesExtended.add(qualifiedIdentifier());
-            while (have(COMMA)) {
-                interfacesExtended.add(qualifiedIdentifier());
-            }
+            superInterface = qualifiedIdentifier();
+        } else {
+            superInterface = Type.OBJECT;
         }
-        return new JInterfaceDeclaration(line, mods, name, interfacesExtended, interfaceBody());
+        return new JInterfaceDeclaration(line, mods, name, superInterface, interfaceBody());
     }
 
     /**

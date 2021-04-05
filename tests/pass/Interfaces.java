@@ -1,11 +1,45 @@
-/*package pass;
+package pass;
 
 import java.lang.System;
 
+//just methods or fields
 public interface Interfaces {
-    //public void methodDeclaration();
-    //public int variable;
+    int three = 3;
+    void aMethod();
+}
+
+public class ATest implements Interfaces{
+   /*void anotherMedthod(){
+       int four = three + 2;
+   }*/
+}
+
+/*
+public interface Interfaces {
+    int aMethod();
+}
+
+public class ATest implements Interfaces {
+    int aMethod(){
+        return 1;
+    }
 }*/
+
+//OK
+
+/*
+public interface Interfaces {
+    int aMethod();
+}
+
+public interface AClass extends Interfaces{
+    void anotherMethod();
+}
+
+*/
+
+
+
 /*
 interface InterfaceDeclaration {
 }*/

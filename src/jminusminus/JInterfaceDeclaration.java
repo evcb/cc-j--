@@ -1,6 +1,7 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import static jminusminus.CLConstants.*;
 
 /**
  * An interface declaration has a list of modifiers, a name, a list of extended interfaces and an
@@ -25,11 +26,8 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     /** This interface type. */
     private Type thisType;
 
-    /** Interfaces extended. */
-    private ArrayList<Type> interfacesExtended;
-
-    /** Interfaces extended jvm names */
-    private ArrayList<String> interfacesExtendedNames;
+    /** Static (interface) fields of this interface. */
+    private ArrayList<JFieldDeclaration> staticFieldInitializations;
 
     /** Context for this interface. */
     private ClassContext context;
@@ -48,18 +46,18 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
      *            class modifiers.
      * @param name
      *            class name.
-     * @param interfacesExtended
-     *            list of interfaces extended.
+     * @param superType
+     *            super interface type.
      * @param interfaceBlock
      *            inteface block.
      */
     public JInterfaceDeclaration(int line, ArrayList<String> mods, String name,
-                                 ArrayList<Type> interfacesExtended, ArrayList<JMember> interfaceBlock){
+                                 Type superType, ArrayList<JMember> interfaceBlock){
         super(line);
         this.mods=mods;
         this.name=name;
-        this.interfacesExtended=interfacesExtended;
         this.interfaceBlock = interfaceBlock;
+        this.staticFieldInitializations = new ArrayList<JFieldDeclaration>();
 
         if(!mods.contains(TokenKind.PUBLIC.image())){
             mods.add(TokenKind.PUBLIC.image());
@@ -67,90 +65,23 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         if(!mods.contains(TokenKind.ABSTRACT.image())){
             mods.add(TokenKind.ABSTRACT.image());
         }
-        this.superType=Type.OBJECT;
-    }
-
-    @Override
-    public JAST analyze(Context context) {
-
-        // Analyze all members
-        for (JMember member : interfaceBlock) {
-            ((JAST) member).analyze(this.context);
+       if(!mods.contains(TokenKind.INTERFACE.image())){
+            mods.add(TokenKind.INTERFACE.image());
         }
-
-        return this;
-    }
-
-    @Override
-    public void codegen(CLEmitter output) {
-        // The class header
-        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
-                : JAST.compilationUnit.packageName() + "/" + name;
-        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
-        for (Type interfaceExtended : interfacesExtended) {
-            output.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
-        }
-
-
-        // The members
-        for (JMember member : interfaceBlock) {
-            ((JAST) member).codegen(output);
-        }
+        this.superType=superType;
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void writeToStdOut(PrettyPrinter p) {
-        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\">\n", line(), name);
-        p.indentRight();
-        if (context != null) {
-            context.writeToStdOut(p);
-        }
-        if (mods != null) {
-            p.println("<Modifiers>");
-            p.indentRight();
-            for (String mod : mods) {
-                p.printf("<Modifier name=\"%s\"/>\n", mod);
-            }
-            p.indentLeft();
-            p.println("</Modifiers>");
-        }
-
-        if (interfacesExtended != null) {
-            p.println("<Extends>");
-            p.indentRight();
-            for (Type interfaceExtended : interfacesExtended) {
-                p.printf("<Extends name=\"%s\"/>\n", interfaceExtended.toString());
-            }
-            p.indentLeft();
-            p.println("</Extends>");
-        }
-
-        if (interfaceBlock != null) {
-            p.println("<InterfaceBlock>");
-            p.indentRight();
-            for (JMember member : interfaceBlock) {
-                ((JAST) member).writeToStdOut(p);
-            }
-            p.indentLeft();
-            p.println("</InterfaceBlock>");
-        }
-        p.indentLeft();
-        p.println("</JInterfaceDeclaration>");
-
-    }
 
     @Override
     public void declareThisType(Context context) {
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
         CLEmitter partial = new CLEmitter(false);
-        partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null,
-                false);
+        partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null, false);
         thisType = Type.typeFor(partial.toClass());
+       // JAST.compilationUnit.reportSemanticError(line,
+         //       "this type: %s", thisType);
         context.addType(line, thisType);
 
     }
@@ -168,22 +99,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
                     "Cannot extend a final type: %s", superType.toString());
         }
 
-        // Resolve interfaces implemented
-        for (int i=0; i<interfacesExtended.size(); i++){
-            interfacesExtended.set(i, interfacesExtended.get(i).resolve(this.context));
-        }
-
-        // Creating a partial class in memory can result in a
-        // java.lang.VerifyError if the semantics below are
-        // violated, so we can't defer these checks to analyze()
-        for (Type interfaceExtended: interfacesExtended){
-            thisType.checkAccess(line, interfaceExtended);
-            if(interfaceExtended.isFinal()){
-                JAST.compilationUnit.reportSemanticError(line,
-                        "Cannot extend a final type: %s", interfaceExtended.toString());
-            }
-        }
-
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 
@@ -191,15 +106,12 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-
-        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
-        for (Type interfaceExtended: interfacesExtended){
-            partial.addClass(mods, qualifiedName, interfaceExtended.jvmName(), null, false);
-        }
+        partial.addClass(mods, qualifiedName, superType.jvmName(),null, false);
 
         // Pre-analyze the members and add them to the partial
         for (JMember member : interfaceBlock) {
             if (member instanceof JMethodDeclaration) {
+                ((JMethodDeclaration) member).checkForForbiddenModifiers();
                 ((JMethodDeclaration) member).makeAbstractAndPublic();
             }
             if (member instanceof JFieldDeclaration) {
@@ -218,6 +130,110 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         }
 
     }
+
+    @Override
+    public JAST analyze(Context context) {
+
+        // Analyze all members
+        for (JMember member : interfaceBlock) {
+            ((JAST) member).analyze(this.context);
+        }
+
+        // Copy declared fields for purposes of initialization.
+        for (JMember member : interfaceBlock) {
+            if (member instanceof JFieldDeclaration) {
+                JFieldDeclaration fieldDecl = (JFieldDeclaration) member;
+                //in the pre-analyze step, we have made sure to add "static" in the modifiers of all field declarations
+                staticFieldInitializations.add(fieldDecl);
+            }
+        }
+
+        return this;
+    }
+
+    @Override
+    public void codegen(CLEmitter output) {
+        // The class header
+        String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
+                : JAST.compilationUnit.packageName() + "/" + name;
+
+        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+
+
+        // The members
+        for (JMember member : interfaceBlock) {
+            ((JAST) member).codegen(output);
+        }
+
+        // Generate a class initialization method?
+        if (staticFieldInitializations.size() > 0) {
+            codegenInterfaceInit(output);
+        }
+
+    }
+
+    /**
+     * Generates code for interface initialization, in j-- this means static field
+     * initializations.
+     *
+     * @param output
+     *            the code emitter (basically an abstraction for producing the
+     *            .class file).
+     */
+
+    private void codegenInterfaceInit(CLEmitter output) {
+        ArrayList<String> mods = new ArrayList<String>();
+        mods.add("public");
+        mods.add("static");
+        output.addMethod(mods, "<clinit>", "()V", null, false);
+
+        // If there are instance initializations, generate code
+        // for them
+        for (JFieldDeclaration staticField : staticFieldInitializations) {
+            staticField.codegenInitializations(output);
+        }
+
+        // Return
+        output.addNoArgInstruction(RETURN);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void writeToStdOut(PrettyPrinter p) {
+        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\""
+                + " super=\"%s\">\n", line(), name, superType.toString());
+        p.indentRight();
+        if (context != null) {
+            context.writeToStdOut(p);
+        }
+        if (mods != null) {
+            p.println("<Modifiers>");
+            p.indentRight();
+            for (String mod : mods) {
+                p.printf("<Modifier name=\"%s\"/>\n", mod);
+            }
+            p.indentLeft();
+            p.println("</Modifiers>");
+        }
+
+        if (interfaceBlock != null) {
+            p.println("<InterfaceBlock>");
+            p.indentRight();
+            for (JMember member : interfaceBlock) {
+                ((JAST) member).writeToStdOut(p);
+            }
+            p.indentLeft();
+            p.println("</InterfaceBlock>");
+        }
+        p.indentLeft();
+        p.println("</JInterfaceDeclaration>");
+
+    }
+
+
+
 
 
     /**

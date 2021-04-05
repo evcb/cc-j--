@@ -171,12 +171,13 @@ class JFieldDeclaration extends JAST implements JMember {
         if(!mods.contains(TokenKind.PUBLIC.image())) {
             mods.add(TokenKind.PUBLIC.image());
         }
-        if(mods.contains(TokenKind.STATIC.image())){
+        if(!mods.contains(TokenKind.STATIC.image())){
             mods.add(TokenKind.STATIC.image());
         }
-        if(mods.contains(TokenKind.FINAL.image())){
+        if(!mods.contains(TokenKind.FINAL.image())){
             mods.add(TokenKind.FINAL.image());
         }
+
     }
 
 }
