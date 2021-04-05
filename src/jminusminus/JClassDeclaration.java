@@ -146,7 +146,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      * Pre-analyzes the members of this declaration in the parent context.
      * Pre-analysis extends to the member headers (including method headers) but
      * not into the bodies.
-     *
+     *s
      * @param context
      *            the parent (compilation unit) context.
      */
@@ -172,11 +172,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         for (int i=0; i<interfacesImplemented.size(); i++){
             interfacesImplemented.set(i, interfacesImplemented.get(i).resolve(this.context));
         }
-
-        for (Type interfaceImplemented : interfacesImplemented) {
-            interfacesImplementedNames.add(interfaceImplemented.jvmName());
-        }
-
         // Creating a partial class in memory can result in a
         // java.lang.VerifyError if the semantics below are
         // violated, so we can't defer these checks to analyze()
@@ -189,6 +184,10 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         }
 
 
+        for (Type interfaceImplemented : interfacesImplemented) {
+            interfacesImplementedNames.add(interfaceImplemented.jvmName());
+        }
+        
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 

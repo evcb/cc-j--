@@ -65,9 +65,9 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         if(!mods.contains(TokenKind.ABSTRACT.image())){
             mods.add(TokenKind.ABSTRACT.image());
         }
-       /* if(!mods.contains(TokenKind.INTERFACE.image())){
+       if(!mods.contains(TokenKind.INTERFACE.image())){
             mods.add(TokenKind.INTERFACE.image());
-        }*/
+        }
         this.superType=superType;
 
     }

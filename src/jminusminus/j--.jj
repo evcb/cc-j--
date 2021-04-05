@@ -690,21 +690,15 @@ private JMember memberDecl(ArrayList<String> mods): {
 private JInterfaceDeclaration interfaceDeclaration(ArrayList<String> mods): {
     int line = 0;
     String name = "";
-    Type interfaceExtended = null;
+    Type superInterface = Type.OBJECT;
     ArrayList<JMember> interfaceBody = null;
-    ArrayList<Type> interfacesExtended = new ArrayList<Type>();
 }
 {
     try {
         <INTERFACE> { line = token.beginLine; }
         <IDENTIFIER> { name = token.image; }
         [
-            <EXTENDS>
-            {interfacesExtended.add(qualifiedIdentifier());}
-            (
-                <COMMA>
-                {interfacesExtended.add(qualifiedIdentifier());}
-            )*
+            <EXTENDS> superInterface = qualifiedIdentifier()
         ]
         interfaceBody = interfaceBody()
     }
@@ -712,7 +706,7 @@ private JInterfaceDeclaration interfaceDeclaration(ArrayList<String> mods): {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
     {
-        return new JInterfaceDeclaration(line, mods, name, interfacesExtended, interfaceBody);
+        return new JInterfaceDeclaration(line, mods, name, superInterface, interfaceBody);
     }
 }
 
@@ -779,17 +773,6 @@ private JMember interfaceMemberDecl(ArrayList<String> mods): {
 }
 {
     try {
-        LOOKAHEAD(<CLASS> <IDENTIFIER>) //inner class declaration
-        (
-             classDecl = classDeclaration(mods)
-             {memberDecl = (JMember) classDecl;}
-        ) |
-        LOOKAHEAD(<INTERFACE> <IDENTIFIER>) //inner interface declaration
-        (
-            interfaceDecl = interfaceDeclaration(mods)
-            {memberDecl = (JMember) interfaceDecl;}
-
-        ) |
         LOOKAHEAD((<VOID> | type()) <IDENTIFIER> <LPAREN>)
         (
             (
