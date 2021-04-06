@@ -139,6 +139,11 @@ class Method extends Member {
         return descriptor;
     }
 
+    public String methodDeclString() {
+        String str = name() + toDescriptor();
+        return str;
+    }
+
     /**
      * Returns the Java representation for this method.
      * 

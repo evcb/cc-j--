@@ -3,6 +3,7 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import static jminusminus.CLConstants.*;
 
@@ -118,6 +119,11 @@ class JMethodDeclaration extends JAST implements JMember {
         partialCodegen(context, partial);
     }
 
+    public String methodDeclString() {
+        String str = name + descriptor;
+        return str;
+    }
+
     /**
      * Analysis for a method declaration involves (1) creating a new method context
      * (that records the return type; this is used in the analysis of the method
@@ -152,6 +158,7 @@ class JMethodDeclaration extends JAST implements JMember {
         }
         return this;
     }
+    
 
     /**
      * Adds this method declaration to the partial class.
@@ -270,4 +277,6 @@ class JMethodDeclaration extends JAST implements JMember {
             JAST.compilationUnit.reportSemanticError(line(), "An interface’s method can't be declared static or final");
         }
     }
+
+   
 }

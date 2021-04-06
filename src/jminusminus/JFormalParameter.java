@@ -32,6 +32,7 @@ class JFormalParameter extends JAST {
         this.name = name;
         this.type = type;
     }
+    
 
     /**
      * Returns the parameter's name.

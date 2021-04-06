@@ -4,6 +4,7 @@ package jminusminus;
 
 import java.util.ArrayList;
 import static jminusminus.CLConstants.*;
+import java.util.HashSet;
 
 /**
  * A class declaration has a list of modifiers, a name, a super class and a
@@ -183,11 +184,12 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             }
         }
 
-
         for (Type interfaceImplemented : interfacesImplemented) {
             interfacesImplementedNames.add(interfaceImplemented.jvmName());
         }
-        
+
+
+
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 
@@ -206,6 +208,11 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             }
         }
 
+        //check that the methods of the interface have been implemented
+        if(!interfacesImplemented.isEmpty() && !mods.contains(TokenKind.ABSTRACT.image())) {
+            checkInterfaceMethodsImplemented();
+        }
+
         // Add the implicit empty constructor?
         if (!hasExplicitConstructor) {
             codegenPartialImplicitConstructor(partial);
@@ -219,7 +226,30 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             id.setClassRep(partial.toClass());
         }
     }
-    
+
+    public void checkInterfaceMethodsImplemented(){
+        //get class methods
+        HashSet<String> classMethods = new HashSet<>();
+        for(JMember classMember : classBlock){
+            if(classMember instanceof JMethodDeclaration){
+                classMethods.add(((JMethodDeclaration) classMember).methodDeclString());
+            }
+        }
+
+        HashSet<String> interfaceMethods = new HashSet<>();
+        String methods = "";
+        for(Type intImpl: interfacesImplemented){
+            ArrayList<Method> intMethods = intImpl.abstractMethods();
+            for (Method method : intMethods) {
+                interfaceMethods.add(method.methodDeclString());
+            }
+        }
+
+        if(!classMethods.containsAll(interfaceMethods)){
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Class must define all methods in the implemented interfaces");
+        }
+    }
 
     /**
      * Performs semantic analysis on the class and all of its members within the

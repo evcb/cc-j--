@@ -3,15 +3,24 @@ package pass;
 import java.lang.System;
 
 //just methods or fields
-public interface Interfaces {
-    int three = 3;
-    void aMethod();
+interface Calculation {
+    public int calc(int n);
 }
 
-public class ATest implements Interfaces{
-   /*void anotherMedthod(){
-       int four = three + 2;
-   }*/
+class Calculate implements Calculation {
+    public int calc(int n) {
+        int val = 2;
+        return val*n;
+    }
+}
+
+
+public class Interfaces {
+    public static void main(String[] args) {
+        int n = 3;
+        Calculate calculate = new Calculate();
+        System.out.println("value: " + calculate.calc(n));
+    }
 }
 
 /*
