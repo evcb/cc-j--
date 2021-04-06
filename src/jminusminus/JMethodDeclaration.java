@@ -147,29 +147,17 @@ class JMethodDeclaration extends JAST implements JMember {
         // https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.4.6
 
         if (exceptionTypes != null)
-            for (Type t : exceptionTypes) {
-                Type current = t.superClass();
-                bool throwable = false;
-
-                while (current != null) {
-                    if (current.matchesExpected("Throwable")) {
-                        throwable = true;
-                        break;
-                    }
-
-                    current = current.superClass();
-                }
-
-                if (!throwable)
-                    JAST.compilationUnit.reportSemanticError(line(), "must be a subtype of Throwable");
-            }
+            for (Type t : exceptionTypes)
+                if (!Throwable.isJavaAssignableFrom(t))
+                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
 
         if (body != null) {
             body = body.analyze(this.context);
-            if (returnType != Type.VOID && !methodContext.methodHasReturn()) {
+
+            if (returnType != Type.VOID && !methodContext.methodHasReturn())
                 JAST.compilationUnit.reportSemanticError(line(), "Non-void method must have a return statement");
-            }
         }
+
         return this;
     }
 
