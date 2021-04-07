@@ -941,6 +941,7 @@ public class CLEmitter {
     public void addClass(ArrayList<String> accessFlags, String thisClass,
                          String superClass, ArrayList<String> superInterfaces,
                                             boolean isSynthetic) {
+
         clFile       = new CLFile();
         constantPool = new CLConstantPool();
         interfaces   = new ArrayList<Integer>();

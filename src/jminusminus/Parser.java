@@ -490,7 +490,7 @@ public class Parser {
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
         Type superClass;
-        ArrayList<TypeName> interfacesImplemented = new ArrayList<>();
+        ArrayList<Type> interfacesImplemented = new ArrayList<>();
         if (have(EXTENDS)) {
             superClass = qualifiedIdentifier();
         } else {
@@ -523,14 +523,14 @@ public class Parser {
         mustBe(INTERFACE);
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
-        ArrayList<TypeName> interfacesExtended = new ArrayList<>();
+        //interface can extend 1 other interface
+        Type superInterface;
         if (have(EXTENDS)) {
-            interfacesExtended.add(qualifiedIdentifier());
-            while (have(COMMA)) {
-                interfacesExtended.add(qualifiedIdentifier());
-            }
+            superInterface = qualifiedIdentifier();
+        } else {
+            superInterface = Type.OBJECT;
         }
-        return new JInterfaceDeclaration(line, mods, name, interfacesExtended, interfaceBody());
+        return new JInterfaceDeclaration(line, mods, name, superInterface, interfaceBody());
     }
 
     /**
@@ -592,7 +592,9 @@ public class Parser {
      * Parse an interface member declaration.
      *
      * <pre>
-     *   memberDecl ::=  (VOID | type) IDENTIFIER  // method
+     *   memberDecl ::=  IDENTIFIER            // interface or class
+     *                     block
+     *                  | (VOID | type) IDENTIFIER  // method
      *                    formalParameters
      *                    (SEMI)
      *                | type variableDeclarators SEMI
@@ -607,11 +609,7 @@ public class Parser {
         JMember memberDecl = null;
         Type type = null;
 
-        if (see(INTERFACE)){
-            memberDecl = (JMember) interfaceDeclaration(mods);
-        } else if(see(CLASS)){
-            memberDecl = (JMember) classDeclaration(mods);
-        } else if (have(VOID)) {
+         if (have(VOID)) {
             // void method
             type = Type.VOID;
             mustBe(IDENTIFIER);
@@ -767,6 +765,7 @@ public class Parser {
      *               | FOR  {ForInit} ; [Expression] ; {ForUpdate} ) Statement 
      *               | TRY block CATCH ClassType block {CATCH ClassType block}
      *               | TRY block {CATCH ClassType block} FINALLY block
+     *               | THROW expression SEMI
      *               | RETURN [expression] SEMI
      *               | SEMI
      *               | statementExpression SEMI
@@ -1247,7 +1246,7 @@ public class Parser {
 
     private JExpression assignmentExpression() {
         int line = scanner.token().line();
-        JExpression lhs = conditionalOrExpression();
+        JExpression lhs = conditionalExpression();
 
         if (have(PLUS_ASSIGN)) {
             return new JPlusAssignOp(line, lhs, assignmentExpression());
@@ -1265,6 +1264,20 @@ public class Parser {
             return lhs;
         }
     }
+
+    private JExpression conditionalExpression() {
+        int line = scanner.token().line();
+        JExpression lhs = conditionalOrExpression();
+
+        if (have(QMARK)) {
+           JExpression thenPart = conditionalExpression();
+           mustBe(COLON);
+           JExpression elsePart = conditionalExpression();
+            new JConditionalOperator(line, lhs, thenPart, elsePart);
+        }
+        return lhs;
+    }
+
 
     /**
      * Parse a conditional-or expression.
