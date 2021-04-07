@@ -213,6 +213,7 @@ class Field extends Member {
     public Field(java.lang.reflect.Field field) {
         this.field = field;
     }
+    
 
     /**
      * Returns the field's type.

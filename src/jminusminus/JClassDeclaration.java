@@ -5,6 +5,9 @@ package jminusminus;
 import java.util.ArrayList;
 import static jminusminus.CLConstants.*;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
 
 /**
  * A class declaration has a list of modifiers, a name, a super class and a
@@ -50,6 +53,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /** Static (class) fields of this class. */
     private ArrayList<JFieldDeclaration> staticFieldInitializations;
 
+    private ArrayList<Field> receivedFields;
+
     /**
      * Constructs an AST node for a class declaration given the line number, list
      * of class modifiers, name of the class, its super class type, and the
@@ -81,6 +86,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         instanceFieldInitializations = new ArrayList<JFieldDeclaration>();
         staticFieldInitializations = new ArrayList<JFieldDeclaration>();
         this.interfacesImplementedNames = new ArrayList<String>();
+        receivedFields = new ArrayList<>();
 
 
     }
@@ -213,6 +219,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             checkInterfaceMethodsImplemented();
         }
 
+        checkInterfaceVariables(partial);
+
         // Add the implicit empty constructor?
         if (!hasExplicitConstructor) {
             codegenPartialImplicitConstructor(partial);
@@ -247,8 +255,65 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
         if(!classMethods.containsAll(interfaceMethods)){
             JAST.compilationUnit.reportSemanticError(line,
-                    "Class must define all methods in the implemented interfaces");
+                    "Class must define all methods declared in the implemented interfaces");
         }
+    }
+
+    public void checkInterfaceVariables(CLEmitter partial) {
+
+        HashMap<String, Class<?>> classFields = new HashMap<>();
+        for (JMember member : classBlock) {
+            if (member instanceof JFieldDeclaration) {
+                ArrayList<JVariableDeclarator> declarators = ((JFieldDeclaration) member).getDecls();
+                for (JVariableDeclarator decl : declarators){
+                    classFields.put(decl.name(), decl.type().classRep());
+                }
+            }
+        }
+
+        HashMap<String, Class<?>> interfaceFields = new HashMap<>();
+        for(Type intImpl: interfacesImplemented){
+            Class<?> cls = intImpl.classRep();
+            java.lang.reflect.Field[] fields = cls.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                interfaceFields.put(field.getName(), field.getType());
+            }
+        }
+
+
+        Iterator it = interfaceFields.entrySet().iterator();
+        Iterator itClass;
+        Map.Entry pair;
+        Boolean found = false;
+        while (it.hasNext()) {
+            pair = (Map.Entry)it.next();
+            String variableName = (String) pair.getKey();
+            Class<?> variableType = (Class<?>) pair.getValue();
+            itClass = classFields.entrySet().iterator();
+            found = false;
+
+            while(itClass.hasNext()){
+                pair = (Map.Entry)itClass.next();
+                if(pair.getKey().equals(variableName) && pair.getValue().equals(variableType)){
+                    found = true;
+                    break;
+                }
+
+                if(!found){
+                    Field field = null;
+                    java.lang.reflect.Field internalField = null;
+                    for(Type intImpl: interfacesImplemented){
+                        if(intImpl.fieldFor(variableName)!=null){
+                            field = intImpl.fieldFor(variableName);
+                            receivedFields.add(field);
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+
     }
 
     /**
@@ -323,6 +388,12 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         if (staticFieldInitializations.size() > 0) {
             codegenClassInit(output);
         }
+      /*  ArrayList<String> fieldModifiers = new ArrayList<>();
+        fieldModifiers.add("final");
+        for(Field field : receivedFields){
+            addField(fieldModifiers, field.name(),
+                    field.type().toDescriptor(), false, field.get());
+        }*/
     }
 
     /**

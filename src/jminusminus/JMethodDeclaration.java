@@ -80,6 +80,11 @@ class JMethodDeclaration extends JAST implements JMember {
         this.isThrow = !exceptionTypes.isEmpty();
     }
 
+    public JBlock getBody() {
+        return body;
+    }
+
+
     /**
      * Declares this method in the parent (class) context.
      *
@@ -87,6 +92,8 @@ class JMethodDeclaration extends JAST implements JMember {
      * @param partial the code emitter (basically an abstraction for producing the
      *                partial class).
      */
+
+
 
     public void preAnalyze(Context context, CLEmitter partial) {
         // Resolve types of the formal parameters
@@ -277,6 +284,7 @@ class JMethodDeclaration extends JAST implements JMember {
             JAST.compilationUnit.reportSemanticError(line(), "An interface’s method can't be declared static or final");
         }
     }
+
 
    
 }
