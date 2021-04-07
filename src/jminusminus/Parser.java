@@ -794,9 +794,10 @@ public class Parser {
 
 	    scanner.recordPosition();
 	    scanner.next();
+	    scanner.next();
 
 	    // Enchanced For-statement
-	    if (have(IDENTIFIER)) {
+	    if (have(COLON)) {
 	    	scanner.returnToPosition();
 	    	Type type = type();
 	    	mustBe(IDENTIFIER);
@@ -807,9 +808,10 @@ public class Parser {
 		JStatement statement = statement();
 	    	return new JEnhancedForStatement(line, type, name, expression, statement);
 	    }
-
+	    
 	    // Basic For-statement
 	    ArrayList<JStatement> forInt = null;
+	    JStatement forIntTemp = null;
 	    JExpression expression;
 	    ArrayList<JStatement> forUpdate;
 
@@ -817,13 +819,15 @@ public class Parser {
 	    
 	    if (!see(SEMI)) {
 		if (seeLocalVariableDeclaration()) {
-		    forInt.add(localVariableDeclarationStatement());
+		    forInt = new ArrayList<JStatement>();
+		    forIntTemp = localVariableDeclarationStatement();
+		    forInt.add(forIntTemp);
 		} else {
 		    forInt = statementExpressionList();
+		    mustBe(SEMI);
 		}
 	    }
 	    
-	    mustBe(SEMI);
 	    expression = !see(SEMI) ? expression() : null;
 	    mustBe(SEMI);
 	    forUpdate = !see(RPAREN) ? statementExpressionList() : null;
