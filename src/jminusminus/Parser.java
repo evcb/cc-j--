@@ -523,7 +523,7 @@ public class Parser {
         mustBe(INTERFACE);
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
-        //interface can extend 1 other interface
+        // interface can extend 1 other interface
         Type superInterface;
         if (have(EXTENDS)) {
             superInterface = qualifiedIdentifier();
@@ -609,7 +609,7 @@ public class Parser {
         JMember memberDecl = null;
         Type type = null;
 
-         if (have(VOID)) {
+        if (have(VOID)) {
             // void method
             type = Type.VOID;
             mustBe(IDENTIFIER);
@@ -1207,14 +1207,13 @@ public class Parser {
         JExpression lhs = conditionalOrExpression();
 
         if (have(QMARK)) {
-           JExpression thenPart = conditionalExpression();
-           mustBe(COLON);
-           JExpression elsePart = conditionalExpression();
+            JExpression thenPart = conditionalExpression();
+            mustBe(COLON);
+            JExpression elsePart = conditionalExpression();
             new JConditionalOperator(line, lhs, thenPart, elsePart);
         }
         return lhs;
     }
-
 
     /**
      * Parse a conditional-or expression.

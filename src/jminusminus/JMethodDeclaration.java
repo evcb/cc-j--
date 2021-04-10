@@ -153,7 +153,12 @@ class JMethodDeclaration extends JAST implements JMember {
         // Declare the parameters. We consider a formal parameter
         // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
-            LocalVariableDefn defn = new LocalVariableDefn(param.type(), this.context.nextOffset());
+            int currentOffset = this.context.nextOffset();
+            if(param.type()==Type.DOUBLE){
+                //adding an offset because double occupies two words
+                this.context.nextOffset();
+            }
+            LocalVariableDefn defn = new LocalVariableDefn(param.type(), currentOffset);
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }

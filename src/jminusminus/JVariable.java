@@ -19,6 +19,8 @@ class JVariable extends JExpression implements JLhs {
     /** Was analyzeLhs() done? */
     private boolean analyzeLhs;
 
+    private boolean mustBePromoted;
+
     /**
      * Constructs the AST node for a variable given its line number and name.
      * 
@@ -31,6 +33,7 @@ class JVariable extends JExpression implements JLhs {
     public JVariable(int line, String name) {
         super(line);
         this.name = name;
+        this.mustBePromoted = false;
     }
 
     /**
@@ -51,6 +54,10 @@ class JVariable extends JExpression implements JLhs {
 
     public IDefn iDefn() {
         return iDefn;
+    }
+
+    public void promote() {
+        mustBePromoted = true;
     }
 
     /**
@@ -168,7 +175,30 @@ class JVariable extends JExpression implements JLhs {
                         output.addOneArgInstruction(ILOAD, offset);
                         break;
                     }
+                } else if (type == Type.DOUBLE){
+                    switch (offset) {
+                    case 0:
+                        output.addNoArgInstruction(DLOAD_0);
+                        break;
+                    case 1:
+                        output.addNoArgInstruction(DLOAD_1);
+                        break;
+                    case 2:
+                        output.addNoArgInstruction(DLOAD_2);
+                        break;
+                    case 3:
+                        output.addNoArgInstruction(DLOAD_3);
+                        break;
+                    default:
+                        output.addOneArgInstruction(DLOAD, offset);
+                        break;
                 }
+
+                }
+            }
+            if(mustBePromoted){
+                mustBePromoted = false;
+                output.addNoArgInstruction(I2D);
             }
         }
     }
@@ -294,6 +324,24 @@ class JVariable extends JExpression implements JLhs {
                         break;
                     default:
                         output.addOneArgInstruction(ISTORE, offset);
+                        break;
+                    }
+                } else if (type == Type.DOUBLE) {
+                    switch (offset) {
+                    case 0:
+                        output.addNoArgInstruction(DSTORE_0);
+                        break;
+                    case 1:
+                        output.addNoArgInstruction(DSTORE_1);
+                        break;
+                    case 2:
+                        output.addNoArgInstruction(DSTORE_2);
+                        break;
+                    case 3:
+                        output.addNoArgInstruction(DSTORE_3);
+                        break;
+                    default:
+                        output.addOneArgInstruction(DSTORE, offset);
                         break;
                     }
                 }

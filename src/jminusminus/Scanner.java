@@ -156,152 +156,177 @@ class Scanner {
         }
         line = input.line();
         switch (ch) {
-            case '(':
+        case '(':
+            nextCh();
+            return new TokenInfo(LPAREN, line);
+        case ')':
+            nextCh();
+            return new TokenInfo(RPAREN, line);
+        case '{':
+            nextCh();
+            return new TokenInfo(LCURLY, line);
+        case '}':
+            nextCh();
+            return new TokenInfo(RCURLY, line);
+        case '[':
+            nextCh();
+            return new TokenInfo(LBRACK, line);
+        case ']':
+            nextCh();
+            return new TokenInfo(RBRACK, line);
+        case ';':
+            nextCh();
+            return new TokenInfo(SEMI, line);
+        case ':':
+            nextCh();
+            return new TokenInfo(COLON, line);
+        case ',':
+            nextCh();
+            return new TokenInfo(COMMA, line);
+        case '=':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                return new TokenInfo(LPAREN, line);
-            case ')':
+                return new TokenInfo(EQUAL, line);
+            } else {
+                return new TokenInfo(ASSIGN, line);
+            }
+        case '!':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                return new TokenInfo(RPAREN, line);
-            case '{':
+                return new TokenInfo(NOTEQ, line);
+            } // else
+            return new TokenInfo(LNOT, line);
+        case '~':
+            nextCh();
+            return new TokenInfo(UCOM, line);
+        case '|':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                return new TokenInfo(LCURLY, line);
-            case '}':
+                return new TokenInfo(BOR_ASSIGN, line);
+            } else if (ch == '|') {
                 nextCh();
-                return new TokenInfo(RCURLY, line);
-            case '[':
+                return new TokenInfo(LOR, line);
+            }
+            return new TokenInfo(BOR, line);
+        case '*':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                return new TokenInfo(LBRACK, line);
-            case ']':
+                return new TokenInfo(MULTI_ASSIGN, line);
+            }
+            return new TokenInfo(STAR, line);
+        // modulo
+        case '%':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                return new TokenInfo(RBRACK, line);
-            case ';':
+                return new TokenInfo(MOD_ASSIGN, line);
+            }
+            return new TokenInfo(REM, line);
+        case '?':
+            nextCh();
+            return new TokenInfo(QMARK, line);
+        case '+':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                return new TokenInfo(SEMI, line);
-            case ':':
+                return new TokenInfo(PLUS_ASSIGN, line);
+            } else if (ch == '+') {
                 nextCh();
-                return new TokenInfo(COLON, line);
-            case ',':
+                return new TokenInfo(INC, line);
+            } else {
+                return new TokenInfo(PLUS, line);
+            }
+        case '-':
+            nextCh();
+            if (ch == '-') {
                 nextCh();
-                return new TokenInfo(COMMA, line);
-            case '=':
+                return new TokenInfo(DEC, line);
+            } else if (ch == '=') {
                 nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(EQUAL, line);
-                } else {
-                    return new TokenInfo(ASSIGN, line);
-                }
-            case '!':
+                return new TokenInfo(SUB_ASSIGN, line);
+            }
+            return new TokenInfo(MINUS, line);
+        case '&':
+            nextCh();
+            if (ch == '&') {
                 nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(NOTEQ, line);
-                } // else
-                return new TokenInfo(LNOT, line);
-            case '~':
+                return new TokenInfo(LAND, line);
+            } else if (ch == '=') {
                 nextCh();
-                return new TokenInfo(UCOM, line);
-            case '|':
+                return new TokenInfo(AND_ASSIGN, line);
+            }
+            return new TokenInfo(AND, line);
+        case '>':
+            nextCh();
+            // signed right shift
+            if (ch == '>') {
                 nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(BOR_ASSIGN, line);
-                } else if (ch == '|') {
-                    nextCh();
-                    return new TokenInfo(LOR, line);
-                }
-                return new TokenInfo(BOR, line);
-            case '*':
-                nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(MULTI_ASSIGN, line);
-                }
-                return new TokenInfo(STAR, line);
-            // modulo
-            case '%':
-                nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(MOD_ASSIGN, line);
-                }
-                return new TokenInfo(REM, line);
-            case '?':
-                nextCh();
-                return new TokenInfo(QMARK, line);
-            case '+':
-                nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(PLUS_ASSIGN, line);
-                } else if (ch == '+') {
-                    nextCh();
-                    return new TokenInfo(INC, line);
-                } else {
-                    return new TokenInfo(PLUS, line);
-                }
-            case '-':
-                nextCh();
-                if (ch == '-') {
-                    nextCh();
-                    return new TokenInfo(DEC, line);
-                } else if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(SUB_ASSIGN, line);
-                }
-                return new TokenInfo(MINUS, line);
-            case '&':
-                nextCh();
-                if (ch == '&') {
-                    nextCh();
-                    return new TokenInfo(LAND, line);
-                } else if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(AND_ASSIGN, line);
-                }
-                return new TokenInfo(AND, line);
-            case '>':
-                nextCh();
-                // signed right shift
                 if (ch == '>') {
-                    nextCh();
-                    if (ch == '>') {
-                        nextCh();
-                        if (ch == '=') {
-                            nextCh();
-                            return new TokenInfo(USHR_ASSIGN, line);
-                        }
-                        return new TokenInfo(URSHIFT, line);
-                    } else {
-                        return new TokenInfo(SHR, line);
-                    }
-                } else if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(GE, line);
-                } else {
-                    return new TokenInfo(GT, line);
-                }
-            case '<':
-                nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(LE, line);
-                    // signed shift left
-                } else if (ch == '<') {
                     nextCh();
                     if (ch == '=') {
                         nextCh();
-                        return new TokenInfo(USHL_ASSIGN, line);
+                        return new TokenInfo(USHR_ASSIGN, line);
                     }
-                    return new TokenInfo(SHL, line);
+                    return new TokenInfo(URSHIFT, line);
                 } else {
-                    nextCh();
-                    return new TokenInfo(LT, line);
+                    return new TokenInfo(SHR, line);
                 }
-            case '\'':
-                buffer = new StringBuffer();
+            } else if (ch == '=') {
+                nextCh();
+                return new TokenInfo(GE, line);
+            } else {
+                return new TokenInfo(GT, line);
+            }
+        case '<':
+            nextCh();
+            if (ch == '=') {
+                nextCh();
+                return new TokenInfo(LE, line);
+                // signed shift left
+            } else if (ch == '<') {
+                nextCh();
+                if (ch == '=') {
+                    nextCh();
+                    return new TokenInfo(USHL_ASSIGN, line);
+                }
+                return new TokenInfo(SHL, line);
+            } else {
+                nextCh();
+                return new TokenInfo(LT, line);
+            }
+        case '\'':
+            buffer = new StringBuffer();
+            buffer.append('\'');
+            nextCh();
+            if (ch == '\\') {
+                nextCh();
+                buffer.append(escape());
+            } else {
+                buffer.append(ch);
+                nextCh();
+            }
+            if (ch == '\'') {
                 buffer.append('\'');
                 nextCh();
+                return new TokenInfo(CHAR_LITERAL, buffer.toString(), line);
+            } else {
+                // Expected a ' ; report error and try to
+                // recover.
+                reportScannerError(ch + " found by scanner where closing ' was expected.");
+                while (ch != '\'' && ch != ';' && ch != '\n') {
+                    nextCh();
+                }
+                return new TokenInfo(CHAR_LITERAL, buffer.toString(), line);
+            }
+        case '"':
+            buffer = new StringBuffer();
+            buffer.append("\"");
+            nextCh();
+            while (ch != '"' && ch != '\n' && ch != EOFCH) {
                 if (ch == '\\') {
                     nextCh();
                     buffer.append(escape());
@@ -309,102 +334,77 @@ class Scanner {
                     buffer.append(ch);
                     nextCh();
                 }
-                if (ch == '\'') {
-                    buffer.append('\'');
-                    nextCh();
-                    return new TokenInfo(CHAR_LITERAL, buffer.toString(), line);
-                } else {
-                    // Expected a ' ; report error and try to
-                    // recover.
-                    reportScannerError(ch + " found by scanner where closing ' was expected.");
-                    while (ch != '\'' && ch != ';' && ch != '\n') {
-                        nextCh();
-                    }
-                    return new TokenInfo(CHAR_LITERAL, buffer.toString(), line);
-                }
-            case '"':
-                buffer = new StringBuffer();
+            }
+            if (ch == '\n') {
+                reportScannerError("Unexpected end of line found in String");
+            } else if (ch == EOFCH) {
+                reportScannerError("Unexpected end of file found in String");
+            } else {
+                // Scan the closing "
+                nextCh();
                 buffer.append("\"");
+            }
+            return new TokenInfo(STRING_LITERAL, buffer.toString(), line);
+        case '^':
+            nextCh();
+            if (ch == '=') {
                 nextCh();
-                while (ch != '"' && ch != '\n' && ch != EOFCH) {
-                    if (ch == '\\') {
-                        nextCh();
-                        buffer.append(escape());
-                    } else {
-                        buffer.append(ch);
-                        nextCh();
-                    }
-                }
-                if (ch == '\n') {
-                    reportScannerError("Unexpected end of line found in String");
-                } else if (ch == EOFCH) {
-                    reportScannerError("Unexpected end of file found in String");
-                } else {
-                    // Scan the closing "
-                    nextCh();
-                    buffer.append("\"");
-                }
-                return new TokenInfo(STRING_LITERAL, buffer.toString(), line);
-            case '^':
+                return new TokenInfo(XOR_ASSIGN, line);
+            }
+            return new TokenInfo(XOR, line);
+        case '.':
+            nextCh();
+            return new TokenInfo(DOT, line);
+        case EOFCH:
+            return new TokenInfo(EOF, line);
+        case '0':
+            // Handle only simple decimal integers for now.
+            // haven't changed this for double. don't really know what
+            // nextCh();
+            // return new TokenInfo(INT_LITERAL, "0", line);
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            buffer = new StringBuffer();
+            while (isDigit(ch)) {
+                buffer.append(ch);
                 nextCh();
-                if (ch == '=') {
-                    nextCh();
-                    return new TokenInfo(XOR_ASSIGN, line);
-                }
-                return new TokenInfo(XOR, line);
-            case '.':
+            }
+            // encountered a ., so it's a double
+            if (ch == '.') {
+                buffer.append(ch);
                 nextCh();
-                return new TokenInfo(DOT, line);
-            case EOFCH:
-                return new TokenInfo(EOF, line);
-            case '0':
-                // Handle only simple decimal integers for now.
-                //haven't changed this for double. don't really know what
-                nextCh();
-                return new TokenInfo(INT_LITERAL, "0", line);
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-                buffer = new StringBuffer();
                 while (isDigit(ch)) {
                     buffer.append(ch);
                     nextCh();
                 }
-                //encountered a ., so it's a double
-                if(ch=='.'){
+                return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
+            }
+            return new TokenInfo(INT_LITERAL, buffer.toString(), line);
+        default:
+            if (isIdentifierStart(ch)) {
+                buffer = new StringBuffer();
+                while (isIdentifierPart(ch)) {
                     buffer.append(ch);
                     nextCh();
-                    while (isDigit(ch)) {
-                        buffer.append(ch);
-                        nextCh();
-                    }
-                    return new TokenInfo(DOUBLE_LITERAL, buffer.toString(), line);
                 }
-                return new TokenInfo(INT_LITERAL, buffer.toString(), line);
-            default:
-                if (isIdentifierStart(ch)) {
-                    buffer = new StringBuffer();
-                    while (isIdentifierPart(ch)) {
-                        buffer.append(ch);
-                        nextCh();
-                    }
-                    String identifier = buffer.toString();
-                    if (reserved.containsKey(identifier)) {
-                        return new TokenInfo(reserved.get(identifier), line);
-                    } else {
-                        return new TokenInfo(IDENTIFIER, identifier, line);
-                    }
+                String identifier = buffer.toString();
+                if (reserved.containsKey(identifier)) {
+                    return new TokenInfo(reserved.get(identifier), line);
                 } else {
-                    reportScannerError("Unidentified input token: '%c'", ch);
-                    nextCh();
-                    return getNextToken();
+                    return new TokenInfo(IDENTIFIER, identifier, line);
                 }
+            } else {
+                reportScannerError("Unidentified input token: '%c'", ch);
+                nextCh();
+                return getNextToken();
+            }
         }
     }
 
@@ -416,34 +416,34 @@ class Scanner {
 
     private String escape() {
         switch (ch) {
-            case 'b':
-                nextCh();
-                return "\\b";
-            case 't':
-                nextCh();
-                return "\\t";
-            case 'n':
-                nextCh();
-                return "\\n";
-            case 'f':
-                nextCh();
-                return "\\f";
-            case 'r':
-                nextCh();
-                return "\\r";
-            case '"':
-                nextCh();
-                return "\"";
-            case '\'':
-                nextCh();
-                return "\\'";
-            case '\\':
-                nextCh();
-                return "\\\\";
-            default:
-                reportScannerError("Badly formed escape: \\%c", ch);
-                nextCh();
-                return "";
+        case 'b':
+            nextCh();
+            return "\\b";
+        case 't':
+            nextCh();
+            return "\\t";
+        case 'n':
+            nextCh();
+            return "\\n";
+        case 'f':
+            nextCh();
+            return "\\f";
+        case 'r':
+            nextCh();
+            return "\\r";
+        case '"':
+            nextCh();
+            return "\"";
+        case '\'':
+            nextCh();
+            return "\\'";
+        case '\\':
+            nextCh();
+            return "\\\\";
+        default:
+            reportScannerError("Badly formed escape: \\%c", ch);
+            nextCh();
+            return "";
         }
     }
 

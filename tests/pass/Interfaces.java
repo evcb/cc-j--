@@ -2,24 +2,27 @@ package pass;
 
 import java.lang.System;
 
-//just methods or fields
 interface Calculation {
-    int NUMBER = 13242;
+    int NUMBER = 45;
     public int calc(int n);
+    public int calc2(int n);
 }
 
-class Calculate implements Calculation {
-    int val = 4;
+interface OtherCalculation {
+    public int calc3(int n);
+}
+
+public class Interfaces implements Calculation, OtherCalculation {
+
     public int calc(int n) {
-        return n*10;
+        return n;
     }
-}
 
+    public int calc2(int n){
+        return n*2;
+    }
 
-public class Interfaces {
-    public static void main(String[] args) {
-        int n = 3;
-        Calculate calculate = new Calculate();
-        System.out.println("value: " + calculate.calc(n));
+    public int calc3(int n) {
+        return n*3;
     }
 }
