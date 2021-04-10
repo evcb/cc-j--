@@ -32,6 +32,11 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     /** Context for this interface. */
     private ClassContext context;
 
+    private ArrayList<Type> superInterfaces;
+
+    /** Interfaces implemented jvm names */
+    private ArrayList<String> superInterfacesNames;
+
     private Type superType;
     
 
@@ -52,12 +57,15 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
      *            inteface block.
      */
     public JInterfaceDeclaration(int line, ArrayList<String> mods, String name,
-                                 Type superType, ArrayList<JMember> interfaceBlock){
+                                 ArrayList<Type> superInterfaces, ArrayList<JMember> interfaceBlock){
         super(line);
         this.mods=mods;
         this.name=name;
         this.interfaceBlock = interfaceBlock;
         this.staticFieldInitializations = new ArrayList<JFieldDeclaration>();
+        this.superInterfaces=superInterfaces;
+        this.superInterfacesNames = new ArrayList<String>();
+        this.superType = Type.OBJECT;
 
         if(!mods.contains(TokenKind.PUBLIC.image())){
             mods.add(TokenKind.PUBLIC.image());
@@ -68,7 +76,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
        if(!mods.contains(TokenKind.INTERFACE.image())){
             mods.add(TokenKind.INTERFACE.image());
         }
-        this.superType=superType;
+
 
     }
 
@@ -83,8 +91,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         CLEmitter partial = new CLEmitter(false);
         partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null, false);
         thisType = Type.typeFor(partial.toClass());
-       // JAST.compilationUnit.reportSemanticError(line,
-         //       "this type: %s", thisType);
         context.addType(line, thisType);
 
     }
@@ -94,22 +100,33 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         // Construct a class context
         this.context = new ClassContext(this, context);
 
-        // Resolve superclass
-        superType = superType.resolve(this.context);
-        thisType.checkAccess(line, superType);
-        if (superType.isFinal()) {
-            JAST.compilationUnit.reportSemanticError(line,
-                    "Cannot extend a final type: %s", superType.toString());
+        // Resolve superinterfaces
+        for(int i=0; i<superInterfaces.size(); i++){
+            superInterfaces.set(i, superInterfaces.get(i).resolve(this.context));
+        }
+
+        // Creating a partial class in memory can result in a
+        // java.lang.VerifyError if the semantics below are
+        // violated, so we can't defer these checks to analyze()
+        for (Type superInterface : superInterfaces){
+            thisType.checkAccess(line, superInterface);
+            if(superInterface.isFinal()){
+                JAST.compilationUnit.reportSemanticError(line,
+                        "Cannot extend a final type: %s", superInterface.toString());
+            }
+        }
+
+        for (Type superInterface : superInterfaces) {
+            superInterfacesNames.add(superInterface.jvmName());
         }
 
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 
-
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        partial.addClass(mods, qualifiedName, superType.jvmName(),null, false);
+        partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(),superInterfacesNames, false);
 
         // Pre-analyze the members and add them to the partial
         for (JMember member : interfaceBlock) {
@@ -160,7 +177,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
 
-        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        output.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), superInterfacesNames, false);
 
 
         // The members
@@ -205,8 +222,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
      */
     @Override
     public void writeToStdOut(PrettyPrinter p) {
-        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\""
-                + " super=\"%s\">\n", line(), name, superType.toString());
+        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\"");
         p.indentRight();
         if (context != null) {
             context.writeToStdOut(p);
@@ -220,7 +236,13 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             p.indentLeft();
             p.println("</Modifiers>");
         }
-
+        p.printf("<SuperInterfaces>");
+        p.indentRight();
+        for(String superInterfaceName : superInterfacesNames){
+            p.printf("<Interface name =\"%s\"/>\n",superInterfaceName);
+        }
+        p.indentLeft();
+        p.println("</SuperInterfaces");
         if (interfaceBlock != null) {
             p.println("<InterfaceBlock>");
             p.indentRight();

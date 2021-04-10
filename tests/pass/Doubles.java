@@ -15,7 +15,7 @@ public class Doubles {
         value = value + dbl;
         // -
         value = value - sdbl;
-        // divide
+        // /
         value = value / 2.0;
         // *
         value = value * 3.0;
