@@ -42,6 +42,10 @@ class JFieldDeclaration extends JAST implements JMember {
         initializations = new ArrayList<JStatement>();
     }
 
+    public ArrayList<JVariableDeclarator> getDecls() {
+        return decls;
+    }
+
     /**
      * Returns the list of modifiers.
      * 

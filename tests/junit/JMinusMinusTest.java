@@ -22,9 +22,9 @@ public class JMinusMinusTest extends TestCase {
     }
 
     /**
-     * Run the j-- compiler against each pass-test file under the folder
-     * specified by PASS_TESTS_DIR property in the build.xml file. FRONT_END
-     * property determines the frontend (handwritten or JavaCC) to use.
+     * Run the j-- compiler against each pass-test file under the folder specified
+     * by PASS_TESTS_DIR property in the build.xml file. FRONT_END property
+     * determines the frontend (handwritten or JavaCC) to use.
      */
 
     public void testPass() {
@@ -35,11 +35,8 @@ public class JMinusMinusTest extends TestCase {
         for (int i = 0; files != null && i < files.length; i++) {
             if (files[i].toString().endsWith(".java")) {
                 String[] args = null;
-                System.out.printf("Running j-- (with "
-                        + "handwritten frontend) on %s ...\n\n", files[i]
-                        .toString());
-                args = new String[] { "-d", genClassDir.getAbsolutePath(),
-                        files[i].toString() };
+                System.out.printf("Running j-- (with " + "handwritten frontend) on %s ...\n\n", files[i].toString());
+                args = new String[] { "-d", genClassDir.getAbsolutePath(), files[i].toString() };
                 Main.main(args);
                 System.out.printf("\n\n");
 
@@ -53,9 +50,9 @@ public class JMinusMinusTest extends TestCase {
     }
 
     /**
-     * Run the j-- compiler against each fail-test file under the folder
-     * specified by FAIL_TESTS_DIR property in the build.xml file. FRONT_END
-     * property determines the frontend (handwritten or JavaCC) to use.
+     * Run the j-- compiler against each fail-test file under the folder specified
+     * by FAIL_TESTS_DIR property in the build.xml file. FRONT_END property
+     * determines the frontend (handwritten or JavaCC) to use.
      */
 
     public void testFail() {
@@ -66,11 +63,8 @@ public class JMinusMinusTest extends TestCase {
         for (int i = 0; files != null && i < files.length; i++) {
             if (files[i].toString().endsWith(".java")) {
                 String[] args = null;
-                System.out.printf("Running j-- (with "
-                        + "handwritten frontend) on %s ...\n\n", files[i]
-                        .toString());
-                args = new String[] { "-d", genClassDir.getAbsolutePath(),
-                        files[i].toString() };
+                System.out.printf("Running j-- (with " + "handwritten frontend) on %s ...\n\n", files[i].toString());
+                args = new String[] { "-d", genClassDir.getAbsolutePath(), files[i].toString() };
                 Main.main(args);
                 System.out.printf("\n\n");
 
@@ -86,8 +80,7 @@ public class JMinusMinusTest extends TestCase {
     /**
      * Entry point.
      * 
-     * @param args
-     *            command-line arguments.
+     * @param args command-line arguments.
      */
 
     public static void main(String[] args) {

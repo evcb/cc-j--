@@ -13,6 +13,7 @@ class JLiteralInt extends JExpression {
     /** String representation of the int. */
     private String text;
 
+    private Boolean mustBePromoted;
     /**
      * Constructs an AST node for an {@code int} literal given its line number 
      * and string representation.
@@ -26,6 +27,11 @@ class JLiteralInt extends JExpression {
     public JLiteralInt(int line, String text) {
         super(line);
         this.text = text;
+        this.mustBePromoted = false;
+    }
+
+    public void promote() {
+        mustBePromoted = true;
     }
 
     /**
@@ -79,6 +85,10 @@ class JLiteralInt extends JExpression {
             } else {
                 output.addLDCInstruction(i);
             }
+        }
+        if(mustBePromoted){
+            mustBePromoted = false;
+            output.addNoArgInstruction(I2D);
         }
     }
 

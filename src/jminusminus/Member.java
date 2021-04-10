@@ -139,6 +139,11 @@ class Method extends Member {
         return descriptor;
     }
 
+    public String methodDeclString() {
+        String str = name() + toDescriptor();
+        return str;
+    }
+
     /**
      * Returns the Java representation for this method.
      * 
@@ -208,6 +213,7 @@ class Field extends Member {
     public Field(java.lang.reflect.Field field) {
         this.field = field;
     }
+    
 
     /**
      * Returns the field's type.

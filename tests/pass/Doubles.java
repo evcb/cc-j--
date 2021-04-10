@@ -1,31 +1,74 @@
-//ok for parsing and scanning but not the rest, that's why it's commented
-
 package pass;
-
-import java.lang.System;
-import java.io.File;
 
 public class Doubles {
 
-    double dblf = 2.1;
+    double dbl = 6.1;
+    static double sdbl = 2.2;
 
-  /*  static double staticdblf = 2.2;
+    public double doublesWithoutPromotion(double t) {
 
-    public void testMethod() {
+        // assignment
+        double value = 0.0;
 
-        double[] dbls = { 2.3, 2.4 };
-        double dbl = 2.5;
+        // binary operations
+        // +
+        value = value + dbl;
+        // -
+        value = value - sdbl;
+        // divide
+        value = value / 2.0;
+        // *
+        value = value * 3.0;
+        // %
+        value = value % 3.0;
 
-        int one = 1;
-        one += 2;
-        dbl += 2.6;
-        dbls[1] += dbl;
-        dblf += dbl + 2.7;
-        staticdblf += dbl;
+        // assignment operations
+        // +=
+        value += 6.0;
+        // -=
+        value -= 2.0;
+        // /=
+        value /= 2.0;
+        // *=
+        value *= 10.0;
+        // %=
+        value %= 2.0;
+
+        return value;
+
     }
 
-    public static void main(String[] args) {
-        new Doubles().testMethod();
-    }*/
+    public double doublesWithPromotion(int x) {
+
+        // assignment with promotion
+        double value = 0;
+
+        // binary operations with promotion
+        // +
+        value = value + dbl;
+        // -
+        value = value - sdbl;
+        // divide
+        value = value / 2;
+        // *
+        value = value * 3;
+        // %
+        value = value % x;
+
+        // assignment operations with promotion
+        // +=
+        value += 6;
+        // -=
+        value -= 2;
+        // /=
+        value /= 2;
+        // *=
+        value *= 10;
+        // %=
+        value %= 2;
+
+        return value;
+
+    }
 
 }

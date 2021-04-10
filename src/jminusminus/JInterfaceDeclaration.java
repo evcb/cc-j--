@@ -72,6 +72,9 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
     }
 
+    public ArrayList<JMember> getInterfaceBlock() {
+        return interfaceBlock;
+    }
 
     @Override
     public void declareThisType(Context context) {
