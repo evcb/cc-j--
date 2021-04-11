@@ -17,8 +17,8 @@ classDeclaration ::= CLASS IDENTIFIER
 
 classBody ::= LCURLY {modifiers memberDecl} RCURLY
 
-memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // constructor
-             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionTypeList] (block | SEMI) // method
+memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionType {COMMA ExceptionType}] block // constructor
+             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionType {COMMA ExceptionType}] (block | SEMI) // method
              | type variableDeclarators SEMI // field
 
 block ::= LCURLY {blockStatement} RCURLY
@@ -30,13 +30,16 @@ statement ::= block
             | IF parExpression statement [ELSE statement]
             | WHILE parExpression statement
             | TryStatement
+            | THROW Expression SEMI
             | RETURN [expression] SEMI
             | RETURN expression SEMI
             | SEMI
             | statementExpression SEMI
 
-TryStatement ::= TRY Block CATCH catchFormalParameter BLOCK {CATCH catchFormalParameter BLOCK}
-               | TRY {CATCH catchFormalParameter BLOCK} FINALLY BLOCK
+TryStatement ::= TRY Block catchClause {catchClause}
+               | TRY {catchClause} FINALLY BLOCK
+
+catchClause ::= CATCH catchFormalParameter BLOCK
 
 catchFormalParameter ::= LPAREN [Variablemodifier] catchType {BOR catchType} identifier RPAREN
 
@@ -116,11 +119,7 @@ simpleUnaryExpression ::= LNOT unaryExpression
                           RPAREN simpleUnaryExpression
                         | postfixExpression
                         | UCOM simpleUnaryExpression
-<<<<<<< HEAD
-                        | postfixExpression
-=======
                         | prefixExpression
->>>>>>> 64704cf7be73641175de0c63897bb442a95ad155
 
 postfixExpression ::= primary {selector} {(INC | DEC)}
 
