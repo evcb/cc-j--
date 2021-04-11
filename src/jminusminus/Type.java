@@ -572,6 +572,25 @@ class Type {
             }
             cls = cls.getSuperclass();
         }
+    // explore interfaces for the field
+        if(fieldForInterface(name)!=null) {
+            return fieldForInterface(name);
+        }
+        return null;
+    }
+
+    public Field fieldForInterface(String name){
+        Class<?> cls = classRep;
+        Class<?>[] superInterfaces = cls.getInterfaces();
+        for(Class<?> superInterface : superInterfaces){
+            java.lang.reflect.Field[] fields = superInterface.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getName().equals(name)) {
+                    return new Field(field);
+                }
+            }
+        }
+
         return null;
     }
 

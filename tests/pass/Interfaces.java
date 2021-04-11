@@ -3,7 +3,7 @@ package pass;
 import java.lang.System;
 
 interface Calculation {
-    int NUMBER = 45;
+    int NUMBER = 3;
     public int calc(int n);
     public int calc2(int n);
 }
@@ -15,7 +15,7 @@ interface OtherCalculation {
 public class Interfaces implements Calculation, OtherCalculation {
 
     public int calc(int n) {
-        return n;
+        return n+NUMBER;
     }
 
     public int calc2(int n){
