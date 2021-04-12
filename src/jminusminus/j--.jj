@@ -690,15 +690,20 @@ private JMember memberDecl(ArrayList<String> mods): {
 private JInterfaceDeclaration interfaceDeclaration(ArrayList<String> mods): {
     int line = 0;
     String name = "";
-    Type superInterface = Type.OBJECT;
     ArrayList<JMember> interfaceBody = null;
+    ArrayList<Type> superInterfaces = new ArrayList<Type>();
 }
 {
     try {
         <INTERFACE> { line = token.beginLine; }
         <IDENTIFIER> { name = token.image; }
         [
-            <EXTENDS> superInterface = qualifiedIdentifier()
+            <EXTENDS>
+            {superInterfaces.add(qualifiedIdentifier());}
+            (
+                <COMMA>
+                {superInterfaces.add(qualifiedIdentifier());}
+            )*
         ]
         interfaceBody = interfaceBody()
     }
@@ -706,7 +711,7 @@ private JInterfaceDeclaration interfaceDeclaration(ArrayList<String> mods): {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
     {
-        return new JInterfaceDeclaration(line, mods, name, superInterface, interfaceBody);
+        return new JInterfaceDeclaration(line, mods, name, superInterfaces, interfaceBody);
     }
 }
 
@@ -768,8 +773,6 @@ private JMember interfaceMemberDecl(ArrayList<String> mods): {
     ArrayList<JVariableDeclarator> variableDeclarators = null;
     JMember memberDecl = null;
     ArrayList<Type> exceptionTypes = new ArrayList<Type>();
-    JClassDeclaration classDecl= null;
-    JInterfaceDeclaration interfaceDecl = null;
 }
 {
     try {
@@ -1555,19 +1558,19 @@ private JExpression assignmentExpression(): {
 
             <PLUS_ASSIGN>
             rhs = assignmentExpression()
-            { lhs = new JPlusAssignOp(line, lhs, rhs); }
+            { lhs = new JPlusAssignOp(line, lhs, rhs); } |
 
             <SUB_ASSIGN>
             rhs = assignmentExpression()
-            { lhs = new JMinusAssignOp(line, lhs, rhs); }
+            { lhs = new JMinusAssignOp(line, lhs, rhs); } |
 
             <MULTI_ASSIGN>
             rhs = assignmentExpression()
-            { lhs = new JStarAssignOp(line, lhs, rhs); }
+            { lhs = new JStarAssignOp(line, lhs, rhs); } |
 
             <MOD_ASSIGN>
             rhs = assignmentExpression()
-            { lhs = new JModAssignOp(line, lhs, rhs); }
+            { lhs = new JModAssignOp(line, lhs, rhs); } |
 
             <DIV_ASSIGN>
             rhs = assignmentExpression()
@@ -1659,20 +1662,57 @@ private JExpression relationalExpression(): {
 }
 {
     try {
-        lhs = additiveExpression() { line = lhs.line(); }
+        lhs = shiftExpression() { line = lhs.line(); }
         [
             <GT>
-            rhs = additiveExpression()
+            rhs = shiftExpression()
             { lhs = new JGreaterThanOp(line, lhs, rhs); } |
 
             <LE>
-            rhs = additiveExpression()
+            rhs = shiftExpression()
             { lhs = new JLessEqualOp(line, lhs, rhs); } |
 
             <INSTANCEOF>
             type = referenceType()
             { lhs = new JInstanceOfOp(line, lhs, type); }
         ]
+    }
+    catch (ParseException e) {
+        recoverFromError(new int[] { SEMI, EOF }, e);
+    }
+    { return lhs; }
+}
+
+/**
+ * Parse a shift expression
+ *
+ * <pre>
+ *   shiftExpression ::= additiveExpression // level 3
+ *                            {URShift additiveExpression}
+ *                            | {SHL additiveExpression}
+ *                            | {SHR additiveExpression}
+ * </pre>
+ *
+ * @return an AST for a multiplicativeExpression.
+ */
+
+private JExpression shiftExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null;
+}
+{
+    try {
+        lhs = additiveExpression() { line = lhs.line(); }
+        (
+            <SHL>
+            rhs = additiveExpression()
+            { lhs = new JShiftLeftOp(line, lhs, rhs); } |
+
+            <SHR>
+            rhs = additiveExpression()
+            { lhs = new JShiftRightOp(line, lhs, rhs); }
+
+        )*
     }
     catch (ParseException e) {
         recoverFromError(new int[] { SEMI, EOF }, e);
@@ -1739,7 +1779,11 @@ private JExpression multiplicativeExpression(): {
 
             <STAR>
             rhs = unaryExpression()
-            { lhs = new JMultiplyOp(line, lhs, rhs); }
+            { lhs = new JMultiplyOp(line, lhs, rhs); } |
+
+            <REM>
+            rhs = unaryExpression()
+            { lhs = new JRemainderOp(line, lhs, rhs);}
         )*
     }
     catch (ParseException e) {
@@ -1747,6 +1791,7 @@ private JExpression multiplicativeExpression(): {
     }
     { return lhs; }
 }
+
 
 /**
  * Parse an unary expression.

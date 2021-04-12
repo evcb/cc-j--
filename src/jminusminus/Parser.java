@@ -1430,6 +1430,8 @@ public class Parser {
      * <pre>
      *   shiftExpression ::= additiveExpression // level 3
      *                            {URShift additiveExpression}
+     *                            | {SHL additiveExpression}
+     *                            | {SHR additiveExpression}
      * </pre>
      *
      * @return an AST for a shiftExpression.
