@@ -325,7 +325,9 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
         // The members
         for (JMember member : classBlock) {
-            ((JAST) member).codegen(output);
+            if (!(member instanceof JInitializationBlock)) {
+                ((JAST) member).codegen(output);
+            }
         }
 
         // Generate a class initialization method?
@@ -422,6 +424,15 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         for (JFieldDeclaration instanceField : instanceFieldInitializations) {
             instanceField.codegenInitializations(output);
         }
+        
+        // Instance block before the construction
+        for (JMember member : classBlock) {
+            if (member instanceof JInitializationBlock) {
+                if (!((JInitializationBlock) member).isStatic) {
+                    ((JInitializationBlock) member).codegen(output);
+                }
+            }
+        }
 
         // Return
         output.addNoArgInstruction(RETURN);
@@ -446,6 +457,15 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         // for them
         for (JFieldDeclaration staticField : staticFieldInitializations) {
             staticField.codegenInitializations(output);
+        }
+
+        // Static block before the construction
+        for (JMember member : classBlock) {
+            if (member instanceof JInitializationBlock) {
+                if (((JInitializationBlock) member).isStatic) {
+                    ((JInitializationBlock) member).codegen(output);
+                }
+            }
         }
 
         // Return
