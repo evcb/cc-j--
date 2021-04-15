@@ -13,6 +13,9 @@ class JLiteralInt extends JExpression {
     /** String representation of the int. */
     private String text;
 
+    /**
+     * Does the int need to be promoted to double type?
+     */
     private Boolean mustBePromoted;
     /**
      * Constructs an AST node for an {@code int} literal given its line number 
@@ -30,6 +33,9 @@ class JLiteralInt extends JExpression {
         this.mustBePromoted = false;
     }
 
+    /**
+     * Set the promotion flag to true
+     */
     public void promote() {
         mustBePromoted = true;
     }
@@ -49,7 +55,7 @@ class JLiteralInt extends JExpression {
 
     /**
      * Generating code for an int literal means generating code to push it onto
-     * the stack.
+     * the stack. Adds a promotion to double if the flag is true.
      * 
      * @param output
      *            the code emitter (basically an abstraction for producing the

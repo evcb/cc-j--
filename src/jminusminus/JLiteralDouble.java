@@ -8,19 +8,44 @@ import static jminusminus.CLConstants.*;
 
 public class JLiteralDouble extends JExpression {
 
+    /** String representation of the double. */
     private String text;
 
+    /**
+     * Constructs an AST node for an {@code double} literal given its line number
+     * and string representation.
+     *
+     * @param line
+     *            line in which the literal occurs in the source file.
+     * @param text
+     *            string representation of the literal.
+     */
     public JLiteralDouble(int line, String text){
         super(line);
         this.text=text;
     }
+
+    /**
+     * Analyzing a double literal is trivial.
+     *
+     * @param context
+     *            context in which names are resolved (ignored here).
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
 
     public JExpression analyze(Context context) {
         type = Type.DOUBLE;
         return this;
     }
 
-
+    /**
+     * Generating code for a double literal means generating code to push it onto
+     * the stack.
+     *
+     * @param output
+     *            the code emitter (basically an abstraction for producing the
+     *            .class file).
+     */
     public void codegen(CLEmitter output) {
         double d = Double.parseDouble(text);
 

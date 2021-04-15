@@ -37,6 +37,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     /** Interfaces implemented jvm names */
     private ArrayList<String> superInterfacesNames;
 
+    /** Interface supertype */
     private Type superType;
     
 
@@ -80,9 +81,12 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
     }
 
-    public ArrayList<JMember> getInterfaceBlock() {
-        return interfaceBlock;
-    }
+    /**
+     * Declares this interface in the parent (compilation unit) context.
+     *
+     * @param context
+     *            the parent (compilation unit) context.
+     */
 
     @Override
     public void declareThisType(Context context) {
@@ -95,9 +99,18 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
     }
 
+    /**
+     * Pre-analyzes the members of this declaration in the parent context.
+     * Pre-analysis extends to the member headers (including method headers) but
+     * not into the bodies.
+     *s
+     * @param context
+     *            the parent (compilation unit) context.
+     */
+
     @Override
     public void preAnalyze(Context context) {
-        // Construct a class context
+        // Construct an interface context
         this.context = new ClassContext(this, context);
 
         // Resolve superinterfaces
@@ -105,7 +118,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             superInterfaces.set(i, superInterfaces.get(i).resolve(this.context));
         }
 
-        // Creating a partial class in memory can result in a
+        // Creating a partial interface in memory can result in a
         // java.lang.VerifyError if the semantics below are
         // violated, so we can't defer these checks to analyze()
         for (Type superInterface : superInterfaces){
@@ -120,10 +133,10 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             superInterfacesNames.add(superInterface.jvmName());
         }
 
-        // Create the (partial) class
+        // Create the (partial) interface
         CLEmitter partial = new CLEmitter(false);
 
-        // Add the class header to the partial class
+        // Add the interface header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
         partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(),superInterfacesNames, false);
@@ -141,7 +154,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         }
 
 
-        // Get the Class rep for the (partial) class and make it
+        // Get the Interface rep for the (partial) class and make it
         // the
         // representation for this type
         Type id = this.context.lookupType(name);
@@ -150,6 +163,15 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         }
 
     }
+
+    /**
+     * Performs semantic analysis on the interface and all of its members within the
+     * given context. Analysis includes field initializations
+     *
+     * @param context
+     *            the parent (compilation unit) context. Ignored here.
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
 
     @Override
     public JAST analyze(Context context) {
@@ -171,6 +193,14 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
         return this;
     }
 
+    /**
+     * Generates code for the interface declaration.
+     *
+     * @param output
+     *            the code emitter (basically an abstraction for producing the
+     *            .class file).
+     */
+
     @Override
     public void codegen(CLEmitter output) {
         // The class header
@@ -185,7 +215,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
             ((JAST) member).codegen(output);
         }
 
-        // Generate a class initialization method?
+        // Generate an interface initialization method?
         if (staticFieldInitializations.size() > 0) {
             codegenInterfaceInit(output);
         }
@@ -257,10 +287,6 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
 
     }
 
-
-
-
-
     /**
      * Returns the interface name.
      *
@@ -271,6 +297,13 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
     public String name() {
         return name;
     }
+
+
+    /**
+     * Returns the interface's supertype.
+     *
+     * @return the interface's supertype.
+     */
 
     @Override
     public Type superType() {

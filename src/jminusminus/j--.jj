@@ -677,12 +677,12 @@ private JMember memberDecl(ArrayList<String> mods): {
  *
  * <pre>
  *   interfaceDeclaration ::= INTERFACE IDENTIFIER
- *                        [EXTENDS qualifiedIdentifier]
+ *                        {EXTENDS qualifiedIdentifier}
  *                        interfaceBody
  * </pre>
  *
  *
- * @param mods the class modifiers.
+ * @param mods the interface modifiers.
  *
  * @return an AST for a interfaceDeclaration.
  */
@@ -751,11 +751,9 @@ private ArrayList<JMember> interfaceBody(): {
  * Parse an interface member declaration.
  *
  * <pre>
- *   memberDecl ::= IDENTIFIER            // interface or class
- *                    block
- *                | (VOID | type) IDENTIFIER  // method
+ *   memberDecl ::= (VOID | type) IDENTIFIER  // method
  *                    formalParameters
- *                    (block | SEMI)
+ *                    SEMI
  *                | type variableDeclarators SEMI
  * </pre>
  *

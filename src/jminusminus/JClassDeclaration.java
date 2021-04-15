@@ -53,7 +53,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
     /** Static (class) fields of this class. */
     private ArrayList<JFieldDeclaration> staticFieldInitializations;
 
-    private ArrayList<Field> receivedFields;
 
     /**
      * Constructs an AST node for a class declaration given the line number, list
@@ -86,7 +85,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         instanceFieldInitializations = new ArrayList<JFieldDeclaration>();
         staticFieldInitializations = new ArrayList<JFieldDeclaration>();
         this.interfacesImplementedNames = new ArrayList<String>();
-        receivedFields = new ArrayList<>();
 
 
     }
@@ -219,8 +217,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             checkInterfaceMethodsImplemented();
         }
 
-        //checkInterfaceVariables(partial);
-        addInterfaceVariableAccess(partial);
 
         // Add the implicit empty constructor?
         if (!hasExplicitConstructor) {
@@ -235,6 +231,10 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             id.setClassRep(partial.toClass());
         }
     }
+
+    /**
+     * Checks whether the methods in the interfaces implemented are defined in the class
+     */
 
     public void checkInterfaceMethodsImplemented(){
         //get class methods
@@ -258,63 +258,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             JAST.compilationUnit.reportSemanticError(line,
                     "Class must define all methods declared in the implemented interfaces");
         }
-    }
-
-    public void checkInterfaceVariables(CLEmitter partial) {
-
-        HashMap<String, Class<?>> classFields = new HashMap<>();
-        for (JMember member : classBlock) {
-            if (member instanceof JFieldDeclaration) {
-                ArrayList<JVariableDeclarator> declarators = ((JFieldDeclaration) member).getDecls();
-                for (JVariableDeclarator decl : declarators){
-                    classFields.put(decl.name(), decl.type().classRep());
-                }
-            }
-        }
-
-        HashMap<String, Class<?>> interfaceFields = new HashMap<>();
-        for(Type intImpl: interfacesImplemented){
-            Class<?> cls = intImpl.classRep();
-            java.lang.reflect.Field[] fields = cls.getDeclaredFields();
-            for (java.lang.reflect.Field field : fields) {
-                interfaceFields.put(field.getName(), field.getType());
-            }
-        }
-
-
-        Iterator it = interfaceFields.entrySet().iterator();
-        Iterator itClass;
-        Map.Entry pair;
-        Boolean found = false;
-        while (it.hasNext()) {
-            pair = (Map.Entry)it.next();
-            String variableName = (String) pair.getKey();
-            Class<?> variableType = (Class<?>) pair.getValue();
-            itClass = classFields.entrySet().iterator();
-            found = false;
-
-            while(itClass.hasNext()){
-                pair = (Map.Entry)itClass.next();
-                if(pair.getKey().equals(variableName) && pair.getValue().equals(variableType)){
-                    found = true;
-                    break;
-                }
-
-                if(!found){
-                    Field field = null;
-                    java.lang.reflect.Field internalField = null;
-                    for(Type intImpl: interfacesImplemented){
-                        if(intImpl.fieldFor(variableName)!=null){
-                            field = intImpl.fieldFor(variableName);
-                            receivedFields.add(field);
-                            break;
-                        }
-                    }
-
-                }
-            }
-        }
-
     }
 
     /**
@@ -389,12 +332,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         if (staticFieldInitializations.size() > 0) {
             codegenClassInit(output);
         }
-      /*  ArrayList<String> fieldModifiers = new ArrayList<>();
-        fieldModifiers.add("final");
-        for(Field field : receivedFields){
-            addField(fieldModifiers, field.name(),
-                    field.type().toDescriptor(), false, field.get());
-        }*/
+
     }
 
     /**
@@ -461,29 +399,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         partial.addNoArgInstruction(RETURN);
     }
 
-
-    private void addInterfaceVariableAccess(CLEmitter partial){
-        //HashMap<String, Class<?>> interfaceFields = new HashMap<>();
-        for(Type intImpl: interfacesImplemented){
-            Class<?> cls = intImpl.classRep();
-            java.lang.reflect.Field[] fields = cls.getDeclaredFields();
-            for (java.lang.reflect.Field field : fields) {
-                //interfaceFields.put(field.getName(), field.getType());
-                //JAST.compilationUnit.reportSemanticError(line, "name : %s et type : %s",field.getName(), descriptorFor(field.getType()));
-                //partial.addMemberAccessInstruction(GETSTATIC, intImpl.jvmName(), field.getName(), descriptorFor(field.getType()));
-            }
-        }
-    }
-
-    private static String descriptorFor(Class<?> cls) {
-        return cls == null ? "V" : cls == void.class ? "V"
-                : cls.isArray() ? "[" + descriptorFor(cls.getComponentType())
-                : cls.isPrimitive() ? (cls == int.class ? "I"
-                : cls == char.class ? "C"
-                : cls == boolean.class ? "Z"
-                : cls == double.class ? "D" : "?")
-                : "L" + cls.getName().replace('.', '/') + ";";
-    }
     /**
      * Generates code for an implicit empty constructor. (Necessary only if there
      * is not already an explicit one.
