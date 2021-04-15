@@ -523,14 +523,13 @@ public class Parser {
         mustBe(INTERFACE);
         mustBe(IDENTIFIER);
         String name = scanner.previousToken().image();
-        // interface can extend 1 other interface
-        Type superInterface;
+        ArrayList<Type> superInterfaces = new ArrayList<>();
         if (have(EXTENDS)) {
-            superInterface = qualifiedIdentifier();
-        } else {
-            superInterface = Type.OBJECT;
+            do {
+                superInterfaces.add(qualifiedIdentifier());
+            } while(have(COMMA));
         }
-        return new JInterfaceDeclaration(line, mods, name, superInterface, interfaceBody());
+        return new JInterfaceDeclaration(line, mods, name, superInterfaces, interfaceBody());
     }
 
     /**
@@ -1431,6 +1430,8 @@ public class Parser {
      * <pre>
      *   shiftExpression ::= additiveExpression // level 3
      *                            {URShift additiveExpression}
+     *                            | {SHL additiveExpression}
+     *                            | {SHR additiveExpression}
      * </pre>
      *
      * @return an AST for a shiftExpression.

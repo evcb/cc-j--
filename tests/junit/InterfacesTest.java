@@ -16,7 +16,7 @@ public class InterfacesTest extends TestCase {
     }
 
     public void testInterfaces(){
-        this.assertEquals(interfaces.calc(2),2);
+        this.assertEquals(interfaces.calc(2),5);
         this.assertEquals(interfaces.calc2(2),4);
         this.assertEquals(interfaces.calc3(2),6);
     }

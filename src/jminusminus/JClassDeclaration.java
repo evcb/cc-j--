@@ -219,7 +219,8 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             checkInterfaceMethodsImplemented();
         }
 
-        checkInterfaceVariables(partial);
+        //checkInterfaceVariables(partial);
+        addInterfaceVariableAccess(partial);
 
         // Add the implicit empty constructor?
         if (!hasExplicitConstructor) {
@@ -460,6 +461,29 @@ class JClassDeclaration extends JAST implements JTypeDecl {
         partial.addNoArgInstruction(RETURN);
     }
 
+
+    private void addInterfaceVariableAccess(CLEmitter partial){
+        //HashMap<String, Class<?>> interfaceFields = new HashMap<>();
+        for(Type intImpl: interfacesImplemented){
+            Class<?> cls = intImpl.classRep();
+            java.lang.reflect.Field[] fields = cls.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                //interfaceFields.put(field.getName(), field.getType());
+                //JAST.compilationUnit.reportSemanticError(line, "name : %s et type : %s",field.getName(), descriptorFor(field.getType()));
+                //partial.addMemberAccessInstruction(GETSTATIC, intImpl.jvmName(), field.getName(), descriptorFor(field.getType()));
+            }
+        }
+    }
+
+    private static String descriptorFor(Class<?> cls) {
+        return cls == null ? "V" : cls == void.class ? "V"
+                : cls.isArray() ? "[" + descriptorFor(cls.getComponentType())
+                : cls.isPrimitive() ? (cls == int.class ? "I"
+                : cls == char.class ? "C"
+                : cls == boolean.class ? "Z"
+                : cls == double.class ? "D" : "?")
+                : "L" + cls.getName().replace('.', '/') + ";";
+    }
     /**
      * Generates code for an implicit empty constructor. (Necessary only if there
      * is not already an explicit one.

@@ -1492,6 +1492,7 @@ public class CLEmitter {
                         "%s: '%s' is not a valid type descriptor for "
                                 + "method", eCurrentMethod, type);
             }
+            //reportEmitterError("what opcode : %s", opcode);
             if (opcode == INVOKEINTERFACE) {
                 index = constantPool.constantInterfaceMethodRefInfo(target,
                         name, type);
