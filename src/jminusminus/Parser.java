@@ -546,9 +546,47 @@ public class Parser {
 
     private ArrayList<JMember> classBody() {
         ArrayList<JMember> members = new ArrayList<JMember>();
+        JBlock body = null;
+
         mustBe(LCURLY);
         while (!see(RCURLY) && !see(EOF)) {
-            members.add(memberDecl(modifiers()));
+            int line = scanner.token().line();
+
+            if (have(STATIC)) {
+                ArrayList<String> mods = modifiers();
+                mods.add("static");
+
+                // Static block
+                if (see(LCURLY)) {
+                    line = scanner.token().line();
+                    ArrayList<JStatement> statements = new ArrayList<JStatement>();
+                    
+                    // Parsing the block manually
+                    have(LCURLY);
+                    while (!see(RCURLY) && !see(EOF)) {
+                        if (seeLocalVariableDeclaration()) {
+                            members.add(memberDecl(mods));
+                        } else {
+                            statements.add(statement());
+                        }
+                    }
+                    have(RCURLY);
+                    body = new JBlock(line, statements);
+                    // Variables declared inside the block 
+                    // are passed to the class to become fields
+                    members.add(new JInitializationBlock(line, true, body));
+                } else {
+                    // Normal static field declaration
+                    members.add(memberDecl(mods));
+                }
+            // IIB
+            } else if (see(LCURLY)) {
+                line = scanner.token().line();
+                body = block();
+                members.add(new JInitializationBlock(line, false, body));
+            } else {
+                members.add(memberDecl(modifiers()));
+            }
         }
         mustBe(RCURLY);
         return members;
@@ -688,9 +726,6 @@ public class Parser {
 
                 JBlock body = have(SEMI) ? null : block();
                 memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
-            } else if (see(LCURLY)) {
-                JBlock body = block();
-                memberDecl = new JInstanceInitializationBlock(line, mods, body);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
