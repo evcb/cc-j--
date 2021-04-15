@@ -20,8 +20,12 @@ public class InitBlocks {
     static {   // class declaration - class context and not method
         int x = 24;
         int z = 0;
-        x = z;
         c = x + 31;
+    }
+
+    // Explicit constructor
+    public InitBlocks() {
+        System.out.println("Constructor!");
     }
 
     // Instance initialization block
