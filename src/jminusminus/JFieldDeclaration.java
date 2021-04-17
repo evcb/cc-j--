@@ -19,6 +19,7 @@ class JFieldDeclaration extends JAST implements JMember {
     /** Variable initializations. */
     private ArrayList<JStatement> initializations;
 
+    /** Is this field in an abstract class? */
     private boolean isInAbstract;
 
     /**
@@ -169,6 +170,12 @@ class JFieldDeclaration extends JAST implements JMember {
         p.indentLeft();
         p.println("</JFieldDeclaration>");
     }
+
+
+    /**
+     * Adds the modifiers to make this method suitable for an interface
+     *
+     */
 
     public void makeForInterface(){
         isInAbstract = true;

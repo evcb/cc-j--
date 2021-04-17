@@ -474,6 +474,7 @@ public class Parser {
      * <pre>
      *   classDeclaration ::= CLASS IDENTIFIER
      *                        [EXTENDS qualifiedIdentifier]
+     *                        {IMPLEMENTS qualifiedIdentifier}
      *                        classBody
      * </pre>
      *
@@ -510,7 +511,8 @@ public class Parser {
      *
      * <pre>
      *   interfaceDeclaration ::= INTERFACE IDENTIFIER
-     *                        interfaceBody
+     *                            {IMPLEMENTS qualifiedIdentifier}
+     *                            interfaceBody
      * </pre>
      *
      *
@@ -608,8 +610,8 @@ public class Parser {
      *
      * <pre>
      *   interfaceBody ::= LCURLY
-     *                   {modifiers interfaceMemberDecl}
-     *                 RCURLY
+     *                      {modifiers interfaceMemberDecl}
+     *                     RCURLY
      * </pre>
      *
      * @return list of members in the interface body.
@@ -629,9 +631,7 @@ public class Parser {
      * Parse an interface member declaration.
      *
      * <pre>
-     *   memberDecl ::=  IDENTIFIER            // interface or class
-     *                     block
-     *                  | (VOID | type) IDENTIFIER  // method
+     *   memberDecl ::=  (VOID | type) IDENTIFIER  // method
      *                    formalParameters
      *                    (SEMI)
      *                | type variableDeclarators SEMI

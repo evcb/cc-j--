@@ -24,6 +24,17 @@ memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // c
              | STATIC LCURL block RCURLY // field initializer
              | type variableDeclarators SEMI // field
 
+interfaceDeclaration ::= INTERFACE IDENTIFIER
+                       {EXTENDS qualifiedIdentifier}
+                       interfaceBody
+
+interfaceBody ::= LCURLY {modifiers interfaceMemberDecl} RCURLY
+
+interfaceMemberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // constructor
+             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionTypeList] (SEMI) // method
+             | STATIC LCURL block RCURLY // field initializer
+             | type variableDeclarators SEMI // field
+
 block ::= LCURLY {blockStatement} RCURLY
 
 blockStatement ::= localVariableDeclarationStatement
@@ -68,7 +79,7 @@ arguments ::= LPAREN [expression {COMMA expression}] RPAREN
 
 type ::= referenceType | basicType
 
-basicType ::= BOOLEAN | CHAR | INT
+basicType ::= BOOLEAN | CHAR | INT | DOUBLE
 
 referenceType ::= basicType LBRACK RBRACK {LBRACK RBRACK}
                 | qualifiedIdentifier {LBRACK RBRACK}

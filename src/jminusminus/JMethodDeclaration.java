@@ -272,6 +272,11 @@ class JMethodDeclaration extends JAST implements JMember {
         p.println("</JMethodDeclaration>");
     }
 
+    /**
+     * Adds the modifiers to make this method suitable for an interface
+     *
+     */
+
     public void makeAbstractAndPublic(){
 
         if(!mods.contains(TokenKind.PUBLIC.image())) {
@@ -283,6 +288,12 @@ class JMethodDeclaration extends JAST implements JMember {
             mods.add(TokenKind.ABSTRACT.image());
         }
     }
+    
+
+    /**
+     * Checks that the method that is in an interface doesn't have unsuitable modifiers.
+     *
+     */
 
     public void checkForForbiddenModifiers(){
         if(mods.contains(TokenKind.STATIC.image()) || mods.contains(TokenKind.FINAL.image())){
