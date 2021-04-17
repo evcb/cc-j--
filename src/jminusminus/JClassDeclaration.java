@@ -510,7 +510,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             instanceField.codegenInitializations(output);
         }
         
-        // Instance block before the construction
+        // Instance block before return is added
         for (JMember member : classBlock) {
             if (member instanceof JInitializationBlock) {
                 if (!((JInitializationBlock) member).isStatic) {
