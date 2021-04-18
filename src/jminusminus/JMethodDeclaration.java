@@ -143,12 +143,14 @@ class JMethodDeclaration extends JAST implements JMember {
             this.context.addEntry(param.line(), param.name(), defn);
         }
 
-        // https://docs.oracle.com/javase/specs/jls/se7/html/jls-14.html#jls-14.18
-        // https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.4.6
-
+        // declared all thrown exceptions types.
+        // thrown exceptions types do not need to be catched in local scope, we dedicate
+        // that to higher scopes
         if (exceptionTypes != null)
             for (Type t : exceptionTypes)
-                if (!Throwable.isJavaAssignableFrom(t))
+                if (Throwable.isJavaAssignableFrom(t))
+                    this.context.addThownType(t);
+                else
                     JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
 
         if (body != null) {
