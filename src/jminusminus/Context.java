@@ -51,7 +51,11 @@ class Context {
      */
     protected Map<String, IDefn> entries;
 
-    protected Set<Object> exceptions;
+    /*
+     * Set of exceptions types that are declared a catch formal parameters, and
+     * therefore catched.
+     */
+    protected Set<Throwable> exceptions;
 
     /**
      * Constructs a Context.
@@ -84,6 +88,18 @@ class Context {
         } else {
             entries.put(name, definition);
         }
+    }
+
+    public void addExceptionType(Type t) {
+        exceptions.add(t);
+    }
+
+    public bool catchesException(Type t) {
+        for (Throwable exception : exceptions)
+            if (exception.isJavaAssignableFrom(t))
+                return exceptions.contains(t);
+
+        return this.surroundingContext(t);
     }
 
     /**
@@ -385,8 +401,20 @@ class MethodContext extends LocalContext {
         offset = 0;
     }
 
-    public bool thrownTypes() {
-        return thrownTypes;
+    public void setThrownTypes(Array<Type> thrownTypes) {
+        this.thrownTypes = thrownTypes;
+    }
+
+    public void addThownType(Type t) {
+        thrownTypes.add(t);
+    }
+
+    public bool throwsType(Type t) {
+        for (Throwable exception : exceptions)
+            if (exception.isJavaAssignableFrom(t))
+                return exceptions.contains(t);
+
+        return false;
     }
 
     /**
