@@ -27,9 +27,13 @@ Copyright &copy; 2018 Bill Campbell, Swami Iyer, and Bahar Akbal-Deliba&#351;
 ## Group Members
 
 Antoine Thibaut Sébert - s193508
+
 William Wullf - 
+
 Danial Virk - s193167  
+
 Zineb Fadili - s201501  
+
 Elvis Antônio Ferreira Camilo - s190395  
 
 ## License
