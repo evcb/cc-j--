@@ -12,7 +12,7 @@ import static jminusminus.CLConstants.*;
  * @see JMethodDeclaration
  */
 
-class JConstructorDeclaration extends JMethodDeclaration implements JMember {
+class JConstructorDeclaration extends JMethodDeclaration {
 
     /** Does this constructor invoke this(...) or super(...)? */
     private boolean invokesConstructor;
@@ -53,9 +53,6 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
             JAST.compilationUnit.reportSemanticError(line(), "Constructor cannot be declared abstract");
         }
 
-        if (isThrow)
-            ; // ensure that all types are or subclass Throwable + other checks
-
         if (body.statements().size() > 0 && body.statements().get(0) instanceof JStatementExpression) {
             JStatementExpression first = (JStatementExpression) body.statements().get(0);
             if (first.expr instanceof JSuperConstruction) {
@@ -95,8 +92,12 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
             this.context.addEntry(param.line(), param.name(), defn);
         }
 
-        if (isThrow)
-            ; // ensure that all types are or subclass Throwable + other checks
+        if (exceptionTypes != null)
+            for (Type t : exceptionTypes)
+                if (Throwable.class.isAssignableFrom(t.classRep()))
+                    this.context.addThownType(t);
+                else
+                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
 
         if (body != null) {
             body = body.analyze(this.context);
@@ -175,7 +176,7 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
             p.println("</FormalParameters>");
         }
 
-        if (isThrow) {
+        if (!exceptionTypes.isEmpty()) {
             p.println("<Throws>");
 
             p.indentRight();
