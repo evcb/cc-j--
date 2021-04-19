@@ -177,7 +177,7 @@ class Type {
      * @param name an FQN for the target class (example: "java.lang.Throwable")
      * @return
      */
-    public bool isOrIsSubClass(String name) {
+    public boolean isOrIsSubClass(String name) {
         return toString().equals(name) || (superClass() != null && superClass().isOrIsSubClass(name));
     }
 
@@ -442,7 +442,7 @@ class Type {
      * @return the Java denotation.
      */
 
-    private static String toJava(Class classRep) {
+    private static String toJava(Class<?> classRep) {
         return classRep.isArray() ? toJava(classRep.getComponentType()) + "[]" : classRep.getName();
     }
 
@@ -480,11 +480,11 @@ class Type {
      */
 
     public Method methodFor(String name, Type[] argTypes) {
-        Class[] classes = new Class[argTypes.length];
+        Class<?>[] classes = new Class[argTypes.length];
         for (int i = 0; i < argTypes.length; i++) {
             classes[i] = argTypes[i].classRep;
         }
-        Class cls = classRep;
+        Class<?> cls = classRep;
 
         // Search this class and all superclasses
         while (cls != null) {
@@ -510,14 +510,14 @@ class Type {
      */
 
     public Constructor constructorFor(Type[] argTypes) {
-        Class[] classes = new Class[argTypes.length];
+        Class<?>[] classes = new Class[argTypes.length];
         for (int i = 0; i < argTypes.length; i++) {
             classes[i] = argTypes[i].classRep;
         }
 
         // Search only this class (we don't inherit constructors)
-        java.lang.reflect.Constructor[] constructors = classRep.getDeclaredConstructors();
-        for (java.lang.reflect.Constructor constructor : constructors) {
+        java.lang.reflect.Constructor<?>[] constructors = classRep.getDeclaredConstructors();
+        for (java.lang.reflect.Constructor<?> constructor : constructors) {
             if (argTypesMatch(classes, constructor.getParameterTypes())) {
                 return new Constructor(constructor);
             }
@@ -648,7 +648,7 @@ class Type {
      * @return {@code true} if access is valid; {@code false} otherwise.
      */
 
-    public static boolean checkAccess(int line, Class referencingType, Class type) {
+    public static boolean checkAccess(int line, Class<?> referencingType, Class<?> type) {
         java.lang.Package p1 = referencingType.getPackage();
         java.lang.Package p2 = type.getPackage();
         if (Modifier.isPublic(type.getModifiers())
