@@ -3,10 +3,9 @@
 package jminusminus;
 
 import java.util.ArrayList;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes.Name;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 
 import static jminusminus.TokenKind.*;
 
@@ -556,7 +555,7 @@ public class Parser {
     }
 
     private ArrayList<Type> throwsClause() {
-        ArrayList<Type> throwsTypes = new ArrayList();
+        ArrayList<Type> throwsTypes = new ArrayList<Type>();
 
         if (have(THROWS))
             do
@@ -848,7 +847,7 @@ public class Parser {
         int line = scanner.token().line();
         mustBe(LPAREN);
 
-        ArrayList<Type> catchTypes = new ArrayList();
+        ArrayList<Type> catchTypes = new ArrayList<Type>();
         do
             catchTypes.add(type());
         while (have(BOR));
@@ -875,9 +874,9 @@ public class Parser {
         int line = scanner.token().line();
         JBlock tryPart = block();
 
-        ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart = new ArrayList();
+        Map<JCatchFormalParameter, JBlock> catchPart = new HashMap<JCatchFormalParameter, JBlock>();
         while (have(CATCH))
-            catchPart.add(new SimpleEntry(catchFormalParameter(), block()));
+            catchPart.put(catchFormalParameter(), block());
 
         JBlock finallyPart = null;
         if (catchPart.isEmpty()) {
