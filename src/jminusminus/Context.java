@@ -3,6 +3,7 @@
 package jminusminus;
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -55,7 +56,7 @@ class Context {
      * Set of exceptions types that are declared a catch formal parameters, and
      * therefore catched.
      */
-    protected Set<Throwable> exceptions;
+    protected Set<Type> exceptions;
 
     /**
      * Constructs a Context.
@@ -94,12 +95,12 @@ class Context {
         exceptions.add(t);
     }
 
-    public bool catchesException(Type t) {
-        for (Throwable exception : exceptions)
+    public boolean catchesException(Type t) {
+        for (Type exception : exceptions)
             if (exception.isJavaAssignableFrom(t))
-                return exceptions.contains(t);
+                return true;
 
-        return this.surroundingContext(t);
+        return this.surroundingContext.catchesException(t);
     }
 
     /**
@@ -383,7 +384,7 @@ class MethodContext extends LocalContext {
     /** Does (non-void) method have at least one return? */
     private boolean hasReturnStatement = false;
 
-    Array<Type> thrownTypes;
+    ArrayList<Type> thrownTypes;
 
     /**
      * Constructs a method context.
@@ -393,7 +394,7 @@ class MethodContext extends LocalContext {
      * @param methodReturnType return type of this method.
      */
 
-    public MethodContext(Context surrounding, boolean isStatic, Type methodReturnType, Array<Type> thrownTypes) {
+    public MethodContext(Context surrounding, boolean isStatic, Type methodReturnType, ArrayList<Type> thrownTypes) {
         super(surrounding);
         this.isStatic = isStatic;
         this.thrownTypes = thrownTypes;
@@ -401,7 +402,7 @@ class MethodContext extends LocalContext {
         offset = 0;
     }
 
-    public void setThrownTypes(Array<Type> thrownTypes) {
+    public void setThrownTypes(ArrayList<Type> thrownTypes) {
         this.thrownTypes = thrownTypes;
     }
 
@@ -409,10 +410,10 @@ class MethodContext extends LocalContext {
         thrownTypes.add(t);
     }
 
-    public bool throwsType(Type t) {
-        for (Throwable exception : exceptions)
+    public boolean throwsType(Type t) {
+        for (Type exception : exceptions)
             if (exception.isJavaAssignableFrom(t))
-                return exceptions.contains(t);
+                return true;
 
         return false;
     }
