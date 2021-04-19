@@ -24,28 +24,39 @@ class JThrowStatement extends JStatement {
 	}
 
 	/**
+	 * The type of the Expression is an unchecked exception class (§11.1.1) or the
+	 * null type (§4.1).
+	 *
+	 * @param exceptionType thrown expression type.
 	 */
-	private bool isCatched(Type exceptionType, Context context) {
-		// for each try
-		// for each catch formal parameter
-		// for each type in catch formal parameter
-		// if subclassing possible
-		// return true;
-
-		return false;
+	public boolean isUncheckedOrNull(Type exceptionType) {
+		return (expr.type() != Type.NULLTYPE && !Error.class.isAssignableFrom(expr.getClass())
+				&& !RuntimeException.class.isAssignableFrom(expr.getClass()));
 	}
 
-	private bool isPresentInThrowsClause(Type exceptionType, Context context) {
-		MethodContext methodContext = context.methodContext();
+	/**
+	 * The throw statement is contained in the try block of a try statement (§14.20)
+	 * and it is not the case that the try statement can throw an exception of the
+	 * type of the Expression. (In this case we say the thrown value is caught by
+	 * the try statement.)
+	 *
+	 * @param exceptionType thrown expression type.
+	 * @param context       context.
+	 */
+	private boolean isCatched(Type exceptionType, Context context) {
+		return context.catchesException(exceptionType);
+	}
 
-		if (methodContext == null || methodContext.thrownTypes() == null)
-			return false;
-		else
-			for (Type t : methodContext.thrownTypes())
-				if (t.classRep().isAssignableFrom(exceptionType))
-					return true;
-
-		return false;
+	/**
+	 * The throw statement is contained in a method or constructor declaration and
+	 * the type of the Expression is assignable (§5.2) to at least one type listed
+	 * in the throws clause (§8.4.6, §8.8.5) of the declaration.
+	 *
+	 * @param exceptionType thrown expression type.
+	 * @param context       context.
+	 */
+	private boolean isPresentInThrowsClause(Type exceptionType, Context context) {
+		return context.methodContext() != null || context.methodContext().throwsType(exceptionType);
 	}
 
 	/**
@@ -68,9 +79,11 @@ class JThrowStatement extends JStatement {
 		} else {
 			expr = expr.analyze(context);
 
-			if (expr.type() != Type.NULLTYPE && !java.lang.Throwable.class.isJavaAssignableFrom(expr.type()))
+			if (expr.type() != Type.NULLTYPE && !Throwable.class.isAssignableFrom(expr.getClass()))
 				JAST.compilationUnit.reportSemanticError(line(), "must throw a Throwable or the null reference");
 		}
+
+		Type expr_t = expr.type();
 
 		/*
 		 * SECOND CHECK
@@ -78,26 +91,7 @@ class JThrowStatement extends JStatement {
 		 * At least one of the following three conditions must be true, or a
 		 * compile-time error occurs:
 		 */
-		if (
-		/*
-		 * The type of the Expression is an unchecked exception class (§11.1.1) or the
-		 * null type (§4.1).
-		 */
-		(expr.type() != Type.NULLTYPE && !java.lang.Error.class.isAssignableFrom(expr.type())
-				&& !java.lang.RuntimeException.class.isAssignableFrom(expr.type()))
-				/*
-				 * The throw statement is contained in the try block of a try statement (§14.20)
-				 * and it is not the case that the try statement can throw an exception of the
-				 * type of the Expression. (In this case we say the thrown value is caught by
-				 * the try statement.)
-				 */
-				&& (!isCatched(expr.type(), context))
-				/*
-				 * The throw statement is contained in a method or constructor declaration and
-				 * the type of the Expression is assignable (§5.2) to at least one type listed
-				 * in the throws clause (§8.4.6, §8.8.5) of the declaration.
-				 */
-				&& (!isPresentInThrowsClause(expr.type(), context)))
+		if (!isUncheckedOrNull(expr_t) && !isCatched(expr_t, context) && !isPresentInThrowsClause(expr_t, context))
 			JAST.compilationUnit.reportSemanticError(line(),
 					"the throwed type must be either unchecked (subtypes of java.lang.RuntimeException and java.lang.Error), catched by an enclosing try statement or listed in the throws clause of the method/constructor declaration");
 
@@ -124,10 +118,7 @@ class JThrowStatement extends JStatement {
 	}
 
 	/**
-	 * Generates code for the return statement. In the case of void method types,
-	 * generate a simple (void) return. In the case of a return expression, generate
-	 * code to load that onto the stack and then generate the appropriate return
-	 * instruction.
+	 * ...
 	 *
 	 * @param output the code emitter (basically an abstraction for producing the
 	 *               .class file).

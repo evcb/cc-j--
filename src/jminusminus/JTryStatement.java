@@ -1,7 +1,6 @@
 package jminusminus;
 
-import java.util.ArrayList;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import static jminusminus.CLConstants.*;
 
@@ -28,7 +27,7 @@ public class JTryStatement extends JStatement {
 	private JBlock tryPart;
 
 	/** Catch clauses. */
-	private ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart;
+	private Map<JCatchFormalParameter, JBlock> catchPart;
 
 	/** Finally clause. */
 	private JBlock finallyPart;
@@ -42,8 +41,7 @@ public class JTryStatement extends JStatement {
 	 * @param catchPart   catch clauses.
 	 * @param finallyPart finally clause.
 	 */
-	public JTryStatement(int line, JBlock tryPart, ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart,
-			JBlock finallyPart) {
+	public JTryStatement(int line, JBlock tryPart, Map<JCatchFormalParameter, JBlock> catchPart, JBlock finallyPart) {
 		super(line);
 		this.tryPart = tryPart;
 		this.catchPart = catchPart;
@@ -59,11 +57,12 @@ public class JTryStatement extends JStatement {
 	public JStatement analyze(Context context) {
 		tryPart = (JBlock) tryPart.analyze(context);
 
-		/*
-		 * for (Entry<JCatchFormalParameter, JBlock> _catch : catchPart)
-		 * catchPart.add((JCatchClause) _catch.analyze(context)); // must be class
-		 * Throwable or a subclass of Throwable
-		 */
+		for (Map.Entry<JCatchFormalParameter, JBlock> _catch : catchPart.entrySet()) {
+			for (Type t : _catch.getKey().types())
+				context.addExceptionType(t);
+
+			_catch.getValue().analyze(context);
+		}
 
 		if (finallyPart != null)
 			finallyPart = (JBlock) finallyPart.analyze(context);
@@ -72,14 +71,13 @@ public class JTryStatement extends JStatement {
 	}
 
 	/**
-	 * Code generation for a try-statement. We generate code to branch over the
-	 * consequent if !test; the consequent is followed by an unconditonal branch
-	 * over (any) alternate.
+	 * Code generation for a try-statement.
 	 *
 	 * @param output the code emitter (basically an abstraction for producing the
 	 *               .class file).
 	 */
 	public void codegen(CLEmitter output) {
+		// CLEmitter + 198-203 in the book
 		/*
 		 * String elseLabel = output.createLabel(); String endLabel =
 		 * output.createLabel(); condition.codegen(output, elseLabel, false);
@@ -97,16 +95,16 @@ public class JTryStatement extends JStatement {
 		tryPart.writeToStdOut(p);
 		p.indentLeft();
 
-		for (Entry<JCatchFormalParameter, JBlock> catchClause : catchPart) {
+		for (Map.Entry<JCatchFormalParameter, JBlock> _catch : catchPart.entrySet()) {
 			p.indentRight();
 			p.printf("<CatchClause>\n");
 
 			p.indentRight();
-			catchClause.getKey().writeToStdOut(p);
+			_catch.getKey().writeToStdOut(p);
 			p.indentLeft();
 
 			p.indentRight();
-			catchClause.getValue().writeToStdOut(p);
+			_catch.getValue().writeToStdOut(p);
 			p.indentLeft();
 
 			p.printf("</CatchClause>\n");
@@ -125,5 +123,3 @@ public class JTryStatement extends JStatement {
 		p.printf("</JTryStatement>\n");
 	}
 }
-
-// define catchClause ?
