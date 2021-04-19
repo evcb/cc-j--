@@ -148,7 +148,7 @@ class JMethodDeclaration extends JAST implements JMember {
         // that to higher scopes
         if (exceptionTypes != null)
             for (Type t : exceptionTypes)
-                if (Throwable.isJavaAssignableFrom(t))
+                if (Throwable.class.isAssignableFrom(t.classRep()))
                     this.context.addThownType(t);
                 else
                     JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
@@ -197,7 +197,11 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void codegen(CLEmitter output) {
-        output.addMethod(mods, name, descriptor, null, false);
+        ArrayList<String> exceptions = new ArrayList<String>();
+        for (Type t : exceptionTypes)
+            exceptions.add(t.toString());
+
+        output.addMethod(mods, name, descriptor, exceptions, false);
         if (body != null) {
             body.codegen(output);
         }
@@ -238,7 +242,7 @@ class JMethodDeclaration extends JAST implements JMember {
             p.println("</FormalParameters>");
         }
 
-        if (isThrow) {
+        if (!exceptionTypes.isEmpty()) {
             p.println("<Throws>");
 
             p.indentRight();
