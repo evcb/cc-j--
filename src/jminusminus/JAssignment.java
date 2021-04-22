@@ -145,6 +145,7 @@ class JPlusAssignOp extends JAssignment {
             // TODO : int here otherwise null pointer exception, to be improved
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for +=: " + lhs.type());
+        }
 
         return this;
     }
@@ -163,7 +164,7 @@ class JPlusAssignOp extends JAssignment {
 
         if (lhs.type().equals(Type.STRING))
             rhs.codegen(output);
-        } else if (lhs.type().equals(Type.INT)) {
+        else if (lhs.type().equals(Type.INT)) {
             ((JLhs) lhs).codegenLoadLhsRvalue(output);
             rhs.codegen(output);
             output.addNoArgInstruction(IADD);
