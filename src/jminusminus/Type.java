@@ -872,7 +872,7 @@ class ArrayTypeName extends Type {
 
         // The API forces us to make an instance and get its
         // type.
-        Class classRep = Array.newInstance(componentType().classRep(), 0).getClass();
+        Class<?> classRep = Array.newInstance(componentType().classRep(), 0).getClass();
         return Type.typeFor(classRep);
     }
 
