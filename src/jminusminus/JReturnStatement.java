@@ -15,6 +15,7 @@ class JReturnStatement extends JStatement {
     /** The returned expression. */
     private JExpression expr;
 
+    private boolean returnMustBePromoted;
     /**
      * Constructs an AST node for a return-statement given its line number, and the
      * expression that is returned.
@@ -26,6 +27,7 @@ class JReturnStatement extends JStatement {
     public JReturnStatement(int line, JExpression expr) {
         super(line);
         this.expr = expr;
+        this.returnMustBePromoted = false;
     }
 
     /**
@@ -64,7 +66,11 @@ class JReturnStatement extends JStatement {
                     // There's a (non-void) return expression.
                     // Its type must match the return type of the method
                     expr = expr.analyze(context);
-                    expr.type().mustMatchExpected(line(), returnType);
+                    if(expr.type() == Type.INT && returnType == Type.DOUBLE){
+                        returnMustBePromoted = true;
+                    } else {
+                        expr.type().mustMatchExpected(line(), returnType);
+                    }
                 }
             } else {
                 // The method better have void as return type
@@ -91,8 +97,16 @@ class JReturnStatement extends JStatement {
             output.addNoArgInstruction(RETURN);
         } else {
             expr.codegen(output);
-            if (expr.type() == Type.INT || expr.type() == Type.BOOLEAN || expr.type() == Type.CHAR) {
+            if (!returnMustBePromoted && (expr.type() == Type.INT
+                || expr.type() == Type.BOOLEAN
+                || expr.type() == Type.CHAR)) {
                 output.addNoArgInstruction(IRETURN);
+            } else if (returnMustBePromoted) {
+                returnMustBePromoted = false;
+                output.addNoArgInstruction(I2D);
+                output.addNoArgInstruction(DRETURN);
+            } else if (expr.type() == Type.DOUBLE) {
+                output.addNoArgInstruction(DRETURN);
             } else {
                 output.addNoArgInstruction(ARETURN);
             }

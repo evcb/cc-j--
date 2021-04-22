@@ -40,6 +40,7 @@ abstract class JExpression extends JStatement {
     public Type type() {
         return type;
     }
+    
 
     /**
      * Is this a statement expression?

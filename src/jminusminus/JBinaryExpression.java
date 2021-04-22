@@ -5,8 +5,8 @@ package jminusminus;
 import static jminusminus.CLConstants.*;
 
 /**
- * This abstract base class is the AST node for a binary expression. 
- * A binary expression has an operator and two operands: a lhs and a rhs.
+ * This abstract base class is the AST node for a binary expression. A binary
+ * expression has an operator and two operands: a lhs and a rhs.
  */
 
 abstract class JBinaryExpression extends JExpression {
@@ -24,18 +24,14 @@ abstract class JBinaryExpression extends JExpression {
      * Constructs an AST node for a binary expression given its line number, the
      * binary operator, and lhs and rhs operands.
      * 
-     * @param line
-     *            line in which the binary expression occurs in the source file.
-     * @param operator
-     *            the binary operator.
-     * @param lhs
-     *            the lhs operand.
-     * @param rhs
-     *            the rhs operand.
+     * @param line     line in which the binary expression occurs in the source
+     *                 file.
+     * @param operator the binary operator.
+     * @param lhs      the lhs operand.
+     * @param rhs      the rhs operand.
      */
 
-    protected JBinaryExpression(int line, String operator, JExpression lhs,
-            JExpression rhs) {
+    protected JBinaryExpression(int line, String operator, JExpression lhs, JExpression rhs) {
         super(line);
         this.operator = operator;
         this.lhs = lhs;
@@ -43,13 +39,39 @@ abstract class JBinaryExpression extends JExpression {
     }
 
     /**
+     * Promotes the lhs from int to double
+     * (implicit conversion)
+     *
+     */
+    public void promoteLhs() {
+        if (lhs instanceof JLiteralInt) {
+            ((JLiteralInt) lhs).promote();
+        } else if (lhs instanceof JVariable) {
+            ((JVariable) lhs).promote();
+        }
+    }
+
+    /**
+     * Promotes the rhs from int to double
+     * (implicit conversion)
+     *
+     */
+
+    public void promoteRhs() {
+        if (rhs instanceof JLiteralInt) {
+            ((JLiteralInt) rhs).promote();
+        } else if (rhs instanceof JVariable) {
+            ((JVariable) rhs).promote();
+        }
+    }
+
+    /**
      * {@inheritDoc}
      */
 
     public void writeToStdOut(PrettyPrinter p) {
-        p.printf("<JBinaryExpression line=\"%d\" type=\"%s\" "
-                + "operator=\"%s\">\n", line(), ((type == null) ? "" : type
-                .toString()), Util.escapeSpecialXMLChars(operator));
+        p.printf("<JBinaryExpression line=\"%d\" type=\"%s\" " + "operator=\"%s\">\n", line(),
+                ((type == null) ? "" : type.toString()), Util.escapeSpecialXMLChars(operator));
         p.indentRight();
         p.printf("<Lhs>\n");
         p.indentRight();
@@ -75,16 +97,12 @@ abstract class JBinaryExpression extends JExpression {
 class JPlusOp extends JBinaryExpression {
 
     /**
-     * Constructs an AST node for an addition expression given its line number,
-     * and the lhs and rhs operands.
+     * Constructs an AST node for an addition expression given its line number, and
+     * the lhs and rhs operands.
      * 
-     * @param line
-     *            line in which the addition expression occurs in the source
-     *            file.
-     * @param lhs
-     *            the lhs operand.
-     * @param rhs
-     *            the rhs operand.
+     * @param line line in which the addition expression occurs in the source file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
      */
 
     public JPlusOp(int line, JExpression lhs, JExpression rhs) {
@@ -94,46 +112,55 @@ class JPlusOp extends JBinaryExpression {
     /**
      * Analysis involves first analyzing the operands. If this is a string
      * concatenation, we rewrite the subtree to make that explicit (and analyze
-     * that). Otherwise we check the types of the addition operands and compute
-     * the result type.
+     * that). Otherwise we check the types of the addition operands and compute the
+     * result type.
      * 
-     * @param context
-     *            context in which names are resolved.
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
 
     public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
-        if (lhs.type() == Type.STRING || rhs.type() == Type.STRING) {
-            return (new JStringConcatenationOp(line, lhs, rhs))
-                    .analyze(context);
+
+        // promotion of int to double
+        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
+            promoteRhs();
+            type = Type.DOUBLE;
+            // promotion of int to double
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
+            promoteLhs();
+            type = Type.DOUBLE;
+        } else if (lhs.type() == Type.STRING || rhs.type() == Type.STRING) {
+            return (new JStringConcatenationOp(line, lhs, rhs)).analyze(context);
         } else if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
             type = Type.INT;
+        } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
+            type = Type.DOUBLE;
         } else {
             type = Type.ANY;
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Invalid operand types for +");
+            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for +");
         }
         return this;
     }
 
     /**
-     * Any string concatenation has been rewritten as a 
-     * {@link JStringConcatenationOp} (in {@code analyze}), so code generation 
-     * here involves simply generating code for loading the operands onto the 
-     * stack and then generating the appropriate add instruction.
+     * Any string concatenation has been rewritten as a
+     * {@link JStringConcatenationOp} (in {@code analyze}), so code generation here
+     * involves simply generating code for loading the operands onto the stack and
+     * then generating the appropriate add instruction.
      * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
 
     public void codegen(CLEmitter output) {
+        lhs.codegen(output);
+        rhs.codegen(output);
         if (type == Type.INT) {
-            lhs.codegen(output);
-            rhs.codegen(output);
             output.addNoArgInstruction(IADD);
+        } else if (type == Type.DOUBLE) {
+            output.addNoArgInstruction(DADD);
         }
     }
 
@@ -149,13 +176,10 @@ class JSubtractOp extends JBinaryExpression {
      * Constructs an AST node for a subtraction expression given its line number,
      * and the lhs and rhs operands.
      * 
-     * @param line
-     *            line in which the subtraction expression occurs in the source
-     *            file.
-     * @param lhs
-     *            the lhs operand.
-     * @param rhs
-     *            the rhs operand.
+     * @param line line in which the subtraction expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
      */
 
     public JSubtractOp(int line, JExpression lhs, JExpression rhs) {
@@ -163,14 +187,146 @@ class JSubtractOp extends JBinaryExpression {
     }
 
     /**
-     * Analyzing the - operation involves analyzing its operands, checking
-     * types, and determining the result type.
+     * Analyzing the - operation involves analyzing its operands, checking types,
+     * and determining the result type.
      * 
-     * @param context
-     *            context in which names are resolved.
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
 
+    public JExpression analyze(Context context) {
+        lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+
+        // promotion of int to double
+        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
+            promoteRhs();
+            type = Type.DOUBLE;
+            // promotion of int to double
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
+            promoteLhs();
+            type = Type.DOUBLE;
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
+            type = Type.INT;
+        } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
+            type = Type.DOUBLE;
+        } else {
+            type = Type.ANY;
+            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for -");
+        }
+        return this;
+    }
+
+    /**
+     * Generating code for the - operation involves generating code for the two
+     * operands, and then the subtraction instruction.
+     * 
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+
+    public void codegen(CLEmitter output) {
+        lhs.codegen(output);
+        rhs.codegen(output);
+        if (type == Type.INT) {
+            output.addNoArgInstruction(ISUB);
+        } else if (type == Type.DOUBLE) {
+            output.addNoArgInstruction(DSUB);
+        }
+    }
+
+}
+
+class JDivideOp extends JBinaryExpression {
+    /**
+     * Constructs an AST node for a subtraction expression given its line number,
+     * and the lhs and rhs operands.
+     *
+     * @param line line in which the subtraction expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+
+    public JDivideOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, "/", lhs, rhs);
+    }
+
+    /**
+     * Analyzing the / operation involves analyzing its operands, checking types,
+     * and determining the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
+    public JExpression analyze(Context context) {
+        lhs = (JExpression) lhs.analyze(context);
+        rhs = (JExpression) rhs.analyze(context);
+
+        // promotion of int to double
+        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
+            promoteRhs();
+            type = Type.DOUBLE;
+            // promotion of int to double
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
+            promoteLhs();
+            type = Type.DOUBLE;
+        } else if (lhs.type() == Type.INT || rhs.type() == Type.INT) {
+            lhs.type().mustMatchExpected(line(), Type.INT);
+            rhs.type().mustMatchExpected(line(), Type.INT);
+            type = Type.INT;
+        } else if (lhs.type() == Type.DOUBLE || rhs.type() == Type.DOUBLE) {
+            lhs.type().mustMatchExpected(line(), Type.DOUBLE);
+            rhs.type().mustMatchExpected(line(), Type.DOUBLE);
+            type = Type.DOUBLE;
+        } else {
+            type = Type.ANY;
+            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for /");
+        }
+
+        return this;
+    }
+
+    /**
+     * Generating code for the / operation involves generating code for the two
+     * operands, and then the subtraction instruction.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+
+    public void codegen(CLEmitter output) {
+        lhs.codegen(output);
+        rhs.codegen(output);
+        if (type == Type.INT) {
+            output.addNoArgInstruction(IDIV);
+        } else if (type == Type.DOUBLE) {
+            output.addNoArgInstruction(DDIV);
+        }
+    }
+}
+
+class JUShiftOp extends JBinaryExpression {
+    /**
+     * Constructs an AST node for a subtraction expression given its line number,
+     * and the lhs and rhs operands.
+     *
+     * @param line line in which the subtraction expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JUShiftOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, ">>>", lhs, rhs);
+    }
+
+    /**
+     * Analyzing the - operation involves analyzing its operands, checking types,
+     * and determining the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
     public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
@@ -183,59 +339,14 @@ class JSubtractOp extends JBinaryExpression {
     /**
      * Generating code for the - operation involves generating code for the two
      * operands, and then the subtraction instruction.
-     * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
-
     public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
-        output.addNoArgInstruction(ISUB);
-    }
-
-}
-
-class JDivideOp extends JBinaryExpression {
-    public JDivideOp(int line, JExpression lhs, JExpression rhs) {
-        super(line, "/", lhs, rhs);
-    }
-
-    public JExpression analyze(Context context) {
-        lhs = (JExpression) lhs.analyze(context);
-        rhs = (JExpression) rhs.analyze(context);
-        lhs.type().mustMatchExpected(line(), Type.INT);
-        rhs.type().mustMatchExpected(line(), Type.INT);
-        type = Type.INT;
-        return this;
-    }
-
-    public void codegen(CLEmitter output) {
-        lhs.codegen(output);
-        rhs.codegen(output);
-        output.addNoArgInstruction(IDIV);
-    }
-}
-
-class JUShiftOp extends JBinaryExpression {
-    public JUShiftOp(int line, JExpression lhs, JExpression rhs) {
-	super(line, ">>>", lhs, rhs);
-    }
-
-    public JExpression analyze (Context context) {
-	lhs = (JExpression) lhs.analyze(context);
-	rhs = (JExpression) rhs.analyze(context);
-	lhs.type().mustMatchExpected(line(), Type.INT);
-	rhs.type().mustMatchExpected(line(), Type.INT);
-	type = Type.INT;
-	return this;
-    }
-
-    public void codegen(CLEmitter output) {
-	lhs.codegen(output);
-	rhs.codegen(output);
-	output.addNoArgInstruction(IUSHR);
+        output.addNoArgInstruction(IUSHR);
     }
 }
 
@@ -246,16 +357,13 @@ class JUShiftOp extends JBinaryExpression {
 class JMultiplyOp extends JBinaryExpression {
 
     /**
-     * Constructs an AST for a multiplication expression given its line number,
-     * and the lhs and rhs operands.
+     * Constructs an AST for a multiplication expression given its line number, and
+     * the lhs and rhs operands.
      * 
-     * @param line
-     *            line in which the multiplication expression occurs in the
-     *            source file.
-     * @param lhs
-     *            the lhs operand.
-     * @param rhs
-     *            the rhs operand.
+     * @param line line in which the multiplication expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
      */
 
     public JMultiplyOp(int line, JExpression lhs, JExpression rhs) {
@@ -263,20 +371,34 @@ class JMultiplyOp extends JBinaryExpression {
     }
 
     /**
-     * Analyzing the * operation involves analyzing its operands, checking
-     * types, and determining the result type.
+     * Analyzing the * operation involves analyzing its operands, checking types,
+     * and determining the result type.
      * 
-     * @param context
-     *            context in which names are resolved.
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
 
     public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
-        lhs.type().mustMatchExpected(line(), Type.INT);
-        rhs.type().mustMatchExpected(line(), Type.INT);
-        type = Type.INT;
+
+        // promotion of int to double
+        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
+            promoteRhs();
+            type = Type.DOUBLE;
+            // promotion of int to double
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
+            promoteLhs();
+            type = Type.DOUBLE;
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
+            type = Type.INT;
+        } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
+            type = Type.DOUBLE;
+        } else {
+            type = Type.ANY;
+            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for *");
+        }
+
         return this;
     }
 
@@ -284,15 +406,18 @@ class JMultiplyOp extends JBinaryExpression {
      * Generating code for the * operation involves generating code for the two
      * operands, and then the multiplication instruction.
      * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
 
     public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
-        output.addNoArgInstruction(IMUL);
+        if (type == Type.INT) {
+            output.addNoArgInstruction(IMUL);
+        } else if (type == Type.DOUBLE) {
+            output.addNoArgInstruction(DMUL);
+        }
     }
 
 }
@@ -310,8 +435,8 @@ class JBitwiseOrOp extends JBinaryExpression {
 
         lhs.type().mustMatchExpected(line(), Type.INT);
         rhs.type().mustMatchExpected(line(), Type.INT);
-
         type = Type.INT;
+
         return this;
     }
 
@@ -322,36 +447,94 @@ class JBitwiseOrOp extends JBinaryExpression {
     }
 }
 
-class JRemainderOp extends JBinaryExpression{
+class JRemainderOp extends JBinaryExpression {
 
-    public JRemainderOp(int line, JExpression lhs, JExpression rhs) { super(line, "%", lhs, rhs);}
+    /**
+     * Constructs an AST node for a subtraction expression given its line number,
+     * and the lhs and rhs operands.
+     *
+     * @param line line in which the subtraction expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JRemainderOp(int line, JExpression lhs, JExpression rhs) {
+        super(line, "%", lhs, rhs);
+    }
 
-    public JExpression analyze (Context context) {
+
+    /**
+     * Analyzing the % operation involves analyzing its operands, checking types,
+     * and determining the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
+    public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
+        // promotion of int to double
+        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
+            promoteRhs();
+            type = Type.DOUBLE;
+            // promotion of int to double
+        } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
+            promoteLhs();
+            type = Type.DOUBLE;
+        } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
+            type = Type.DOUBLE;
+        } else {
+            lhs.type().mustMatchExpected(line(), Type.INT);
+            rhs.type().mustMatchExpected(line(), Type.INT);
 
-        lhs.type().mustMatchExpected(line(), Type.INT);
-        rhs.type().mustMatchExpected(line(), Type.INT);
-
-        type = Type.INT;
+            type = Type.INT;
+        }
 
         return this;
     }
 
-    public void codegen (CLEmitter output) {
+    /**
+     * Generating code for the % operation involves generating code for the two
+     * operands, and then the multiplication instruction.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+
+    public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
-        output.addNoArgInstruction(IREM);
+        if (type == Type.INT) {
+            output.addNoArgInstruction(IREM);
+        } else if (type == Type.DOUBLE) {
+            output.addNoArgInstruction(DREM);
+        }
     }
 }
 
-class JShiftLeftOp extends JBinaryExpression{
+class JShiftLeftOp extends JBinaryExpression {
 
-    public JShiftLeftOp(int line, JExpression lhs, JExpression rhs){
+    /**
+     * Constructs an AST node for a subtraction expression given its line number,
+     * and the lhs and rhs operands.
+     *
+     * @param line line in which the subtraction expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JShiftLeftOp(int line, JExpression lhs, JExpression rhs) {
         super(line, "<<", lhs, rhs);
     }
 
-    public JExpression analyze (Context context) {
+    /**
+     * Analyzing the << operation involves analyzing its operands, checking types,
+     * and determining the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
+    public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
 
@@ -362,20 +545,43 @@ class JShiftLeftOp extends JBinaryExpression{
         return this;
     }
 
-    public void codegen(CLEmitter output){
+    /**
+     * Generating code for the << operation involves generating code for the two
+     * operands, and then the multiplication instruction.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+    public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
         output.addNoArgInstruction(ISHL);
     }
 }
 
-class JShiftRightOp extends JBinaryExpression{
+class JShiftRightOp extends JBinaryExpression {
 
-    public JShiftRightOp(int line, JExpression lhs, JExpression rhs){
+    /**
+     * Constructs an AST node for a subtraction expression given its line number,
+     * and the lhs and rhs operands.
+     *
+     * @param line line in which the subtraction expression occurs in the source
+     *             file.
+     * @param lhs  the lhs operand.
+     * @param rhs  the rhs operand.
+     */
+    public JShiftRightOp(int line, JExpression lhs, JExpression rhs) {
         super(line, ">>", lhs, rhs);
     }
 
-    public JExpression analyze(Context context){
+    /**
+     * Analyzing the >> operation involves analyzing its operands, checking types,
+     * and determining the result type.
+     *
+     * @param context context in which names are resolved.
+     * @return the analyzed (and possibly rewritten) AST subtree.
+     */
+    public JExpression analyze(Context context) {
 
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
@@ -387,7 +593,14 @@ class JShiftRightOp extends JBinaryExpression{
         return this;
     }
 
-    public void codegen(CLEmitter output){
+    /**
+     * Generating code for the >> operation involves generating code for the two
+     * operands, and then the multiplication instruction.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
+     */
+    public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
         output.addNoArgInstruction(ISHR);
@@ -399,7 +612,7 @@ class JBitwiseAndOp extends JBinaryExpression {
         super(line, "&", lhs, rhs);
     }
 
-    public JExpression analyze (Context context) {
+    public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
         lhs.type().mustMatchExpected(line(), Type.INT);
@@ -408,7 +621,7 @@ class JBitwiseAndOp extends JBinaryExpression {
         return this;
     }
 
-    public void codegen (CLEmitter output) { 
+    public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
         output.addNoArgInstruction(IAND);
@@ -420,7 +633,7 @@ class JExclusiveOrOp extends JBinaryExpression {
         super(line, "^", lhs, rhs);
     }
 
-    public JExpression analyze (Context context) {
+    public JExpression analyze(Context context) {
         lhs = (JExpression) lhs.analyze(context);
         rhs = (JExpression) rhs.analyze(context);
         lhs.type().mustMatchExpected(line(), Type.INT);
@@ -429,7 +642,7 @@ class JExclusiveOrOp extends JBinaryExpression {
         return this;
     }
 
-    public void codegen(CLEmitter output){
+    public void codegen(CLEmitter output) {
         lhs.codegen(output);
         rhs.codegen(output);
         output.addNoArgInstruction(IXOR);

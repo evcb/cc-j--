@@ -1,3 +1,4 @@
+# Diverse files
 .vscode
 .idea
 out
@@ -8,7 +9,19 @@ java
 **/.DS_Store
 .vscode
 tmp
-lib/j--.jar
-lib/spim.jar
+
+# Auto generated files
 **/*.iml
 **/*.class
+
+src/jminusminus/JavaCCParser.java
+src/jminusminus/Token.java
+src/jminusminus/TokenMgrError.java
+src/jminusminus/ParseException.java
+src/jminusminus/JavaCCParserTokenManager.java
+src/jminusminus/JavaCCParserConstants.java
+src/jminusminus/SimpleCharStream.java
+
+lib/j--.jar
+lib/spim.jar
+j--/classes/*

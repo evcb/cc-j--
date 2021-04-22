@@ -4,6 +4,10 @@ package jminusminus;
 
 import java.util.ArrayList;
 import static jminusminus.CLConstants.*;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
 
 /**
  * A class declaration has a list of modifiers, a name, a super class and a
@@ -14,7 +18,7 @@ import static jminusminus.CLConstants.*;
  * @see ClassContext
  */
 
-class JClassDeclaration extends JAST implements JTypeDecl, JMember {
+class JClassDeclaration extends JAST implements JTypeDecl {
 
     /** Class modifiers. */
     private ArrayList<String> mods;
@@ -29,7 +33,10 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
     private Type superType;
 
     /** Interfaces implemented */
-    private ArrayList<TypeName> interfacesImplemented;
+    private ArrayList<Type> interfacesImplemented;
+
+    /** Interfaces implemented jvm names */
+    private ArrayList<String> interfacesImplementedNames;
 
     /** This class type. */
     private Type thisType;
@@ -46,6 +53,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
     /** Static (class) fields of this class. */
     private ArrayList<JFieldDeclaration> staticFieldInitializations;
 
+
     /**
      * Constructs an AST node for a class declaration given the line number, list
      * of class modifiers, name of the class, its super class type, and the
@@ -59,12 +67,14 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      *            class name.
      * @param superType
      *            super class type.
+     * @param implementations
+     *             class implemented interfaces.
      * @param classBlock
      *            class block.
      */
 
     public JClassDeclaration(int line, ArrayList<String> mods, String name,
-                             Type superType, ArrayList<TypeName> implementations, ArrayList<JMember> classBlock) {
+                             Type superType, ArrayList<Type> implementations, ArrayList<JMember> classBlock) {
         super(line);
         this.mods = mods;
         this.name = name;
@@ -74,6 +84,9 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
         hasExplicitConstructor = false;
         instanceFieldInitializations = new ArrayList<JFieldDeclaration>();
         staticFieldInitializations = new ArrayList<JFieldDeclaration>();
+        this.interfacesImplementedNames = new ArrayList<String>();
+
+
     }
 
     /**
@@ -129,7 +142,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
                 : JAST.compilationUnit.packageName() + "/" + name;
         CLEmitter partial = new CLEmitter(false);
         partial.addClass(mods, qualifiedName, Type.OBJECT.jvmName(), null,
-                false); // Object for superClass, just for now
+                false); // Object for superClass, just for now, also null for implemented interfaces for now
         thisType = Type.typeFor(partial.toClass());
         context.addType(line, thisType);
     }
@@ -138,7 +151,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      * Pre-analyzes the members of this declaration in the parent context.
      * Pre-analysis extends to the member headers (including method headers) but
      * not into the bodies.
-     *
+     *s
      * @param context
      *            the parent (compilation unit) context.
      */
@@ -146,7 +159,6 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
     @Override
     public void preAnalyze(Context context) {
         //TODO: complete method for interfaces
-
         // Construct a class context
         this.context = new ClassContext(this, context);
 
@@ -162,13 +174,33 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
                     "Cannot extend a final type: %s", superType.toString());
         }
 
+        for (int i=0; i<interfacesImplemented.size(); i++){
+            interfacesImplemented.set(i, interfacesImplemented.get(i).resolve(this.context));
+        }
+        // Creating a partial class in memory can result in a
+        // java.lang.VerifyError if the semantics below are
+        // violated, so we can't defer these checks to analyze()
+        for (Type interfaceImplemented: interfacesImplemented){
+            thisType.checkAccess(line, interfaceImplemented);
+            if(interfaceImplemented.isFinal()){
+                JAST.compilationUnit.reportSemanticError(line,
+                        "Cannot extend a final type: %s", interfaceImplemented.toString());
+            }
+        }
+
+        for (Type interfaceImplemented : interfacesImplemented) {
+            interfacesImplementedNames.add(interfaceImplemented.jvmName());
+        }
+
+
+
         // Create the (partial) class
         CLEmitter partial = new CLEmitter(false);
 
         // Add the class header to the partial class
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        partial.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        partial.addClass(mods, qualifiedName, superType.jvmName(), interfacesImplementedNames, false);
 
         // Pre-analyze the members and add them to the partial
         // class
@@ -179,6 +211,12 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
                 hasExplicitConstructor = true;
             }
         }
+
+        //check that the methods of the interface have been implemented
+        if(!interfacesImplemented.isEmpty() && !mods.contains(TokenKind.ABSTRACT.image())) {
+            checkInterfaceMethodsImplemented();
+        }
+
 
         // Add the implicit empty constructor?
         if (!hasExplicitConstructor) {
@@ -194,12 +232,33 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
         }
     }
 
-    @Override
-    public void preAnalyze(Context context, CLEmitter clEmitter) {
-        //TODO: complete method for interface
+    /**
+     * Checks whether the methods in the interfaces implemented are defined in the class
+     */
 
+    public void checkInterfaceMethodsImplemented(){
+        //get class methods
+        HashSet<String> classMethods = new HashSet<>();
+        for(JMember classMember : classBlock){
+            if(classMember instanceof JMethodDeclaration){
+                classMethods.add(((JMethodDeclaration) classMember).methodDeclString());
+            }
+        }
+
+        HashSet<String> interfaceMethods = new HashSet<>();
+        String methods = "";
+        for(Type intImpl: interfacesImplemented){
+            ArrayList<Method> intMethods = intImpl.abstractMethods();
+            for (Method method : intMethods) {
+                interfaceMethods.add(method.methodDeclString());
+            }
+        }
+
+        if(!classMethods.containsAll(interfaceMethods)){
+            JAST.compilationUnit.reportSemanticError(line,
+                    "Class must define all methods declared in the implemented interfaces");
+        }
     }
-
 
     /**
      * Performs semantic analysis on the class and all of its members within the
@@ -253,12 +312,11 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      */
 
     public void codegen(CLEmitter output) {
-        //TODO: complete method for interfaces
 
         // The class header
         String qualifiedName = JAST.compilationUnit.packageName() == "" ? name
                 : JAST.compilationUnit.packageName() + "/" + name;
-        output.addClass(mods, qualifiedName, superType.jvmName(), null, false);
+        output.addClass(mods, qualifiedName, superType.jvmName(), interfacesImplementedNames, false);
 
         // The implicit empty constructor?
         if (!hasExplicitConstructor) {
@@ -267,13 +325,16 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
 
         // The members
         for (JMember member : classBlock) {
-            ((JAST) member).codegen(output);
+            if (!(member instanceof JInitializationBlock)) {
+                ((JAST) member).codegen(output);
+            }
         }
 
         // Generate a class initialization method?
         if (staticFieldInitializations.size() > 0) {
             codegenClassInit(output);
         }
+
     }
 
     /**
@@ -299,7 +360,7 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
         if (interfacesImplemented != null) {
             p.println("<Implements>");
             p.indentRight();
-            for (TypeName interfaceImplemented : interfacesImplemented) {
+            for (Type interfaceImplemented : interfacesImplemented) {
                 p.printf("<Implements name=\"%s\"/>\n", interfaceImplemented.toString());
             }
             p.indentLeft();
@@ -328,8 +389,6 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      */
 
     private void codegenPartialImplicitConstructor(CLEmitter partial) {
-        //TODO: complete method for interfaces
-
         // Invoke super constructor
         ArrayList<String> mods = new ArrayList<String>();
         mods.add("public");
@@ -352,8 +411,6 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
      */
 
     private void codegenImplicitConstructor(CLEmitter output) {
-        //TODO: complete method for interfaces
-
         // Invoke super constructor
         ArrayList<String> mods = new ArrayList<String>();
         mods.add("public");
@@ -366,6 +423,15 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
         // code for them
         for (JFieldDeclaration instanceField : instanceFieldInitializations) {
             instanceField.codegenInitializations(output);
+        }
+        
+        // Instance block before return is added
+        for (JMember member : classBlock) {
+            if (member instanceof JInitializationBlock) {
+                if (!((JInitializationBlock) member).isStatic) {
+                    ((JInitializationBlock) member).codegen(output);
+                }
+            }
         }
 
         // Return
@@ -391,6 +457,15 @@ class JClassDeclaration extends JAST implements JTypeDecl, JMember {
         // for them
         for (JFieldDeclaration staticField : staticFieldInitializations) {
             staticField.codegenInitializations(output);
+        }
+
+        // Static block before the construction
+        for (JMember member : classBlock) {
+            if (member instanceof JInitializationBlock) {
+                if (((JInitializationBlock) member).isStatic) {
+                    ((JInitializationBlock) member).codegen(output);
+                }
+            }
         }
 
         // Return

@@ -51,6 +51,9 @@ class Type {
     /** java.lang.Boolean. */
     public final static Type BOXED_BOOLEAN = typeFor(java.lang.Boolean.class);
 
+    /** java.lang.Double. */
+    public final static Type BOXED_DOUBLE = typeFor(java.lang.Double.class);
+
     /** The type java.lang.String. */
     public static Type STRING = typeFor(java.lang.String.class);
 
@@ -543,6 +546,43 @@ class Type {
             }
             cls = cls.getSuperclass();
         }
+
+        //on a cherché la class et sa super class, on a pas trouvé,
+        //donc on va aller regarder dans les interfaces
+        Class<?>[] superInterfaces = classRep.getInterfaces();
+        //pour chaque interface on appelle la méthode field in interface
+        for(Class<?> superInterface : superInterfaces){
+            if(fieldInInterface(name, superInterface)!=null){
+                return fieldInInterface(name, superInterface);
+            }
+        }
+        return null;
+    }
+
+    //on recois ici une interface et un nom de champs
+    public Field fieldInInterface(String name, Class<?> cls){
+        //on prend l'interface
+        Class<?> startCls = cls;
+        while (cls != null) {
+            //on cherche dans l'interface
+            java.lang.reflect.Field[] fields = cls.getDeclaredFields();
+            for (java.lang.reflect.Field field : fields) {
+                if (field.getName().equals(name)) {
+                    return new Field(field);
+                }
+            }
+            //on cherche dans sa super class
+            cls = cls.getSuperclass();
+        }
+        //si on a pas trouvé dans l'interface et dans sa super class
+        //on va regarder dans les interfaces qu'extend les interface
+        Class<?>[] superInterfaces = startCls.getInterfaces();
+        for(Class<?> superInterface : superInterfaces){
+            if(fieldInInterface(name, superInterface)!=null){
+                return fieldInInterface(name, superInterface);
+            }
+        }
+
         return null;
     }
 

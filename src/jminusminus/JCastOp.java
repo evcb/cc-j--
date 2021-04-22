@@ -128,12 +128,14 @@ class Conversions {
 
         put(Type.CHAR, Type.INT, Converter.Identity);
         put(Type.INT, Type.CHAR, new I2C());
+        put(Type.INT, Type.DOUBLE, new I2D());
 
         // Boxing
         put(Type.CHAR, Type.BOXED_CHAR, new Boxing(Type.CHAR, Type.BOXED_CHAR));
         put(Type.INT, Type.BOXED_INT, new Boxing(Type.INT, Type.BOXED_INT));
         put(Type.BOOLEAN, Type.BOXED_BOOLEAN, new Boxing(Type.BOOLEAN,
                 Type.BOXED_BOOLEAN));
+        put(Type.DOUBLE, Type.BOXED_DOUBLE, new Boxing(Type.DOUBLE, Type.BOXED_DOUBLE));
 
         // Un-boxing
         put(Type.BOXED_CHAR, Type.CHAR, new UnBoxing(Type.BOXED_CHAR,
@@ -142,6 +144,7 @@ class Conversions {
                 "intValue"));
         put(Type.BOXED_BOOLEAN, Type.BOOLEAN, new UnBoxing(Type.BOXED_BOOLEAN,
                 Type.BOOLEAN, "booleanValue"));
+        put(Type.BOXED_DOUBLE, Type.DOUBLE, new UnBoxing(Type.BOXED_DOUBLE, Type.DOUBLE, "doubleValue"));
     }
 
     /**
@@ -344,6 +347,22 @@ class I2C implements Converter {
 
     public void codegen(CLEmitter output) {
         output.addNoArgInstruction(I2C);
+    }
+
+}
+
+/**
+ * Converting from an int to a double requires an I2D instruction.
+ */
+
+class I2D implements Converter {
+
+    /**
+     * {@inheritDoc}
+     */
+
+    public void codegen(CLEmitter output) {
+        output.addNoArgInstruction(I2D);
     }
 
 }

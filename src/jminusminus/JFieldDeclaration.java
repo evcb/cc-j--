@@ -19,6 +19,9 @@ class JFieldDeclaration extends JAST implements JMember {
     /** Variable initializations. */
     private ArrayList<JStatement> initializations;
 
+    /** Is this field in an abstract class? */
+    private boolean isInAbstract;
+
     /**
      * Constructs an AST node for a field declaration given the line number,
      * modifiers, and the variable declarators.
@@ -38,6 +41,10 @@ class JFieldDeclaration extends JAST implements JMember {
         this.mods = mods;
         this.decls = decls;
         initializations = new ArrayList<JStatement>();
+    }
+
+    public ArrayList<JVariableDeclarator> getDecls() {
+        return decls;
     }
 
     /**
@@ -86,6 +93,10 @@ class JFieldDeclaration extends JAST implements JMember {
 
     public JFieldDeclaration analyze(Context context) {
         for (JVariableDeclarator decl : decls) {
+            if(isInAbstract && decl.initializer()==null){
+                JAST.compilationUnit.reportSemanticError(line(),
+                        "Field in interface must be intialized");
+            }
             // All initializations must be turned into assignment
             // statements and analyzed
             if (decl.initializer() != null) {
@@ -158,6 +169,26 @@ class JFieldDeclaration extends JAST implements JMember {
         }
         p.indentLeft();
         p.println("</JFieldDeclaration>");
+    }
+
+
+    /**
+     * Adds the modifiers to make this method suitable for an interface
+     *
+     */
+
+    public void makeForInterface(){
+        isInAbstract = true;
+        if(!mods.contains(TokenKind.PUBLIC.image())) {
+            mods.add(TokenKind.PUBLIC.image());
+        }
+        if(!mods.contains(TokenKind.STATIC.image())){
+            mods.add(TokenKind.STATIC.image());
+        }
+        if(!mods.contains(TokenKind.FINAL.image())){
+            mods.add(TokenKind.FINAL.image());
+        }
+
     }
 
 }

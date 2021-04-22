@@ -859,22 +859,28 @@ public class CLEmitter {
      * Adds a class or interface to the class file.
      * <p>
      * This method instantiates a class file representation in memory, so this
-     * method <em>must</em> be called prior to methods that add information (fields,
-     * methods, instructions, etc.) to the class.
-     *
-     * @param accessFlags     the access flags for the class or interface.
-     * @param thisClass       fully qualified name of the class or interface in
-     *                        internal form.
-     * @param superClass      fully qualified name of the parent class in internal
-     *                        form.
-     * @param superInterfaces list of direct super interfaces of this class or
-     *                        interface as fully qualified names in internal form.
-     * @param isSynthetic     whether the class or interface is synthetic.
+     * method <em>must</em> be called prior to methods that add information
+     * (fields, methods, instructions, etc.) to the class.
+     * 
+     * @param accessFlags
+     *            the access flags for the class or interface.
+     * @param thisClass
+     *            fully qualified name of the class or interface in internal
+     *            form.
+     * @param superClass
+     *            fully qualified name of the parent class in internal form.
+     * @param superInterfaces
+     *            list of direct super interfaces of this class or interface as
+     *            fully qualified names in internal form.
+     * @param isSynthetic
+     *            whether the class or interface is synthetic.
      */
 
-    public void addClass(ArrayList<String> accessFlags, String thisClass, String superClass,
-            ArrayList<String> superInterfaces, boolean isSynthetic) {
-        clFile = new CLFile();
+    public void addClass(ArrayList<String> accessFlags, String thisClass,
+                         String superClass, ArrayList<String> superInterfaces,
+                                            boolean isSynthetic) {
+
+        clFile       = new CLFile();
         constantPool = new CLConstantPool();
         interfaces = new ArrayList<Integer>();
         fields = new ArrayList<CLFieldInfo>();
@@ -1344,6 +1350,7 @@ public class CLEmitter {
             if (!validMethodDescriptor(type)) {
                 reportEmitterError("%s: '%s' is not a valid type descriptor for " + "method", eCurrentMethod, type);
             }
+            //reportEmitterError("what opcode : %s", opcode);
             if (opcode == INVOKEINTERFACE) {
                 index = constantPool.constantInterfaceMethodRefInfo(target, name, type);
             } else {

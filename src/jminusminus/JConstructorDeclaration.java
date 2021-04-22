@@ -88,7 +88,13 @@ class JConstructorDeclaration extends JMethodDeclaration {
         // Declare the parameters. We consider a formal parameter
         // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
-            LocalVariableDefn defn = new LocalVariableDefn(param.type(), this.context.nextOffset());
+            int currentOffest = this.context.nextOffset();
+            if(param.type()== Type.DOUBLE){
+                //increase the offset because a double occupies 2 words
+                this.context.nextOffset();
+            }
+            //we give the offset upon entering the method
+            LocalVariableDefn defn = new LocalVariableDefn(param.type(), currentOffest);
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }
