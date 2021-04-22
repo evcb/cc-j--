@@ -7,9 +7,7 @@ import static jminusminus.CLConstants.*;
 /**
  * This abstract base class is the AST node for an assignment statement.
  */
-
 abstract class JAssignment extends JBinaryExpression {
-
     /**
      * Constructs an AST node for an assignment operation.
      *
@@ -19,20 +17,16 @@ abstract class JAssignment extends JBinaryExpression {
      * @param lhs      the lhs operand.
      * @param rhs      the rhs operand.
      */
-
     public JAssignment(int line, String operator, JExpression lhs, JExpression rhs) {
         super(line, operator, lhs, rhs);
     }
-
 }
 
 /**
  * The AST node for an assignment (=) expression. The = operator has two
  * operands: a lhs and a rhs.
  */
-
 class JAssignOp extends JAssignment {
-
     /**
      * Constructs the AST node for an assignment (=) expression given the lhs and
      * rhs operands.
@@ -42,7 +36,6 @@ class JAssignOp extends JAssignment {
      * @param lhs  lhs operand.
      * @param rhs  rhs operand.
      */
-
     public JAssignOp(int line, JExpression lhs, JExpression rhs) {
         super(line, "=", lhs, rhs);
     }
@@ -54,13 +47,12 @@ class JAssignOp extends JAssignment {
      * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
-
     public JExpression analyze(Context context) {
-        if (!(lhs instanceof JLhs)) {
+        if (!(lhs instanceof JLhs))
             JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
-        } else {
+        else
             lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
-        }
+
         rhs = (JExpression) rhs.analyze(context);
         // promotion of int to double
         if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
@@ -72,11 +64,12 @@ class JAssignOp extends JAssignment {
         }
         if (lhs instanceof JVariable) {
             IDefn defn = ((JVariable) lhs).iDefn();
-            if (defn != null) {
+
+            if (defn != null)
                 // Local variable; consider it to be initialized now.
                 ((LocalVariableDefn) defn).initialize();
-            }
         }
+
         return this;
     }
 
@@ -89,17 +82,16 @@ class JAssignOp extends JAssignment {
      * @param output the code emitter (basically an abstraction for producing the
      *               .class file).
      */
-
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
         rhs.codegen(output);
-        if (!isStatementExpression) {
+
+        if (!isStatementExpression)
             // Generate code to leave the Rvalue atop stack
             ((JLhs) lhs).codegenDuplicateRvalue(output);
-        }
+
         ((JLhs) lhs).codegenStore(output);
     }
-
 }
 
 /**
@@ -129,11 +121,13 @@ class JPlusAssignOp extends JAssignment {
     public JExpression analyze(Context context) {
         if (!(lhs instanceof JLhs)) {
             JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
+
             return this;
-        } else {
+        } else
             lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
-        }
+
         rhs = (JExpression) rhs.analyze(context);
+
         // promotion of int to double
         if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
             promoteRhs();
@@ -152,6 +146,7 @@ class JPlusAssignOp extends JAssignment {
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for +=: " + lhs.type());
         }
+
         return this;
     }
 
@@ -166,9 +161,10 @@ class JPlusAssignOp extends JAssignment {
      */
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
-        if (lhs.type().equals(Type.STRING)) {
+
+        if (lhs.type().equals(Type.STRING))
             rhs.codegen(output);
-        } else if (lhs.type().equals(Type.INT)) {
+        else if (lhs.type().equals(Type.INT)) {
             ((JLhs) lhs).codegenLoadLhsRvalue(output);
             rhs.codegen(output);
             output.addNoArgInstruction(IADD);
@@ -177,10 +173,11 @@ class JPlusAssignOp extends JAssignment {
             rhs.codegen(output);
             output.addNoArgInstruction(DADD);
         }
-        if (!isStatementExpression) {
+
+        if (!isStatementExpression)
             // Generate code to leave the r-value atop stack
             ((JLhs) lhs).codegenDuplicateRvalue(output);
-        }
+
         ((JLhs) lhs).codegenStore(output);
     }
 }
@@ -240,8 +237,8 @@ class JMinusAssignOp extends JAssignment {
      */
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
-
         ((JLhs) lhs).codegenLoadLhsRvalue(output);
+
         rhs.codegen(output);
         if (type == Type.INT) {
             output.addNoArgInstruction(ISUB);
@@ -311,8 +308,8 @@ class JStarAssignOp extends JAssignment {
      */
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
-
         ((JLhs) lhs).codegenLoadLhsRvalue(output);
+
         rhs.codegen(output);
         if (type == Type.INT) {
             output.addNoArgInstruction(IMUL);
@@ -382,8 +379,8 @@ class JSlashAssignOp extends JAssignment {
      */
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
-
         ((JLhs) lhs).codegenLoadLhsRvalue(output);
+
         rhs.codegen(output);
         if (type == Type.INT) {
             output.addNoArgInstruction(IDIV);
@@ -454,6 +451,7 @@ class JModAssignOp extends JAssignment {
     public void codegen(CLEmitter output) {
         ((JLhs) lhs).codegenLoadLhsLvalue(output);
         ((JLhs) lhs).codegenLoadLhsRvalue(output);
+
         rhs.codegen(output);
         if (type == Type.INT) {
             output.addNoArgInstruction(IREM);

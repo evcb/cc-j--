@@ -27,6 +27,7 @@ class JMethodDeclaration extends JAST implements JMember {
 
     /** The exception types. */
     protected ArrayList<Type> exceptionTypes;
+    protected ArrayList<String> exceptionTypesNames;
 
     /** Method body. */
     protected JBlock body;
@@ -47,7 +48,7 @@ class JMethodDeclaration extends JAST implements JMember {
     protected boolean isPrivate;
 
     /** Does this method throws ? */
-    protected boolean isThrow;
+    protected boolean isThrows;
 
     /**
      * Constructs an AST node for a method declaration given the line number, method
@@ -64,9 +65,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JMethodDeclaration(int line, ArrayList<String> mods, String name, Type returnType,
-            ArrayList<JFormalParameter> params, ArrayList<Type> exceptionTypes, JBlock body)
-
-    {
+            ArrayList<JFormalParameter> params, ArrayList<Type> exceptionTypes, JBlock body) {
         super(line);
         this.mods = mods;
         this.name = name;
@@ -77,7 +76,8 @@ class JMethodDeclaration extends JAST implements JMember {
         this.isAbstract = mods.contains("abstract");
         this.isStatic = mods.contains("static");
         this.isPrivate = mods.contains("private");
-        this.isThrow = !exceptionTypes.isEmpty();
+        isThrows = exceptionTypes == null || !exceptionTypes.isEmpty();
+        exceptionTypesNames = new ArrayList<String>();
     }
 
     public JBlock getBody() {
@@ -100,6 +100,10 @@ class JMethodDeclaration extends JAST implements JMember {
         for (JFormalParameter param : params) {
             param.setType(param.type().resolve(context));
         }
+
+        if (exceptionTypes != null)
+            for (int i = 0; i < exceptionTypes.size(); i++)
+                exceptionTypes.set(i, exceptionTypes.get(i).resolve(context));
 
         // Resolve return type
         returnType = returnType.resolve(context);
@@ -142,7 +146,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JAST analyze(Context context) {
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType);
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -162,12 +166,31 @@ class JMethodDeclaration extends JAST implements JMember {
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }
-        if (body != null) {
-            body = body.analyze(this.context);
-            if (returnType != Type.VOID && !methodContext.methodHasReturn()) {
-                JAST.compilationUnit.reportSemanticError(line(), "Non-void method must have a return statement");
+
+        // declared all thrown exceptions types.
+        // thrown exceptions types do not need to be catched in local scope, we dedicate
+        // that to higher scopes
+        if (exceptionTypes != null) {
+            int j = exceptionTypes.size();
+
+            for (int i = 0; i < exceptionTypes.size(); i++) {
+                if (i >= j)
+                    break;
+
+                if (Throwable.class.isAssignableFrom(exceptionTypes.get(i).classRep()))
+                    this.context.addThownType(exceptionTypes.get(i));
+                else
+                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
             }
         }
+
+        if (body != null) {
+            body = body.analyze(this.context);
+
+            if (returnType != Type.VOID && !methodContext.methodHasReturn())
+                JAST.compilationUnit.reportSemanticError(line(), "Non-void method must have a return statement");
+        }
+
         return this;
     }
     
@@ -181,9 +204,12 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void partialCodegen(Context context, CLEmitter partial) {
+        for (Type t : exceptionTypes)
+            exceptionTypesNames.add(t.jvmName());
+
         // Generate a method with an empty body; need a return to
         // make the class verifier happy.
-        partial.addMethod(mods, name, descriptor, null, false);
+        partial.addMethod(mods, name, descriptor, exceptionTypesNames, false);
 
         // Add implicit RETURN
         if (returnType == Type.VOID) {
@@ -209,7 +235,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void codegen(CLEmitter output) {
-        output.addMethod(mods, name, descriptor, null, false);
+        output.addMethod(mods, name, descriptor, exceptionTypesNames, false);
         if (body != null) {
             body.codegen(output);
         }
@@ -250,7 +276,7 @@ class JMethodDeclaration extends JAST implements JMember {
             p.println("</FormalParameters>");
         }
 
-        if (isThrow) {
+        if (!exceptionTypes.isEmpty()) {
             p.println("<Throws>");
 
             p.indentRight();

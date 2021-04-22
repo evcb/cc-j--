@@ -54,9 +54,7 @@ abstract class JUnaryExpression extends JExpression {
 /**
  * The AST node for a unary negation (-) expression.
  */
-
 class JNegateOp extends JUnaryExpression {
-
     /**
      * Constructs an AST node for a negation expression given its line number, and
      * the operand.
@@ -135,7 +133,7 @@ class JIntPromotionOp extends JUnaryExpression {
      */
     public JExpression analyze(Context context) {
         arg = arg.analyze(context);
-        arg.type().mustMatchOneOf(line(), Type.CHAR, Type.INT);
+        arg.type().mustMatchOneOf(line(), Type.CHAR, Type.INT, Type.BOXED_INT, Type.BOXED_CHAR);
         type = Type.INT;
 
         return this;
@@ -150,6 +148,17 @@ class JIntPromotionOp extends JUnaryExpression {
      */
     public void codegen(CLEmitter output) {
         arg.codegen(output);
+
+        Conversions c = new Conversions();
+
+        if (type == Type.BOXED_INT)
+            c.get(Type.BOXED_INT, Type.INT).codegen(output); // unboxing
+        else if (type == Type.BOXED_CHAR || type == Type.CHAR) {
+            if (type == Type.BOXED_CHAR)
+                c.get(Type.BOXED_CHAR, Type.CHAR).codegen(output); // unboxing
+
+            c.get(Type.CHAR, Type.INT).codegen(output); // primitive widening
+        }
     }
 }
 
@@ -406,7 +415,6 @@ class JPostIncrementOp extends JUnaryExpression {
     }
 
     public void codegen(CLEmitter output) {
-        //TODO : complete code generation for post increment for int
     }
 
 }
@@ -537,9 +545,6 @@ class JPreDecrementOp extends JUnaryExpression {
     }
 
     public void codegen(CLEmitter output) {
-        //TODO : complete code generation for pre decrement for int
     }
 
 }
-
-

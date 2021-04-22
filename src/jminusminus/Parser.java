@@ -3,10 +3,9 @@
 package jminusminus;
 
 import java.util.ArrayList;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes.Name;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 
 import static jminusminus.TokenKind.*;
 
@@ -595,11 +594,11 @@ public class Parser {
     }
 
     private ArrayList<Type> throwsClause() {
-        ArrayList<Type> throwsTypes = new ArrayList();
+        ArrayList<Type> throwsTypes = new ArrayList<Type>();
 
         if (have(THROWS))
             do
-                throwsTypes.add(type());
+                throwsTypes.add(qualifiedIdentifier());
             while (have(COMMA));
 
         return throwsTypes;
@@ -872,7 +871,6 @@ public class Parser {
 	    
         } else if (have(THROW)) {
             JExpression expr = expression();
-
             mustBe(SEMI);
 
             return new JThrowStatement(line, expr);
@@ -928,9 +926,9 @@ public class Parser {
         int line = scanner.token().line();
         mustBe(LPAREN);
 
-        ArrayList<Type> catchTypes = new ArrayList();
+        ArrayList<TypeName> catchTypes = new ArrayList<TypeName>();
         do
-            catchTypes.add(type());
+            catchTypes.add(qualifiedIdentifier());
         while (have(BOR));
 
         mustBe(IDENTIFIER);
@@ -955,9 +953,9 @@ public class Parser {
         int line = scanner.token().line();
         JBlock tryPart = block();
 
-        ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart = new ArrayList();
+        Map<JCatchFormalParameter, JBlock> catchPart = new HashMap<JCatchFormalParameter, JBlock>();
         while (have(CATCH))
-            catchPart.add(new SimpleEntry(catchFormalParameter(), block()));
+            catchPart.put(catchFormalParameter(), block());
 
         JBlock finallyPart = null;
         if (catchPart.isEmpty()) {
