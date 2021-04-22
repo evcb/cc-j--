@@ -5,6 +5,7 @@ package jminusminus;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -72,6 +73,7 @@ class Context {
         this.classContext = classContext;
         this.compilationUnitContext = compilationUnitContext;
         this.entries = new HashMap<String, IDefn>();
+        this.exceptions = new HashSet<Type>();
     }
 
     /**
@@ -407,13 +409,17 @@ class MethodContext extends LocalContext {
     }
 
     public void addThownType(Type t) {
+        if (thrownTypes == null)
+            thrownTypes = new ArrayList<Type>();
+
         thrownTypes.add(t);
     }
 
     public boolean throwsType(Type t) {
-        for (Type exception : exceptions)
-            if (exception.isJavaAssignableFrom(t))
-                return true;
+        if (thrownTypes != null)
+            for (Type exception : exceptions)
+                if (exception.isJavaAssignableFrom(t))
+                    return true;
 
         return false;
     }
