@@ -76,6 +76,7 @@ class JConstructorDeclaration extends JMethodDeclaration {
     public JAST analyze(Context context) {
         // Record the defining class declaration.
         definingClass = (JClassDeclaration) (context.classContext().definition());
+
         MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes);
         this.context = methodContext;
 
@@ -92,12 +93,11 @@ class JConstructorDeclaration extends JMethodDeclaration {
             this.context.addEntry(param.line(), param.name(), defn);
         }
 
-        if (exceptionTypes != null)
-            for (Type t : exceptionTypes)
-                if (Throwable.class.isAssignableFrom(t.classRep()))
-                    this.context.addThownType(t);
-                else
-                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+        for (Type t : exceptionTypes)
+            if (Throwable.class.isAssignableFrom(t.classRep()))
+                this.context.addThownType(t);
+            else
+                JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
 
         if (body != null) {
             body = body.analyze(this.context);

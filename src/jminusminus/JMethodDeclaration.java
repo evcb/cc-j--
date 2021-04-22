@@ -3,6 +3,7 @@
 package jminusminus;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import static jminusminus.CLConstants.*;
 
@@ -26,6 +27,7 @@ class JMethodDeclaration extends JAST implements JMember {
 
     /** The exception types. */
     protected ArrayList<Type> exceptionTypes;
+    protected ArrayList<String> exceptionTypesNames;
 
     /** Method body. */
     protected JBlock body;
@@ -74,7 +76,8 @@ class JMethodDeclaration extends JAST implements JMember {
         this.isAbstract = mods.contains("abstract");
         this.isStatic = mods.contains("static");
         this.isPrivate = mods.contains("private");
-        isThrows = !exceptionTypes.isEmpty();
+        isThrows = exceptionTypes == null || !exceptionTypes.isEmpty();
+        exceptionTypesNames = new ArrayList<String>();
     }
 
     /**
@@ -90,6 +93,10 @@ class JMethodDeclaration extends JAST implements JMember {
         for (JFormalParameter param : params) {
             param.setType(param.type().resolve(context));
         }
+
+        if (exceptionTypes != null)
+            for (int i = 0; i < exceptionTypes.size(); i++)
+                exceptionTypes.set(i, exceptionTypes.get(i).resolve(context));
 
         // Resolve return type
         returnType = returnType.resolve(context);
@@ -146,12 +153,19 @@ class JMethodDeclaration extends JAST implements JMember {
         // declared all thrown exceptions types.
         // thrown exceptions types do not need to be catched in local scope, we dedicate
         // that to higher scopes
-        if (exceptionTypes != null)
-            for (Type t : exceptionTypes)
-                if (Throwable.class.isAssignableFrom(t.classRep()))
-                    this.context.addThownType(t);
+        if (exceptionTypes != null) {
+            int j = exceptionTypes.size();
+
+            for (int i = 0; i < exceptionTypes.size(); i++) {
+                if (i >= j)
+                    break;
+
+                if (Throwable.class.isAssignableFrom(exceptionTypes.get(i).classRep()))
+                    this.context.addThownType(exceptionTypes.get(i));
                 else
                     JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+            }
+        }
 
         if (body != null) {
             body = body.analyze(this.context);
@@ -172,9 +186,12 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void partialCodegen(Context context, CLEmitter partial) {
+        for (Type t : exceptionTypes)
+            exceptionTypesNames.add(t.jvmName());
+
         // Generate a method with an empty body; need a return to
         // make the class verifier happy.
-        partial.addMethod(mods, name, descriptor, null, false);
+        partial.addMethod(mods, name, descriptor, exceptionTypesNames, false);
 
         // Add implicit RETURN
         if (returnType == Type.VOID) {
@@ -197,11 +214,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void codegen(CLEmitter output) {
-        ArrayList<String> exceptions = new ArrayList<String>();
-        for (Type t : exceptionTypes)
-            exceptions.add(t.toString());
-
-        output.addMethod(mods, name, descriptor, exceptions, false);
+        output.addMethod(mods, name, descriptor, exceptionTypesNames, false);
         if (body != null) {
             body.codegen(output);
         }

@@ -559,7 +559,7 @@ public class Parser {
 
         if (have(THROWS))
             do
-                throwsTypes.add(type());
+                throwsTypes.add(qualifiedIdentifier());
             while (have(COMMA));
 
         return throwsTypes;
@@ -791,7 +791,6 @@ public class Parser {
             return tryStatement();
         else if (have(THROW)) {
             JExpression expr = expression();
-
             mustBe(SEMI);
 
             return new JThrowStatement(line, expr);
@@ -847,9 +846,9 @@ public class Parser {
         int line = scanner.token().line();
         mustBe(LPAREN);
 
-        ArrayList<Type> catchTypes = new ArrayList<Type>();
+        ArrayList<TypeName> catchTypes = new ArrayList<TypeName>();
         do
-            catchTypes.add(type());
+            catchTypes.add(qualifiedIdentifier());
         while (have(BOR));
 
         mustBe(IDENTIFIER);

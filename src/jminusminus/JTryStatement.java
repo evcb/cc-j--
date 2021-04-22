@@ -58,8 +58,8 @@ public class JTryStatement extends JStatement {
 		tryPart = (JBlock) tryPart.analyze(context);
 
 		for (Map.Entry<JCatchFormalParameter, JBlock> _catch : catchPart.entrySet()) {
-			for (Type t : _catch.getKey().types())
-				context.addExceptionType(t);
+			for (TypeName t : _catch.getKey().types())
+				context.addExceptionType(t.resolve(context));
 
 			_catch.getValue().analyze(context);
 		}
@@ -85,6 +85,7 @@ public class JTryStatement extends JStatement {
 		 * output.addBranchInstruction(GOTO, endLabel); } output.addLabel(elseLabel); if
 		 * (elsePart != null) { elsePart.codegen(output); output.addLabel(endLabel); }
 		 */
+		// CLException
 	}
 
 	/** {@inheritDoc} */

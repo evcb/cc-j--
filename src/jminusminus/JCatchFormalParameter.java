@@ -13,7 +13,7 @@ class JCatchFormalParameter extends JAST {
     private String name;
 
     /** Parameter class types. */
-    private ArrayList<Type> types;
+    private ArrayList<TypeName> types;
 
     /**
      * Constructs an AST node for a formal parameter declaration given its line
@@ -23,7 +23,7 @@ class JCatchFormalParameter extends JAST {
      * @param types parameter types.
      * @param name  parameter name.
      */
-    public JCatchFormalParameter(int line, ArrayList<Type> types, String name) {
+    public JCatchFormalParameter(int line, ArrayList<TypeName> types, String name) {
         super(line);
         this.types = types;
         this.name = name;
@@ -43,7 +43,7 @@ class JCatchFormalParameter extends JAST {
      *
      * @return the parameter's types.
      */
-    public ArrayList<Type> types() {
+    public ArrayList<TypeName> types() {
         return types;
     }
 
@@ -53,7 +53,7 @@ class JCatchFormalParameter extends JAST {
      * @param newType the new type.
      * @return return the new type.
      */
-    public ArrayList<Type> setTypes(ArrayList<Type> newTypes) {
+    public ArrayList<TypeName> setTypes(ArrayList<TypeName> newTypes) {
         return types = newTypes;
     }
 
