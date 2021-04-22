@@ -7,7 +7,7 @@ public class EnhancedForStatement {
 	int i = 0;
 	
 	for ( int num : array ) {
-	    //i = i + 1;
+	    i = i + 1;
 	}
 	
 	return i;

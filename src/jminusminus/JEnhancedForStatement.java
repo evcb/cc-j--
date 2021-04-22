@@ -55,14 +55,14 @@ class JEnhancedForStatement extends JStatement {
      */
 
     public JStatement analyze(Context context) {
-        // condition = (JExpression) condition.analyze(context);
-        // condition.type().mustMatchExpected(line(), Type.BOOLEAN);
-        // thenPart = (JStatement) thenPart.analyze(context);
-        // if (elsePart != null) {
-        //     elsePart = (JStatement) elsePart.analyze(context);
-        // }
-        // return this;
-
+	expression = (JExpression) expression.analyze(context);
+	if (!expression.type().isArray()) {
+	    JAST.compilationUnit.reportSemanticError(line(),
+	        "expression must be array or iterable");
+	} // Must be an array or iterable (iterables not impelmented)
+	expression.type().componentType().mustMatchExpected(line(), type);
+	statement = (JStatement) statement.analyze(context);
+        
 	return this;
     }
 
