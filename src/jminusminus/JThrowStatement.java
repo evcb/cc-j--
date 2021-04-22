@@ -79,11 +79,11 @@ class JThrowStatement extends JStatement {
 		} else {
 			expr = expr.analyze(context);
 
-			if (expr.type() != Type.NULLTYPE && !Throwable.class.isAssignableFrom(expr.getClass()))
+			if (expr.type() != Type.NULLTYPE && !Throwable.class.isAssignableFrom(expr.type().classRep()))
 				JAST.compilationUnit.reportSemanticError(line(), "must throw a Throwable or the null reference");
 		}
 
-		Type expr_t = expr.type();
+		Type expr_t = expr.type().resolve(context);
 
 		/*
 		 * SECOND CHECK
