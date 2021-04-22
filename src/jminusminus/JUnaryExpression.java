@@ -77,7 +77,6 @@ class JNegateOp extends JUnaryExpression {
 
     public JExpression analyze(Context context) {
         arg = arg.analyze(context);
-        //TODO: check these conditions
         if(arg.type()==Type.INT){
             type= Type.INT;
         } else if(arg.type()==Type.DOUBLE){
@@ -309,7 +308,6 @@ class JPostDecrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            //TODO: check these conditions
             if(arg.type()==Type.INT){
                 type= Type.INT;
             } else if(arg.type()==Type.DOUBLE){
@@ -399,7 +397,6 @@ class JPostIncrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            //TODO: check these conditions
            if(arg.type()==Type.INT){
                 type= Type.INT;
             } else if(arg.type()==Type.DOUBLE){
@@ -450,7 +447,6 @@ class JPreIncrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            //TODO: check these conditions
             if(arg.type()==Type.INT){
                 type= Type.INT;
             } else if(arg.type()==Type.DOUBLE){

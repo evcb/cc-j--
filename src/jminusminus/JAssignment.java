@@ -142,7 +142,6 @@ class JPlusAssignOp extends JAssignment {
             rhs.type().mustMatchExpected(line(), Type.DOUBLE);
             type = Type.DOUBLE;
         } else {
-            // TODO : int here otherwise null pointer exception, to be improved
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for +=: " + lhs.type());
         }
@@ -220,7 +219,6 @@ class JMinusAssignOp extends JAssignment {
             rhs.type().mustMatchExpected(line(), Type.DOUBLE);
             type = Type.DOUBLE;
         } else {
-            // TODO : int here otherwise null pointer exception, to be improved
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for -=: " + lhs.type());
         }
@@ -291,7 +289,6 @@ class JStarAssignOp extends JAssignment {
             rhs.type().mustMatchExpected(line(), Type.DOUBLE);
             type = Type.DOUBLE;
         } else {
-            // TODO : int here otherwise null pointer exception, to be improved
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for *=: " + lhs.type());
         }
@@ -362,7 +359,6 @@ class JSlashAssignOp extends JAssignment {
             rhs.type().mustMatchExpected(line(), Type.DOUBLE);
             type = Type.DOUBLE;
         } else {
-            // TODO : int here otherwise null pointer exception, to be improved
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for /=: " + lhs.type());
         }
@@ -433,7 +429,6 @@ class JModAssignOp extends JAssignment {
             rhs.type().mustMatchExpected(line(), Type.DOUBLE);
             type = Type.DOUBLE;
         } else {
-            // TODO : int here otherwise null pointer exception, to be improved
             type = Type.INT;
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for /=: " + lhs.type());
         }
