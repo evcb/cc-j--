@@ -17,8 +17,8 @@ public class TryTest extends TestCase {
 	}
 
 	public void testTry() {
-		Assert.assertTrue(_try.try_throw_exception());
-		Assert.assertTrue(_try.try_throw_error());
-		Assert.assertTrue(_try.try_nothrow());
+		Assert.assertEquals(1, _try.try_throw_exception());
+		Assert.assertEquals(1, _try.try_throw_error());
+		Assert.assertEquals(1, _try.try_nothrow());
 	}
 }
