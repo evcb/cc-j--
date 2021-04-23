@@ -158,7 +158,6 @@ class JClassDeclaration extends JAST implements JTypeDecl {
 
     @Override
     public void preAnalyze(Context context) {
-        //TODO: complete method for interfaces
         // Construct a class context
         this.context = new ClassContext(this, context);
 
