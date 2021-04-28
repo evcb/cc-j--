@@ -77,7 +77,7 @@ class JConstructorDeclaration extends JMethodDeclaration {
         // Record the defining class declaration.
         definingClass = (JClassDeclaration) (context.classContext().definition());
 
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes);
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes, true);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -89,11 +89,11 @@ class JConstructorDeclaration extends JMethodDeclaration {
         // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
             int currentOffest = this.context.nextOffset();
-            if(param.type()== Type.DOUBLE){
-                //increase the offset because a double occupies 2 words
+            if (param.type() == Type.DOUBLE) {
+                // increase the offset because a double occupies 2 words
                 this.context.nextOffset();
             }
-            //we give the offset upon entering the method
+            // we give the offset upon entering the method
             LocalVariableDefn defn = new LocalVariableDefn(param.type(), currentOffest);
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);

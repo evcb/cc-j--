@@ -3,7 +3,6 @@
 package jminusminus;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import static jminusminus.CLConstants.*;
 
@@ -77,13 +76,12 @@ class JMethodDeclaration extends JAST implements JMember {
         this.isStatic = mods.contains("static");
         this.isPrivate = mods.contains("private");
         isThrows = exceptionTypes == null || !exceptionTypes.isEmpty();
-        exceptionTypesNames = new ArrayList<String>();
+        exceptionTypesNames = new ArrayList<>();
     }
 
     public JBlock getBody() {
         return body;
     }
-
 
     /**
      * Declares this method in the parent (class) context.
@@ -92,8 +90,6 @@ class JMethodDeclaration extends JAST implements JMember {
      * @param partial the code emitter (basically an abstraction for producing the
      *                partial class).
      */
-
-
 
     public void preAnalyze(Context context, CLEmitter partial) {
         // Resolve types of the formal parameters
@@ -146,7 +142,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JAST analyze(Context context) {
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes);
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes, false);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -158,8 +154,8 @@ class JMethodDeclaration extends JAST implements JMember {
         // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
             int currentOffset = this.context.nextOffset();
-            if(param.type()==Type.DOUBLE){
-                //adding an offset because double occupies two words
+            if (param.type() == Type.DOUBLE) {
+                // adding an offset because double occupies two words
                 this.context.nextOffset();
             }
             LocalVariableDefn defn = new LocalVariableDefn(param.type(), currentOffset);
@@ -193,7 +189,6 @@ class JMethodDeclaration extends JAST implements JMember {
 
         return this;
     }
-    
 
     /**
      * Adds this method declaration to the partial class.
@@ -217,10 +212,10 @@ class JMethodDeclaration extends JAST implements JMember {
         } else if (returnType == Type.INT || returnType == Type.BOOLEAN || returnType == Type.CHAR) {
             partial.addNoArgInstruction(ICONST_0);
             partial.addNoArgInstruction(IRETURN);
-        } else if(returnType == Type.DOUBLE) {
+        } else if (returnType == Type.DOUBLE) {
             partial.addNoArgInstruction(DCONST_0);
             partial.addNoArgInstruction(DRETURN);
-        }else {
+        } else {
             // A reference type.
             partial.addNoArgInstruction(ACONST_NULL);
             partial.addNoArgInstruction(ARETURN);
@@ -302,31 +297,24 @@ class JMethodDeclaration extends JAST implements JMember {
      * Adds the modifiers to make this method suitable for an interface
      *
      */
-
-    public void makeAbstractAndPublic(){
-
-        if(!mods.contains(TokenKind.PUBLIC.image())) {
-            isPrivate=false;
+    public void makeAbstractAndPublic() {
+        if (!mods.contains(TokenKind.PUBLIC.image())) {
+            isPrivate = false;
             mods.add(TokenKind.PUBLIC.image());
         }
-        if(!mods.contains(TokenKind.ABSTRACT.image())){
-            isAbstract=true;
+        if (!mods.contains(TokenKind.ABSTRACT.image())) {
+            isAbstract = true;
             mods.add(TokenKind.ABSTRACT.image());
         }
     }
-    
 
     /**
-     * Checks that the method that is in an interface doesn't have unsuitable modifiers.
+     * Checks that the method that is in an interface doesn't have unsuitable
+     * modifiers.
      *
      */
-
-    public void checkForForbiddenModifiers(){
-        if(mods.contains(TokenKind.STATIC.image()) || mods.contains(TokenKind.FINAL.image())){
+    public void checkForForbiddenModifiers() {
+        if (mods.contains(TokenKind.STATIC.image()) || mods.contains(TokenKind.FINAL.image()))
             JAST.compilationUnit.reportSemanticError(line(), "An interface’s method can't be declared static or final");
-        }
     }
-
-
-   
 }
