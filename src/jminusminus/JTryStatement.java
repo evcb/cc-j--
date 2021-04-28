@@ -1,5 +1,6 @@
 package jminusminus;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import static jminusminus.CLConstants.*;
@@ -27,7 +28,7 @@ public class JTryStatement extends JStatement {
 	private JBlock tryPart;
 
 	/** Catch clauses. */
-	private Map<JCatchFormalParameter, JBlock> catchPart;
+	private ArrayList<JCatchClause> catchClauses;
 
 	/** Finally clause. */
 	private JBlock finallyPart;
@@ -41,10 +42,10 @@ public class JTryStatement extends JStatement {
 	 * @param catchPart   catch clauses.
 	 * @param finallyPart finally clause.
 	 */
-	public JTryStatement(int line, JBlock tryPart, Map<JCatchFormalParameter, JBlock> catchPart, JBlock finallyPart) {
+	public JTryStatement(int line, JBlock tryPart, ArrayList<JCatchClause> catchClauses, JBlock finallyPart) {
 		super(line);
 		this.tryPart = tryPart;
-		this.catchPart = catchPart;
+		this.catchClauses = catchClauses;
 		this.finallyPart = finallyPart;
 	}
 
@@ -55,17 +56,14 @@ public class JTryStatement extends JStatement {
 	 * @return the analyzed (and possibly rewritten) AST subtree.
 	 */
 	public JStatement analyze(Context context) {
-		tryPart = (JBlock) tryPart.analyze(context);
+		tryPart = tryPart.analyze(context);
 
-		for (Map.Entry<JCatchFormalParameter, JBlock> _catch : catchPart.entrySet()) {
-			for (TypeName t : _catch.getKey().types())
-				context.addExceptionType(t.resolve(context));
-
-			_catch.getValue().analyze(context);
-		}
+		if (catchClauses != null)
+			for (JCatchClause _catch : catchClauses)
+				_catch.analyze(context);
 
 		if (finallyPart != null)
-			finallyPart = (JBlock) finallyPart.analyze(context);
+			finallyPart = finallyPart.analyze(context);
 
 		return this;
 	}
@@ -75,17 +73,28 @@ public class JTryStatement extends JStatement {
 	 *
 	 * @param output the code emitter (basically an abstraction for producing the
 	 *               .class file).
+	 * @see "Introduction to Compiler Constructionin a Java World" pp. 198-203
 	 */
 	public void codegen(CLEmitter output) {
-		// CLEmitter + 198-203 in the book
-		/*
-		 * String elseLabel = output.createLabel(); String endLabel =
-		 * output.createLabel(); condition.codegen(output, elseLabel, false);
-		 * thenPart.codegen(output); if (elsePart != null) {
-		 * output.addBranchInstruction(GOTO, endLabel); } output.addLabel(elseLabel); if
-		 * (elsePart != null) { elsePart.codegen(output); output.addLabel(endLabel); }
-		 */
-		// CLException
+		String start = output.createLabel(), end = output.createLabel();
+
+		output.addLabel(start);
+		tryPart.codegen(output);
+		output.addLabel(end);
+
+		if (catchClauses != null)
+			for (JCatchClause _catch : catchClauses)
+				for (Type t : _catch.getCatchFormalParameter().resolvedTypes()) {
+					String handler = output.createLabel();
+					output.addLabel(handler);
+					output.addExceptionHandler(start, end, handler, t.jvmName());
+
+					_catch.getBlock().codegen(output);
+
+					if (finallyPart != null)
+						finallyPart.codegen(output);
+				}
+
 	}
 
 	/** {@inheritDoc} */
@@ -96,21 +105,12 @@ public class JTryStatement extends JStatement {
 		tryPart.writeToStdOut(p);
 		p.indentLeft();
 
-		for (Map.Entry<JCatchFormalParameter, JBlock> _catch : catchPart.entrySet()) {
-			p.indentRight();
-			p.printf("<CatchClause>\n");
-
-			p.indentRight();
-			_catch.getKey().writeToStdOut(p);
-			p.indentLeft();
-
-			p.indentRight();
-			_catch.getValue().writeToStdOut(p);
-			p.indentLeft();
-
-			p.printf("</CatchClause>\n");
-			p.indentLeft();
-		}
+		if (catchClauses != null)
+			for (JCatchClause _catch : catchClauses) {
+				p.indentRight();
+				_catch.writeToStdOut(p);
+				p.indentLeft();
+			}
 
 		if (finallyPart != null) {
 			p.printf("<FinallyClause>\n");
