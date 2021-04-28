@@ -11,30 +11,37 @@ public class Try {
 	public int try_throw_exception() {
 		try {
 			throwing();
+
+			return 0;
 		} catch (Exception e) {
+			return 1;
 		} finally {
 		}
-
-		return 1;
 	}
 
 	public int try_throw_error() {
 		try {
 			throw new Error();
 
+			return 0;
 		} catch (Error e) {
+			return 1;
 		} catch (Exception e) {
+			return 0;
 		}
 
-		return 1;
+		return 0;
 	}
 
 	public int try_nothrow() {
 		try {
 			throw new Exception();
+
+			return 0;
 		} catch (Error | Exception e) {
+			return 1;
 		}
 
-		return 1;
+		return 0;
 	}
 }
