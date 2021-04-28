@@ -14,6 +14,7 @@ class JCatchFormalParameter extends JAST {
 
     /** Parameter class types. */
     private ArrayList<TypeName> types;
+    private ArrayList<Type> resolvedTypes;
 
     /**
      * Constructs an AST node for a formal parameter declaration given its line
@@ -27,6 +28,7 @@ class JCatchFormalParameter extends JAST {
         super(line);
         this.types = types;
         this.name = name;
+        resolvedTypes = new ArrayList();
     }
 
     /**
@@ -43,18 +45,8 @@ class JCatchFormalParameter extends JAST {
      *
      * @return the parameter's types.
      */
-    public ArrayList<TypeName> types() {
-        return types;
-    }
-
-    /**
-     * Sets the type to the specified type.
-     *
-     * @param newType the new type.
-     * @return return the new type.
-     */
-    public ArrayList<TypeName> setTypes(ArrayList<TypeName> newTypes) {
-        return types = newTypes;
+    public ArrayList<Type> resolvedTypes() {
+        return resolvedTypes;
     }
 
     /**
@@ -64,7 +56,9 @@ class JCatchFormalParameter extends JAST {
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
     public JAST analyze(Context context) {
-        // Nothing to do
+        for (TypeName t : types)
+            resolvedTypes.add(t.resolve(context));
+
         return this;
     }
 

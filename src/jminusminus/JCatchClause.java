@@ -11,8 +11,10 @@ public class JCatchClause extends JStatement {
 	}
 
 	public JAST analyze(Context context) {
-		for (TypeName t : param.types())
-			context.addExceptionType(t.resolve(context));
+		param = (JCatchFormalParameter) param.analyze(context);
+
+		for (Type t : param.resolvedTypes())
+			context.addExceptionType(t);
 
 		block.analyze(context);
 
