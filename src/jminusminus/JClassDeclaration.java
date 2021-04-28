@@ -5,9 +5,6 @@ package jminusminus;
 import java.util.ArrayList;
 import static jminusminus.CLConstants.*;
 import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Iterator;
 
 /**
  * A class declaration has a list of modifiers, a name, a super class and a
@@ -144,7 +141,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
      * Pre-analyzes the members of this declaration in the parent context.
      * Pre-analysis extends to the member headers (including method headers) but not
      * into the bodies. s
-     * 
+     *
      * @param context the parent (compilation unit) context.
      */
 
@@ -196,6 +193,7 @@ class JClassDeclaration extends JAST implements JTypeDecl {
             member.preAnalyze(this.context, partial);
             if (member instanceof JConstructorDeclaration && ((JConstructorDeclaration) member).params.size() == 0) {
                 hasExplicitConstructor = true;
+                this.context.addConstructor((JConstructorDeclaration) member);
             }
         }
 
