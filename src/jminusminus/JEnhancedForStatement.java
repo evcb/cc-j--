@@ -20,37 +20,32 @@ class JEnhancedForStatement extends JStatement {
 
     /** For-loop body */
     private JStatement statement;
-    
+
     /**
-     * Constructs an AST node for an enhanced-statement given its line number, 
+     * Constructs an AST node for an enhanced-statement given its line number,
      * iterator, expression, and loop body/
-     * 
-     * @param line
-     *            line in which the enhanced for-statement occurs in the source file.
-     * @param type
-     *            type of the iterator.
-     * @param name
-     *            iterator identifier.
-     * @param expression
-     *            expression to iterate over.
-     * @param statement
-     *            for-loop body.
+     *
+     * @param line       line in which the enhanced for-statement occurs in the
+     *                   source file.
+     * @param type       type of the iterator.
+     * @param name       iterator identifier.
+     * @param expression expression to iterate over.
+     * @param statement  for-loop body.
      */
 
     public JEnhancedForStatement(int line, Type type, String name, JExpression expression, JStatement statement) {
         super(line);
         this.type = type;
-	this.name = name;
+        this.name = name;
         this.expression = expression;
-	this.statement = statement;
+        this.statement = statement;
     }
 
     /**
-     * Analyzing the enhanced for-statement means analyzing its components and checking
-     * that the test is a boolean.
-     * 
-     * @param context
-     *            context in which names are resolved.
+     * Analyzing the enhanced for-statement means analyzing its components and
+     * checking that the test is a boolean.
+     *
+     * @param context context in which names are resolved.
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
 
@@ -59,21 +54,20 @@ class JEnhancedForStatement extends JStatement {
         // condition.type().mustMatchExpected(line(), Type.BOOLEAN);
         // thenPart = (JStatement) thenPart.analyze(context);
         // if (elsePart != null) {
-        //     elsePart = (JStatement) elsePart.analyze(context);
+        // elsePart = (JStatement) elsePart.analyze(context);
         // }
         // return this;
 
-	return this;
+        return this;
     }
 
     /**
-     * Code generation for an enhanced for-statement. We generate code to branch over the
-     * consequent if !test; the consequent is followed by an unconditonal branch
-     * over (any) alternate.
-     * 
-     * @param output
-     *            the code emitter (basically an abstraction for producing the
-     *            .class file).
+     * Code generation for an enhanced for-statement. We generate code to branch
+     * over the consequent if !test; the consequent is followed by an unconditonal
+     * branch over (any) alternate.
+     *
+     * @param output the code emitter (basically an abstraction for producing the
+     *               .class file).
      */
 
     public void codegen(CLEmitter output) {
@@ -82,12 +76,12 @@ class JEnhancedForStatement extends JStatement {
         // condition.codegen(output, elseLabel, false);
         // thenPart.codegen(output);
         // if (elsePart != null) {
-        //     output.addBranchInstruction(GOTO, endLabel);
+        // output.addBranchInstruction(GOTO, endLabel);
         // }
         // output.addLabel(elseLabel);
         // if (elsePart != null) {
-        //     elsePart.codegen(output);
-        //     output.addLabel(endLabel);
+        // elsePart.codegen(output);
+        // output.addLabel(endLabel);
         // }
     }
 
@@ -96,25 +90,24 @@ class JEnhancedForStatement extends JStatement {
      */
 
     public void writeToStdOut(PrettyPrinter p) {
-	p.printf("<JEnhancedForStatement line=\"%d\">\n", line());
-	p.indentRight();
-	
-	p.printf("<ForIterator line=\"%d\" name=\"%s\" "
-		 + "type=\"%s\"/>\n", line(), name,
-		 (type == null) ? "" : type.toString());
-	       
-	p.printf("<JExpression>\n");
-	p.indentRight();
-	expression.writeToStdOut(p);
-	p.indentLeft();
-	p.printf("</JExpression>\n");
-	
-	p.printf("<JStatement>\n");
-	p.indentRight();
-	statement.writeToStdOut(p);
-	p.indentLeft();
-	p.printf("</JStatement>\n");
-	p.indentLeft();
-	p.printf("</JEnhancedForStatement>\n");	
+        p.printf("<JEnhancedForStatement line=\"%d\">\n", line());
+        p.indentRight();
+
+        p.printf("<ForIterator line=\"%d\" name=\"%s\" " + "type=\"%s\"/>\n", line(), name,
+                (type == null) ? "" : type.toString());
+
+        p.printf("<JExpression>\n");
+        p.indentRight();
+        expression.writeToStdOut(p);
+        p.indentLeft();
+        p.printf("</JExpression>\n");
+
+        p.printf("<JStatement>\n");
+        p.indentRight();
+        statement.writeToStdOut(p);
+        p.indentLeft();
+        p.printf("</JStatement>\n");
+        p.indentLeft();
+        p.printf("</JEnhancedForStatement>\n");
     }
 }

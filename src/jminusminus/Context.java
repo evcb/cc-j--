@@ -273,6 +273,7 @@ class ClassContext extends Context {
 
     /** AST node of the type that this class represents. */
     private JAST definition;
+    private ArrayList<JConstructorDeclaration> constructors;
 
     /**
      * Constructs a class context.
@@ -285,6 +286,16 @@ class ClassContext extends Context {
         super(surrounding, null, surrounding.compilationUnitContext());
         classContext = this;
         this.definition = definition;
+        constructors = new ArrayList<>();
+    }
+
+    // explicit constructor
+    public void addConstructor(JConstructorDeclaration c) {
+        constructors.add(c);
+    }
+
+    public ArrayList<JConstructorDeclaration> getConstructors() {
+        return constructors;
     }
 
     /**
@@ -383,6 +394,8 @@ class MethodContext extends LocalContext {
     /** Return type of this method. */
     private Type methodReturnType;
 
+    private boolean isConstructor;
+
     /** Does (non-void) method have at least one return? */
     private boolean hasReturnStatement = false;
 
@@ -396,12 +409,14 @@ class MethodContext extends LocalContext {
      * @param methodReturnType return type of this method.
      */
 
-    public MethodContext(Context surrounding, boolean isStatic, Type methodReturnType, ArrayList<Type> thrownTypes) {
+    public MethodContext(Context surrounding, boolean isStatic, Type methodReturnType, ArrayList<Type> thrownTypes,
+            boolean isConstructor) {
         super(surrounding);
         this.isStatic = isStatic;
         this.thrownTypes = thrownTypes;
         this.methodReturnType = methodReturnType;
         offset = 0;
+        this.isConstructor = isConstructor;
     }
 
     public void setThrownTypes(ArrayList<Type> thrownTypes) {
@@ -410,7 +425,7 @@ class MethodContext extends LocalContext {
 
     public void addThownType(Type t) {
         if (thrownTypes == null)
-            thrownTypes = new ArrayList<Type>();
+            thrownTypes = new ArrayList<>();
 
         thrownTypes.add(t);
     }
@@ -425,11 +440,19 @@ class MethodContext extends LocalContext {
     }
 
     /**
+     * Is this method a constructor ?
+     *
+     * @return true or false.
+     */
+    public boolean isConstructor() {
+        return isConstructor;
+    }
+
+    /**
      * Is this method static?
      *
      * @return true or false.
      */
-
     public boolean isStatic() {
         return isStatic;
     }
@@ -437,7 +460,6 @@ class MethodContext extends LocalContext {
     /**
      * Records fact that (non-void) method has at least one return.
      */
-
     public void confirmMethodHasReturn() {
         hasReturnStatement = true;
     }
@@ -447,7 +469,6 @@ class MethodContext extends LocalContext {
      *
      * @return true or false.
      */
-
     public boolean methodHasReturn() {
         return hasReturnStatement;
     }
@@ -457,7 +478,6 @@ class MethodContext extends LocalContext {
      *
      * @return the return type of this method.
      */
-
     public Type methodReturnType() {
         return methodReturnType;
     }
@@ -465,7 +485,6 @@ class MethodContext extends LocalContext {
     /**
      * {@inheritDoc}
      */
-
     public void writeToStdOut(PrettyPrinter p) {
         p.println("<MethodContext>");
         p.indentRight();
@@ -473,5 +492,4 @@ class MethodContext extends LocalContext {
         p.indentLeft();
         p.println("</MethodContext>");
     }
-
 }

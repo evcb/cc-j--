@@ -3,8 +3,6 @@
 package jminusminus;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.jar.Attributes.Name;
 
 import static jminusminus.TokenKind.*;
@@ -528,7 +526,7 @@ public class Parser {
         if (have(EXTENDS)) {
             do {
                 superInterfaces.add(qualifiedIdentifier());
-            } while(have(COMMA));
+            } while (have(COMMA));
         }
         return new JInterfaceDeclaration(line, mods, name, superInterfaces, interfaceBody());
     }
@@ -561,7 +559,7 @@ public class Parser {
                 if (see(LCURLY)) {
                     line = scanner.token().line();
                     ArrayList<JStatement> statements = new ArrayList<JStatement>();
-                    
+
                     // Parsing the block manually
                     have(LCURLY);
                     while (!see(RCURLY) && !see(EOF)) {
@@ -573,14 +571,14 @@ public class Parser {
                     }
                     have(RCURLY);
                     body = new JBlock(line, statements);
-                    // Variables declared inside the block 
+                    // Variables declared inside the block
                     // are passed to the class to become fields
                     members.add(new JInitializationBlock(line, true, body));
                 } else {
                     // Normal static field declaration
                     members.add(memberDecl(mods));
                 }
-            // IIB
+                // IIB
             } else if (see(LCURLY)) {
                 line = scanner.token().line();
                 body = block();
@@ -795,7 +793,7 @@ public class Parser {
      *   statement ::= block
      *               | IF parExpression statement [ELSE statement]
      *               | WHILE parExpression statement
-     *               | FOR  {ForInit} ; [Expression] ; {ForUpdate} ) Statement 
+     *               | FOR  {ForInit} ; [Expression] ; {ForUpdate} ) Statement
      *               | TRY block CATCH ClassType block {CATCH ClassType block}
      *               | TRY block {CATCH ClassType block} FINALLY block
      *               | THROW expression SEMI
@@ -822,53 +820,53 @@ public class Parser {
             return new JWhileStatement(line, test, statement);
         } else if (have(TRY)) {
             return tryStatement();
-	} else if (have(FOR)) {
-	    mustBe(LPAREN);
+        } else if (have(FOR)) {
+            mustBe(LPAREN);
 
-	    scanner.recordPosition();
-	    scanner.next();
-	    scanner.next();
+            scanner.recordPosition();
+            scanner.next();
+            scanner.next();
 
-	    // Enchanced For-statement
-	    if (have(COLON)) {
-	    	scanner.returnToPosition();
-	    	Type type = type();
-	    	mustBe(IDENTIFIER);
-	    	String name = scanner.previousToken().image();
-		mustBe(COLON);
-	    	JExpression expression = expression();
-		mustBe(RPAREN);
-		JStatement statement = statement();
-	    	return new JEnhancedForStatement(line, type, name, expression, statement);
-	    }
-	    
-	    // Basic For-statement
-	    ArrayList<JStatement> forInt = null;
-	    JStatement forIntTemp = null;
-	    JExpression expression;
-	    ArrayList<JStatement> forUpdate;
+            // Enchanced For-statement
+            if (have(COLON)) {
+                scanner.returnToPosition();
+                Type type = type();
+                mustBe(IDENTIFIER);
+                String name = scanner.previousToken().image();
+                mustBe(COLON);
+                JExpression expression = expression();
+                mustBe(RPAREN);
+                JStatement statement = statement();
+                return new JEnhancedForStatement(line, type, name, expression, statement);
+            }
 
-	    scanner.returnToPosition();
-	    
-	    if (!see(SEMI)) {
-		if (seeLocalVariableDeclaration()) {
-		    forInt = new ArrayList<JStatement>();
-		    forIntTemp = localVariableDeclarationStatement();
-		    forInt.add(forIntTemp);
-		} else {
-		    forInt = statementExpressionList();
-		    mustBe(SEMI);
-		}
-	    }
-	    
-	    expression = !see(SEMI) ? expression() : null;
-	    mustBe(SEMI);
-	    forUpdate = !see(RPAREN) ? statementExpressionList() : null;
-	    mustBe(RPAREN);
-	    JStatement statement = statement();
-	   
-	    return new JBasicForStatement(line, forInt, expression, forUpdate, statement);
-	    
+            // Basic For-statement
+            ArrayList<JStatement> forInt = null;
+            JStatement forIntTemp = null;
+            JExpression expression;
+            ArrayList<JStatement> forUpdate;
+
+            scanner.returnToPosition();
+
+            if (!see(SEMI)) {
+                if (seeLocalVariableDeclaration()) {
+                    forInt = new ArrayList<JStatement>();
+                    forIntTemp = localVariableDeclarationStatement();
+                    forInt.add(forIntTemp);
+                } else {
+                    forInt = statementExpressionList();
+                    mustBe(SEMI);
+                }
+            }
+
+            expression = !see(SEMI) ? expression() : null;
+            mustBe(SEMI);
+            forUpdate = !see(RPAREN) ? statementExpressionList() : null;
+            mustBe(RPAREN);
+            JStatement statement = statement();
+
+            return new JBasicForStatement(line, forInt, expression, forUpdate, statement);
+
         } else if (have(THROW)) {
             JExpression expr = expression();
             mustBe(SEMI);
@@ -953,19 +951,19 @@ public class Parser {
         int line = scanner.token().line();
         JBlock tryPart = block();
 
-        Map<JCatchFormalParameter, JBlock> catchPart = new HashMap<JCatchFormalParameter, JBlock>();
+        ArrayList<JCatchClause> catchClauses = new ArrayList<>();
         while (have(CATCH))
-            catchPart.put(catchFormalParameter(), block());
+            catchClauses.add(new JCatchClause(line, catchFormalParameter(), block()));
 
         JBlock finallyPart = null;
-        if (catchPart.isEmpty()) {
+        if (catchClauses.isEmpty()) {
             mustBe(FINALLY);
 
             finallyPart = block();
         } else if (have(FINALLY))
             finallyPart = block();
 
-        return new JTryStatement(line, tryPart, catchPart, finallyPart);
+        return new JTryStatement(line, tryPart, catchClauses, finallyPart);
     }
 
     /**
@@ -1210,21 +1208,22 @@ public class Parser {
      * Parse a statement expression list.
      *
      * <pre>
-     *   statementExpressionList ::=  StatementExpression {, StatementExpression} 
+     *   statementExpressionList ::=  StatementExpression {, StatementExpression}
      * </pre>
      *
      * @return an AST for a statementExpressionList.
      */
 
     private ArrayList<JStatement> statementExpressionList() {
-	ArrayList<JStatement> statementExpressions = new ArrayList<JStatement>();
-	
+        ArrayList<JStatement> statementExpressions = new ArrayList<JStatement>();
+
         do {
             statementExpressions.add(statementExpression());
         } while (have(COMMA));
 
         return statementExpressions;
     }
+
     /**
      * Parse a statement expression.
      *
