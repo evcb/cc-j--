@@ -205,23 +205,24 @@ class JMinusAssignOp extends JAssignment {
      * @return the analyzed AST subtree.
      */
     public JExpression analyze(Context context) {
-        lhs = (JExpression) lhs.analyze(context);
+        if (!(lhs instanceof JLhs)) {
+            JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
+
+            return this;
+        } else
+            lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
+
         rhs = (JExpression) rhs.analyze(context);
 
-        // promotion of int to double
-        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT) {
-            promoteRhs();
-            type = lhs.type();
-        } else if (lhs.type().equals(Type.INT)) {
-            rhs.type().mustMatchExpected(line(), Type.INT);
-            type = Type.INT;
-        } else if (lhs.type().equals(Type.DOUBLE)) {
-            rhs.type().mustMatchExpected(line(), Type.DOUBLE);
-            type = Type.DOUBLE;
-        } else {
-            type = Type.INT;
+        lhs.type().mustMatchOneOf(line(), Type.INT, Type.DOUBLE);
+        rhs.type().mustMatchOneOf(line(), Type.INT, Type.DOUBLE);
+
+        if (lhs.type() == Type.DOUBLE && rhs.type() == Type.INT)
+            promoteRhs(); // promotion of int to double
+        else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE)
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for -=: " + lhs.type());
-        }
+
+        type = lhs.type();
 
         return this;
     }
@@ -275,7 +276,13 @@ class JStarAssignOp extends JAssignment {
      * @return the analyzed AST subtree.
      */
     public JExpression analyze(Context context) {
-        lhs = (JExpression) lhs.analyze(context);
+        if (!(lhs instanceof JLhs)) {
+            JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
+
+            return this;
+        } else
+            lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
+
         rhs = (JExpression) rhs.analyze(context);
 
         // promotion of int to double
@@ -345,7 +352,13 @@ class JSlashAssignOp extends JAssignment {
      * @return the analyzed AST subtree.
      */
     public JExpression analyze(Context context) {
-        lhs = (JExpression) lhs.analyze(context);
+        if (!(lhs instanceof JLhs)) {
+            JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
+
+            return this;
+        } else
+            lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
+
         rhs = (JExpression) rhs.analyze(context);
 
         // promotion of int to double
@@ -415,7 +428,13 @@ class JModAssignOp extends JAssignment {
      * @return the analyzed AST subtree.
      */
     public JExpression analyze(Context context) {
-        lhs = (JExpression) lhs.analyze(context);
+        if (!(lhs instanceof JLhs)) {
+            JAST.compilationUnit.reportSemanticError(line(), "Illegal lhs for assignment");
+
+            return this;
+        } else
+            lhs = (JExpression) ((JLhs) lhs).analyzeLhs(context);
+
         rhs = (JExpression) rhs.analyze(context);
 
         // promotion of int to double
