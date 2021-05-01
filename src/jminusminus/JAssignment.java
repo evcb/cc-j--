@@ -293,6 +293,8 @@ class JStarAssignOp extends JAssignment {
         else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE)
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for *=: " + lhs.type());
 
+        type = lhs.type();
+
         return this;
     }
 
@@ -362,6 +364,8 @@ class JSlashAssignOp extends JAssignment {
         else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE)
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for /=: " + lhs.type());
 
+        type = lhs.type();
+
         return this;
     }
 
@@ -430,6 +434,8 @@ class JModAssignOp extends JAssignment {
             promoteRhs(); // promotion of int to double
         else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE)
             JAST.compilationUnit.reportSemanticError(line(), "Invalid lhs type for %=: " + lhs.type());
+
+        type = lhs.type();
 
         return this;
     }
