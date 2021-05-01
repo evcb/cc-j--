@@ -20,6 +20,10 @@ class JEnhancedForStatement extends JStatement {
 
     /** For-loop body */
     private JStatement statement;
+
+    private LocalContext context;
+
+    private JVariable iterator;
     
     /**
      * Constructs an AST node for an enhanced-statement given its line number, 
@@ -43,6 +47,7 @@ class JEnhancedForStatement extends JStatement {
 	this.name = name;
         this.expression = expression;
 	this.statement = statement;
+	iterator = new JVariable(line, name);
     }
 
     /**
@@ -55,6 +60,8 @@ class JEnhancedForStatement extends JStatement {
      */
 
     public JStatement analyze(Context context) {
+	iterator = new JVariable(line, name);
+	iterator = (JVariable) iterator.analyze(context);
 	expression = (JExpression) expression.analyze(context);
 	if (!expression.type().isArray()) {
 	    JAST.compilationUnit.reportSemanticError(line(),
@@ -77,8 +84,51 @@ class JEnhancedForStatement extends JStatement {
      */
 
     public void codegen(CLEmitter output) {
-        // String elseLabel = output.createLabel();
-        // String endLabel = output.createLabel();
+	/*
+	 * The Enhanced For-Statement creates a varible with value 0 as the
+	 * counter and calculates the length of the array and stores both of
+	 * these. At the loop-label they are loaded onto the stack and compared.
+	 * If the counter is greater than or equal to the length of the array,
+	 * the statement jumps to the end-label and terminates. Otherwise it 
+	 * performs one loop iterations (fetching the value at index pointed to by the counter),
+	 * executes the statement body and increments the counter, before jumping back
+	 * to the loop-label.
+	 *
+	 */
+
+	// Create local context for for-loop                                                                                 
+        //this.context = new LocalContext(context);
+
+	// Create counter variable
+	//counter = new JVariable();
+	
+	// Create labels
+        String loopLabel = output.createLabel();
+        String endLabel = output.createLabel();
+
+	output.addNoArgInstruction(ICONST_1);
+	iterator.codegenStore(output);
+
+	// Start of loop
+	output.addLabel(loopLabel); 
+	
+	// If the end of the array has been reached,
+	// terminate the loop
+	output.addBranchInstruction(IF_ICMPGE, endLabel);
+	
+	// Load value from iterable type
+	// Can this be done by means of a method or class???
+	// if (type == Type.INT) {                                                                                                           output.addNoArgInstruction(IALOAD);                                                                                      } else if (type == Type.BOOLEAN) {                                                                                               output.addNoArgInstruction(BALOAD);                                                                                      } else if (type == Type.CHAR) {                                                                                                  output.addNoArgInstruction(CALOAD);                                                                                      } else if (!type.isPrimitive()) {                                                                                                output.addNoArgInstruction(AALOAD);                                                                                      }
+
+	expression.codegen(output); // Load array value
+
+	// Evaluate loop body                                                                                                
+        statement.codegen(output);
+
+	// Preform another iteration
+	output.addBranchInstruction(GOTO, loopLabel);                                                                        
+        output.addLabel(endLabel); 
+	
         // condition.codegen(output, elseLabel, false);
         // thenPart.codegen(output);
         // if (elsePart != null) {

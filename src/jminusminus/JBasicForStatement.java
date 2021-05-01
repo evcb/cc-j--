@@ -79,14 +79,6 @@ class JBasicForStatement extends JStatement {
 	// Analyse for-loop body
 	statement = (JStatement) statement.analyze(this.context);
 	
-        // condition = (JExpression) condition.analyze(context);
-       
-        // thenPart = (JStatement) thenPart.analyze(context);
-        // if (elsePart != null) {
-        //     elsePart = (JStatement) elsePart.analyze(context);
-        // }
-        // return this;
-
 	return this;
     }
 
@@ -101,18 +93,31 @@ class JBasicForStatement extends JStatement {
      */
 
     public void codegen(CLEmitter output) {
-        // String elseLabel = output.createLabel();
-        // String endLabel = output.createLabel();
-        // condition.codegen(output, elseLabel, false);
-        // thenPart.codegen(output);
-        // if (elsePart != null) {
-        //     output.addBranchInstruction(GOTO, endLabel);
-        // }
-        // output.addLabel(elseLabel);
-        // if (elsePart != null) {
-        //     elsePart.codegen(output);
-        //     output.addLabel(endLabel);
-        // }
+	String loopLabel = output.createLabel();
+	String endLabel = output.createLabel();
+	
+	for (JStatement s : forInt) {
+	    s.codegen(output);
+	}
+
+	output.addLabel(loopLabel);
+	if (expression != null) {
+	    expression.codegen(output, endLabel, false);
+	}
+	    
+	// Evaluate loop body
+	statement.codegen(output);
+
+	// If statement has been excecuted correctly
+	// evaluate the forUpdate statements...
+	for (JStatement s : forUpdate) {
+	    s.codegen(output);
+	}
+
+	// ...and perform another iteration.
+	output.addBranchInstruction(GOTO, loopLabel);
+	output.addLabel(endLabel);
+	
     }
 
     /**

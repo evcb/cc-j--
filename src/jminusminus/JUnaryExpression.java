@@ -406,7 +406,32 @@ class JPostIncrementOp extends JUnaryExpression {
     }
 
     public void codegen(CLEmitter output) {
-        //TODO : complete code generation for post increment for int
+        if (arg instanceof JVariable) {
+            // A local variable; otherwise analyze() would
+            // have replaced it with an explicit field selection.
+            int offset = ((LocalVariableDefn) ((JVariable) arg).iDefn()).offset();
+            if (!isStatementExpression) {
+                // Loading its original rvalue
+                arg.codegen(output);
+            }
+            output.addIINCInstruction(offset, -1);
+        } else {
+            ((JLhs) arg).codegenLoadLhsLvalue(output);
+            ((JLhs) arg).codegenLoadLhsRvalue(output);
+            if (!isStatementExpression) {
+                // Loading its original rvalue
+                ((JLhs) arg).codegenDuplicateRvalue(output);
+            }
+            if(type==Type.INT){
+                output.addNoArgInstruction(ICONST_1);
+                output.addNoArgInstruction(IADD);
+            } else if (type==Type.DOUBLE){
+                output.addNoArgInstruction(DCONST_1);
+                output.addNoArgInstruction(DADD);
+            }
+
+            ((JLhs) arg).codegenStore(output);
+        }
     }
 
 }
@@ -537,7 +562,31 @@ class JPreDecrementOp extends JUnaryExpression {
     }
 
     public void codegen(CLEmitter output) {
-        //TODO : complete code generation for pre decrement for int
+        if (arg instanceof JVariable) {
+            // A local variable; otherwise analyze() would
+            // have replaced it with an explicit field selection.
+            int offset = ((LocalVariableDefn) ((JVariable) arg).iDefn()).offset();
+            output.addIINCInstruction(offset, 1);
+            if (!isStatementExpression) {
+                // Loading its original rvalue
+                arg.codegen(output);
+            }
+        } else {
+            ((JLhs) arg).codegenLoadLhsLvalue(output);
+            ((JLhs) arg).codegenLoadLhsRvalue(output);
+            if (!isStatementExpression) {
+                // Loading its original rvalue
+                ((JLhs) arg).codegenDuplicateRvalue(output);
+            }
+            if(type==Type.INT){
+                output.addNoArgInstruction(ICONST_1);
+                output.addNoArgInstruction(ISUB);
+            } else if (type==Type.DOUBLE){
+                output.addNoArgInstruction(DCONST_1);
+                output.addNoArgInstruction(DSUB);
+            }
+            ((JLhs) arg).codegenStore(output);
+        }
     }
 
 }
