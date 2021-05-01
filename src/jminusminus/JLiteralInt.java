@@ -34,7 +34,7 @@ class JLiteralInt extends JExpression {
     }
 
     /**
-     * Set the promotion flag to true
+     * Setting the promotion flag to true
      */
     public void promote() {
         mustBePromoted = true;
