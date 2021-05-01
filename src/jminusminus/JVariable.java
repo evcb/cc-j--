@@ -19,6 +19,7 @@ class JVariable extends JExpression implements JLhs {
     /** Was analyzeLhs() done? */
     private boolean analyzeLhs;
 
+    /** Does it need to be promoted from int to double?*/
     private boolean mustBePromoted;
 
     /**
@@ -56,6 +57,9 @@ class JVariable extends JExpression implements JLhs {
         return iDefn;
     }
 
+    /**
+     * Setting the promotion flag to true
+     */
     public void promote() {
         mustBePromoted = true;
     }

@@ -49,9 +49,6 @@ public class JLiteralDouble extends JExpression {
     public void codegen(CLEmitter output) {
         double d = Double.parseDouble(text);
 
-        //don't really know what these cases do..
-        //they just existed in the CLConstants file so I added them
-        //to have something similar to int
         if(d==0){
             output.addNoArgInstruction(DCONST_0);
         } else if (d==1){

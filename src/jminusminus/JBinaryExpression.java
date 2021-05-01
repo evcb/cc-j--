@@ -133,13 +133,12 @@ class JPlusOp extends JBinaryExpression {
             type = Type.DOUBLE;
         } else if (lhs.type() == Type.STRING || rhs.type() == Type.STRING) {
             return (new JStringConcatenationOp(line, lhs, rhs)).analyze(context);
-        } else if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
-            type = Type.INT;
         } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
             type = Type.DOUBLE;
         } else {
-            type = Type.ANY;
-            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for +");
+            lhs.type().mustMatchExpected(line(), Type.INT);
+            rhs.type().mustMatchExpected(line(), Type.INT);
+            type = Type.INT;
         }
         return this;
     }
@@ -206,13 +205,12 @@ class JSubtractOp extends JBinaryExpression {
         } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
             promoteLhs();
             type = Type.DOUBLE;
-        } else if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
-            type = Type.INT;
         } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
             type = Type.DOUBLE;
         } else {
-            type = Type.ANY;
-            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for -");
+            lhs.type().mustMatchExpected(line(), Type.INT);
+            rhs.type().mustMatchExpected(line(), Type.INT);
+            type = Type.INT;
         }
         return this;
     }
@@ -271,17 +269,12 @@ class JDivideOp extends JBinaryExpression {
         } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
             promoteLhs();
             type = Type.DOUBLE;
-        } else if (lhs.type() == Type.INT || rhs.type() == Type.INT) {
+        } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
+            type = Type.DOUBLE;
+        } else {
             lhs.type().mustMatchExpected(line(), Type.INT);
             rhs.type().mustMatchExpected(line(), Type.INT);
             type = Type.INT;
-        } else if (lhs.type() == Type.DOUBLE || rhs.type() == Type.DOUBLE) {
-            lhs.type().mustMatchExpected(line(), Type.DOUBLE);
-            rhs.type().mustMatchExpected(line(), Type.DOUBLE);
-            type = Type.DOUBLE;
-        } else {
-            type = Type.ANY;
-            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for /");
         }
 
         return this;
@@ -390,13 +383,12 @@ class JMultiplyOp extends JBinaryExpression {
         } else if (lhs.type() == Type.INT && rhs.type() == Type.DOUBLE) {
             promoteLhs();
             type = Type.DOUBLE;
-        } else if (lhs.type() == Type.INT && rhs.type() == Type.INT) {
-            type = Type.INT;
         } else if (lhs.type() == Type.DOUBLE && rhs.type() == Type.DOUBLE) {
             type = Type.DOUBLE;
         } else {
-            type = Type.ANY;
-            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for *");
+            lhs.type().mustMatchExpected(line(), Type.INT);
+            rhs.type().mustMatchExpected(line(), Type.INT);
+            type = Type.INT;
         }
 
         return this;
