@@ -167,16 +167,15 @@ class JMethodDeclaration extends JAST implements JMember {
         // thrown exceptions types do not need to be catched in local scope, we dedicate
         // that to higher scopes
         if (exceptionTypes != null) {
-            int j = exceptionTypes.size();
+            int j = exceptionTypes.size(), i = 0;
 
-            for (int i = 0; i < exceptionTypes.size(); i++) {
-                if (i >= j)
-                    break;
-
+            while (i < j) {
                 if (Throwable.class.isAssignableFrom(exceptionTypes.get(i).classRep()))
                     this.context.addThownType(exceptionTypes.get(i));
                 else
                     JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+
+                i++;
             }
         }
 
