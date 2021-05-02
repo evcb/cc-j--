@@ -163,9 +163,6 @@ class JMethodDeclaration extends JAST implements JMember {
             this.context.addEntry(param.line(), param.name(), defn);
         }
 
-        // declared all thrown exceptions types.
-        // thrown exceptions types do not need to be catched in local scope, we dedicate
-        // that to higher scopes
         if (exceptionTypes != null) {
             int j = exceptionTypes.size(), i = 0;
 

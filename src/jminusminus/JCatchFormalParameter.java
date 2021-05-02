@@ -59,6 +59,10 @@ class JCatchFormalParameter extends JAST {
         for (TypeName t : types)
             resolvedTypes.add(t.resolve(context));
 
+        for (Type t : resolvedTypes)
+            if (!Throwable.class.isAssignableFrom(t.classRep()))
+                JAST.compilationUnit.reportSemanticError(line(), "catch formal parameters must be Throwable");
+
         return this;
     }
 

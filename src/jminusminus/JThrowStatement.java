@@ -99,7 +99,7 @@ class JThrowStatement extends JStatement {
 		 */
 		if (!isUncheckedOrNull(type) && !isCatched(type, context) && !isPresentInThrowsClause(type, context))
 			JAST.compilationUnit.reportSemanticError(line(),
-					"the throwed type must be either unchecked (subtypes of java.lang.RuntimeException and java.lang.Error), catched by an enclosing try statement or listed in the throws clause of the method/constructor declaration");
+					"the thrown type must be either unchecked (subtypes of java.lang.RuntimeException and java.lang.Error), catched by an enclosing try statement or listed in the throws clause of the method/constructor declaration");
 
 		/**
 		 * THIRD CHECK
@@ -123,7 +123,6 @@ class JThrowStatement extends JStatement {
 		 * contains it, or the type of the thrown exception (or one of its superclasses)
 		 * occurs in the throws clause of every constructor of the class.
 		 */
-
 		if (context.methodContext().isConstructor())
 			if (isUncheckedException() || context.catchesException(type))
 				for (JConstructorDeclaration c : context.classContext().getConstructors())
