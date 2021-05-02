@@ -3,6 +3,8 @@ package jminusminus;
 import java.util.ArrayList;
 import java.util.Map;
 
+import javax.lang.model.util.ElementScanner6;
+
 import static jminusminus.CLConstants.*;
 
 /**
@@ -94,6 +96,8 @@ public class JTryStatement extends JStatement {
 					if (finallyPart != null)
 						finallyPart.codegen(output);
 				}
+		else
+			finallyPart.codegen(output);
 
 	}
 
