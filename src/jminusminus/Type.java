@@ -547,10 +547,10 @@ class Type {
             cls = cls.getSuperclass();
         }
 
-        //on a cherché la class et sa super class, on a pas trouvé,
-        //donc on va aller regarder dans les interfaces
+        //we have looked into the class and the class it extends and
+        //we haven't found the field, let's look in the interfaces
         Class<?>[] superInterfaces = classRep.getInterfaces();
-        //pour chaque interface on appelle la méthode field in interface
+        //for each interface we call the field in interface method
         for(Class<?> superInterface : superInterfaces){
             if(fieldInInterface(name, superInterface)!=null){
                 return fieldInInterface(name, superInterface);
@@ -559,23 +559,30 @@ class Type {
         return null;
     }
 
-    //on recois ici une interface et un nom de champs
+
+    /**
+     * Recursive method to explore interfaces and their supertypes in search for a field
+     * @param name: the name of the field
+     * @param cls: the class where to search the field
+     * @return Field if found, null otherwise
+     */
     public Field fieldInInterface(String name, Class<?> cls){
-        //on prend l'interface
+        //get the interface
         Class<?> startCls = cls;
         while (cls != null) {
-            //on cherche dans l'interface
+            //look for the field in interface
             java.lang.reflect.Field[] fields = cls.getDeclaredFields();
             for (java.lang.reflect.Field field : fields) {
                 if (field.getName().equals(name)) {
                     return new Field(field);
                 }
             }
-            //on cherche dans sa super class
+            //we look into it's super class
             cls = cls.getSuperclass();
         }
-        //si on a pas trouvé dans l'interface et dans sa super class
-        //on va regarder dans les interfaces qu'extend les interface
+
+        //if we haven't found in the interface and its super class
+        //we will look in the interfaces that are extended by the current one
         Class<?>[] superInterfaces = startCls.getInterfaces();
         for(Class<?> superInterface : superInterfaces){
             if(fieldInInterface(name, superInterface)!=null){
