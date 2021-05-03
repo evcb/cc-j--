@@ -94,6 +94,8 @@ public class JTryStatement extends JStatement {
 					if (finallyPart != null)
 						finallyPart.codegen(output);
 				}
+		else
+			finallyPart.codegen(output);
 
 	}
 

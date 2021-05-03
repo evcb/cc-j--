@@ -99,11 +99,18 @@ class JConstructorDeclaration extends JMethodDeclaration {
             this.context.addEntry(param.line(), param.name(), defn);
         }
 
-        for (Type t : exceptionTypes)
-            if (Throwable.class.isAssignableFrom(t.classRep()))
-                this.context.addThownType(t);
-            else
-                JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+        if (exceptionTypes != null) {
+            int j = exceptionTypes.size(), i = 0;
+
+            while (i < j) {
+                if (Throwable.class.isAssignableFrom(exceptionTypes.get(i).classRep()))
+                    this.context.addThownType(exceptionTypes.get(i));
+                else
+                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+
+                i++;
+            }
+        }
 
         if (body != null) {
             body = body.analyze(this.context);

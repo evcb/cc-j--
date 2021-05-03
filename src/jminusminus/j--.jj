@@ -936,7 +936,7 @@ private JStatement statement(): {
 		<RPAREN>
 		forStatement = statement()
 		{ statement = new JBasicForStatement(line, forInt, expr, forUpdate, forStatement); } |
-		
+
 		LOOKAHEAD( <LPAREN> statementExpressionList()
 		<SEMI> [expression()] <SEMI> statementExpressionList() <RPAREN> statement() )
 		<LPAREN>
@@ -950,7 +950,7 @@ private JStatement statement(): {
 		{ statement = new JBasicForStatement(line, forInt, expr, forUpdate, forStatement); }
 
 	) |
-	
+
         <WHILE> { line = token.beginLine; }
         test = parExpression()
         body = statement()
@@ -997,27 +997,27 @@ private JStatement statement(): {
 private JTryStatement tryStatement(): {
     int line = 0;
     JBlock tryPart = null;
-    ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart = new ArrayList();
-    Entry<JCatchFormalParameter, JBlock> aCatchClause = null;
+    ArrayList<JCatchClause> catchClauses = new ArrayList();
+    JCatchClause aCatchClause = null;
     JBlock finallyPart = null;
 }
 {
     try {
-        <TRY>
+        <TRY> { line = token.beginLine; }
         tryPart = block()
         (
             aCatchClause = catchClause()
-            { catchPart.add(aCatchClause); }
+            { catchClauses.add(aCatchClause); }
         )*
         [<FINALLY> finallyPart = block()]
     }
     catch (ParseException e) {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
-    { return new JTryStatement(line, tryPart, catchPart, finallyPart); }
+    { return new JTryStatement(line, tryPart, catchClauses, finallyPart); }
 }
 
-private Entry<JCatchFormalParameter, JBlock> catchClause(): {
+private JCatchClause catchClause(): {
     int line = 0;
     JCatchFormalParameter formalParameter = null;
     JBlock catchBlock = null;
@@ -1031,7 +1031,7 @@ private Entry<JCatchFormalParameter, JBlock> catchClause(): {
     catch (ParseException e) {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
-    { return new SimpleEntry(formalParameter, catchBlock); }
+    { return new JCatchClause(line, formalParameter, catchBlock); }
 }
 
 /**
@@ -1045,17 +1045,17 @@ private Entry<JCatchFormalParameter, JBlock> catchClause(): {
  */
 private JCatchFormalParameter catchFormalParameter(): {
     int line = 0;
-    ArrayList<Type> catchTypes = new ArrayList();
+    ArrayList<TypeName> catchTypes = new ArrayList();
     String name = "";
-    Type aType = null;
+    TypeName aType = null;
 }
 {
     try {
-        <LPAREN> { line = token.beginLine; } aType = type()
+        <LPAREN> { line = token.beginLine; } aType = qualifiedIdentifier()
         { catchTypes.add(aType); }
 
         (
-            <BOR> aType = type()
+            <BOR> aType = qualifiedIdentifier()
             { catchTypes.add(aType); }
         )*
 
@@ -1434,18 +1434,18 @@ private Type referenceType(): {
 
 /**
  * Parse a statement expression list.
- * 
+ *
  * <pre>
- *   statementExpressionList ::= expression 
+ *   statementExpressionList ::= expression
  *                                      {DOT expression}
  * </pre>
- * 
+ *
  * @return an AST for a statementExpression.
  */
  private ArrayList<JStatement> statementExpressionList(): {
     int line = 0;
     ArrayList<JStatement> statementExpressionList = new ArrayList<JStatement>();
-    JStatement statement = null; 
+    JStatement statement = null;
 }
 {
     try {
@@ -1796,7 +1796,7 @@ private JExpression multiplicativeExpression(): {
  *
  * <pre>
  *   unaryExpression ::= INC unaryExpression // level 1
- *                     | MINUS unaryExpression
+ *                     | (MINUS | PLUS) unaryExpression
  *                     | simpleUnaryExpression
  * </pre>
  *
@@ -1816,10 +1816,14 @@ private JExpression unaryExpression(): {
 	    <DEC> { line = token.beginLine; }
         unaryExpr = unaryExpression()
         { expr = new JPreDecrementOp(line, unaryExpr); } |
-	
+
         <MINUS> { line = token.beginLine; }
         unaryExpr = unaryExpression()
         { expr = new JNegateOp(line, unaryExpr); } |
+
+        <PLUS> { line = token.beginLine; }
+        unaryExpr = unaryExpression()
+        { expr = new JIntPromotionOp(line, unaryExpr); } |
 
         <UCOM> { line = token.beginLine; }
         unaryExpr = unaryExpression()
@@ -1905,7 +1909,7 @@ private JExpression postfixExpression(): {
         (
 	    <INC>
 	    { primaryExpr = new JPostIncrementOp(line, primaryExpr); } |
-	    
+
             <DEC>
             { primaryExpr = new JPostDecrementOp(line, primaryExpr); }
         )*
