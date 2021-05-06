@@ -538,16 +538,52 @@ private JClassDeclaration classDeclaration(ArrayList<String> mods): {
  */
 
 private ArrayList<JMember> classBody(): {
-    ArrayList<String> mods = null;
+    ArrayList<String> mods = new ArrayList<String>();
     JMember aMember        = null;
     ArrayList<JMember> members = new ArrayList<JMember>();
+    ArrayList<JStatement> statements = new ArrayList<JStatement>();
+    JStatement statement = null;
+    JMember member = null;
+    JBlock body = null;
+    JInitializationBlock iBlock = null;
+    int line = 0;
 }
 {
     try {
         <LCURLY>
         (
-            mods = modifiers()
-            aMember = memberDecl(mods) { members.add(aMember); }
+            LOOKAHEAD(<STATIC> <LCURLY>)
+            (
+                <STATIC> <LCURLY> { line = token.beginLine; }
+                (
+                    LOOKAHEAD(type() <IDENTIFIER>)
+                    { mods.add("static"); }
+                    member = memberDecl(mods) {members.add(member);} |
+                    {
+                        statement = statement();
+                        statements.add(statement());
+                        body = block();
+                        iBlock = new JInitializationBlock(line, false, body);
+                        members.add(iBlock);
+                    }
+                )*
+                <RCURLY>
+            ) |
+            LOOKAHEAD(<LCURLY>)
+            (
+                <LCURLY> 
+                (
+                    LOOKAHEAD(type() <IDENTIFIER>)
+                    member = memberDecl(mods) {members.add(member);} |
+                    statement = statement() {statements.add(statement());}
+                )*
+                <RCURLY>
+            ) |
+            
+            (
+                mods = modifiers()
+                aMember = memberDecl(mods) { members.add(aMember); }
+            )
         )*
         <RCURLY>
     }
