@@ -547,39 +547,23 @@ private ArrayList<JMember> classBody(): {
     JBlock body = null;
     JInitializationBlock iBlock = null;
     int line = 0;
+    Object[] sBStatements = null;
 }
 {
     try {
         <LCURLY>
         (
             LOOKAHEAD(<STATIC> <LCURLY>)
-            (
-                <STATIC> <LCURLY> { line = token.beginLine; }
-                (
-                    LOOKAHEAD(type() <IDENTIFIER>)
-                    { mods.add("static"); }
-                    member = memberDecl(mods) {members.add(member);} |
-                    {
-                        statement = statement();
-                        statements.add(statement());
-                        body = block();
-                        iBlock = new JInitializationBlock(line, false, body);
-                        members.add(iBlock);
-                    }
-                )*
-                <RCURLY>
-            ) |
+            <STATIC>
+            {
+                sBStatements = StaticBlockStatements();
+                statements = (ArrayList<JStatement>) sBStatements[0];
+                members = (ArrayList<JMember>) sBStatements[1];
+            } |
             LOOKAHEAD(<LCURLY>)
             (
-                <LCURLY> 
-                (
-                    LOOKAHEAD(type() <IDENTIFIER>)
-                    member = memberDecl(mods) {members.add(member);} |
-                    statement = statement() {statements.add(statement());}
-                )*
-                <RCURLY>
+                statements = blockStatements()
             ) |
-            
             (
                 mods = modifiers()
                 aMember = memberDecl(mods) { members.add(aMember); }
@@ -836,6 +820,61 @@ private JMember interfaceMemberDecl(ArrayList<String> mods): {
         recoverFromError(new int[] { SEMI, EOF }, e);
     }
     { return memberDecl; }
+}
+
+/**
+ * Return statements from a static block block
+ *
+ */
+
+private Object[] StaticBlockStatements(): {
+    int line = 0;
+    JStatement aStatement = null;
+    ArrayList<JStatement> statements = new ArrayList<JStatement>();
+    ArrayList<JMember> members = new ArrayList<JMember>();
+    ArrayList<String> mods = new ArrayList<String>();
+    JMember member        = null;
+}
+{
+    try {
+        <LCURLY> { line = token.beginLine; mods.add("static"); mods.add("static"); }
+        (
+            LOOKAHEAD(type() <IDENTIFIER>)
+            member = memberDecl(mods) {members.add(member);} |
+            aStatement = blockStatement()
+            {statements.add(aStatement);}
+        )*
+        <RCURLY>
+    }
+    catch (ParseException e) {
+        recoverFromError(new int[] { SEMI, EOF }, e);
+    }
+    { return new Object[]{statements, members}; }
+}
+
+/**
+ * Return statements from an instance block
+ *
+ */
+
+private ArrayList<JStatement> blockStatements(): {
+    int line = 0;
+    JStatement aStatement = null;
+    ArrayList<JStatement> statements = new ArrayList<JStatement>();
+}
+{
+    try {
+        <LCURLY> { line = token.beginLine; }
+        (
+            aStatement = blockStatement()
+            { statements.add(aStatement); }
+        )*
+        <RCURLY>
+    }
+    catch (ParseException e) {
+        recoverFromError(new int[] { SEMI, EOF }, e);
+    }
+    { return statements; }
 }
 
 /**
