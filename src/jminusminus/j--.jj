@@ -1535,7 +1535,7 @@ private JExpression expression(): {
  *
  * <pre>
  *   assignmentExpression ::=
- *       conditionalAndExpression                // level 13
+ *       conditionalExpression                // level 13
  *           [(ASSIGN | PLUS_ASSIGN | SUB_ASSIGN | MULTI_ASSIGN | MOD_ASSIGN | DIV_ASSIGN) assignmentExpression] // must be a valid lhs
  * </pre>
  *
@@ -1548,7 +1548,7 @@ private JExpression assignmentExpression(): {
 }
 {
     try {
-        lhs = conditionalAndExpression() { line = lhs.line(); }
+        lhs = conditionalExpression() { line = lhs.line(); }
         [
             <ASSIGN>
             rhs = assignmentExpression()
@@ -1574,6 +1574,67 @@ private JExpression assignmentExpression(): {
             rhs = assignmentExpression()
             { lhs = new JSlashAssignOp(line, lhs, rhs); }
         ]
+    }
+    catch (ParseException e) {
+        recoverFromError(new int[] { SEMI, EOF }, e);
+    }
+    { return lhs; }
+}
+
+/**
+ * Parse a conditional expression.
+ *
+ * <pre>
+ *   conditionalExpression ::= conditionalAndExpression
+ *                                  {QMARK conditionalExpression}
+ * </pre>
+ *
+ * @return an AST for a conditionalExpression.
+ */
+
+private JExpression conditionalExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null, endPart = null;
+}
+{
+    try {
+        lhs = conditionalOrExpression() { line = lhs.line(); }
+        [
+            <QMARK>
+            rhs = conditionalOrExpression()
+            { lhs = new JTernaryOperator(line, lhs, rhs, endPart); }
+        ]
+    }
+    catch (ParseException e) {
+    recoverFromError(new int[] { SEMI, EOF }, e);
+    }
+    { return lhs; }
+}
+
+
+ /**
+ * Parse a conditional-or expression.
+ *
+ * <pre>
+ *   conditionalOrExpression ::= conditionalAndExpression
+ *                       {LOR assignmentExpression}
+ * </pre>
+ *
+ * @return an AST for a conditionalExpression.
+ */
+
+private JExpression conditionalOrExpression(): {
+    int line = 0;
+    JExpression lhs = null, rhs = null, endPart = null;
+}
+{
+    try {
+        lhs = conditionalAndExpression() { line = lhs.line(); }
+        (
+            <LOR>
+            rhs = conditionalAndExpression()
+            { lhs = new JLogicalOrOp(line, lhs, rhs); }
+        )*
     }
     catch (ParseException e) {
         recoverFromError(new int[] { SEMI, EOF }, e);

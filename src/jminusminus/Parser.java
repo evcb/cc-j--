@@ -1308,7 +1308,7 @@ public class Parser {
             JExpression thenPart = conditionalExpression();
             mustBe(COLON);
             JExpression elsePart = conditionalExpression();
-            new JConditionalOperator(line, lhs, thenPart, elsePart);
+            new JTernaryOperator(line, lhs, thenPart, elsePart);
         }
         return lhs;
     }
