@@ -23,7 +23,11 @@ class JEnhancedForStatement extends JStatement {
 
     private LocalContext context;
 
+    private JVariableDeclaration varDecs;
+    private JVariableDeclarator varDec;
     private JVariable iterator;
+
+    private int offsetCnt, offsetArrLen;
     
     /**
      * Constructs an AST node for an enhanced-statement given its line number, 
@@ -47,7 +51,9 @@ class JEnhancedForStatement extends JStatement {
 	this.name = name;
         this.expression = expression;
 	this.statement = statement;
-	iterator = new JVariable(line, name);
+	//iterator = new JVariable(line, name);
+	//iterator = new JVariableDeclarator(line, name, type, null);
+	//iteratorVar = new Jvariable(line, name);
     }
 
     /**
@@ -60,8 +66,38 @@ class JEnhancedForStatement extends JStatement {
      */
 
     public JStatement analyze(Context context) {
+	//System.out.println("Creating iterator, line " + line + " name " + name);
+	//iteratorVar = new JVariable(line, name);
+
+	// Set up and allocate space for internal variables
+	offsetCnt = ((LocalContext) context).nextOffset();                                                               
+	LocalVariableDefn defnCnt = new LocalVariableDefn(Type.INT, offsetCnt);
+	context.addEntry(line, "#cnt", defnCnt);
+	offsetArrLen = ((LocalContext) context).nextOffset();   
+	LocalVariableDefn defnArrLen = new LocalVariableDefn(Type.INT, offsetArrLen);
+	context.addEntry(line, "#arrLen", defnArrLen);
+	
+	//ArrayList<JStatement> init = new ArrayList<JStatement>();
+    
+	//May have to take into account the type used so that we just don't set
+	// it to an integer value... 
+	JExpression init = (JExpression )new JLiteralInt(line, "0");
+	varDec = new JVariableDeclarator(line, name, type, init);
+	ArrayList<JVariableDeclarator> decs = new ArrayList<JVariableDeclarator>();
+	decs.add(varDec);
+	ArrayList<String> mods = new ArrayList<String>();
+	
+	varDecs = new JVariableDeclaration(line, mods, decs);
+	//iterator = new JVariable(line, name);
+
+	//this.context.addEntry(line, name, new LocalVariableDefn(type, this.context.nextOffset(), null ));
+	
+	System.out.println("Analyzing iterator...");
+	varDecs = (JVariableDeclaration) varDecs.analyze(context);
 	iterator = new JVariable(line, name);
-	iterator = (JVariable) iterator.analyze(context);
+	iterator = (JVariable) iterator.analyze(context);	
+	//iterator = (JVariableDeclarator) iterator.analyze(context);	
+	System.out.println("Iterator analysed!");
 	expression = (JExpression) expression.analyze(context);
 	if (!expression.type().isArray()) {
 	    JAST.compilationUnit.reportSemanticError(line(),
@@ -99,46 +135,95 @@ class JEnhancedForStatement extends JStatement {
 	// Create local context for for-loop                                                                                 
         //this.context = new LocalContext(context);
 
-	// Create counter variable
-	//counter = new JVariable();
-	
 	// Create labels
         String loopLabel = output.createLabel();
         String endLabel = output.createLabel();
 
-	output.addNoArgInstruction(ICONST_1);
-	iterator.codegenStore(output);
+	// Get and store array length
+	expression.codegen(output);
+	output.addNoArgInstruction(ARRAYLENGTH);
+	codegenLocalStore(output, offsetArrLen);
 
+	// Set counter varible to zero
+	output.addNoArgInstruction(ICONST_0);
+	codegenLocalStore(output, offsetCnt);
+	
 	// Start of loop
 	output.addLabel(loopLabel); 
 	
 	// If the end of the array has been reached,
 	// terminate the loop
+	codegenLocalLoad(output, offsetCnt);
+	codegenLocalLoad(output, offsetArrLen);
 	output.addBranchInstruction(IF_ICMPGE, endLabel);
 	
-	// Load value from iterable type
-	// Can this be done by means of a method or class???
-	// if (type == Type.INT) {                                                                                                           output.addNoArgInstruction(IALOAD);                                                                                      } else if (type == Type.BOOLEAN) {                                                                                               output.addNoArgInstruction(BALOAD);                                                                                      } else if (type == Type.CHAR) {                                                                                                  output.addNoArgInstruction(CALOAD);                                                                                      } else if (!type.isPrimitive()) {                                                                                                output.addNoArgInstruction(AALOAD);                                                                                      }
-
-	expression.codegen(output); // Load array value
+	// Load offset and get array element at this index
+	expression.codegen(output); // Load array reference
+	codegenLocalLoad(output, offsetCnt);
+	codegenArrLoad(output);
+	iterator.codegenStore(output);
 
 	// Evaluate loop body                                                                                                
         statement.codegen(output);
 
+	// Increment counter
+	output.addIINCInstruction(offsetCnt, 1);
+	
 	// Preform another iteration
 	output.addBranchInstruction(GOTO, loopLabel);                                                                        
         output.addLabel(endLabel); 
-	
-        // condition.codegen(output, elseLabel, false);
-        // thenPart.codegen(output);
-        // if (elsePart != null) {
-        //     output.addBranchInstruction(GOTO, endLabel);
-        // }
-        // output.addLabel(elseLabel);
-        // if (elsePart != null) {
-        //     elsePart.codegen(output);
-        //     output.addLabel(endLabel);
-        // }
+    }
+
+    private void codegenArrLoad(CLEmitter output) {
+	if (type == Type.INT) {                                                                                              
+            output.addNoArgInstruction(IALOAD);                                                                              
+        } else if (type == Type.BOOLEAN) {                                                                                   
+            output.addNoArgInstruction(BALOAD);                                                                              
+        } else if (type == Type.CHAR) {                                                                                      
+            output.addNoArgInstruction(CALOAD);                                                                              
+        } else if (!type.isPrimitive()) {                                                                                    
+            output.addNoArgInstruction(AALOAD);                                                                              
+        }                                                                                                                    
+    }
+
+    private void codegenLocalLoad(CLEmitter output, int offset) {
+	switch (offset) {                                                                                             
+	case 0:                                                                                                      
+	    output.addNoArgInstruction(ILOAD_0);                                                                     
+	    break;                                                                                                   
+	case 1:                                                                                                      
+	    output.addNoArgInstruction(ILOAD_1);                                                                     
+	    break;                                                                                                   
+	case 2:                                                                                                      
+	    output.addNoArgInstruction(ILOAD_2);                                                                     
+	    break;                                                                                                   
+	case 3:                                                                                                    
+	    output.addNoArgInstruction(ILOAD_3);                                                                     
+	    break;                                                                                                   
+	default:                                                                                                     
+	    output.addOneArgInstruction(ILOAD, offset);                                                              
+	    break;                                                                                                   
+	}             
+    }
+
+    private void codegenLocalStore(CLEmitter output, int offset) {
+	switch (offset) {                                                                                             
+	case 0:                                                                                                      
+	    output.addNoArgInstruction(ISTORE_0);                                                                     
+	    break;                                                                                                   
+	case 1:                                                                                                      
+	    output.addNoArgInstruction(ISTORE_1);                                                                     
+	    break;                                                                                                   
+	case 2:                                                                                                      
+	    output.addNoArgInstruction(ISTORE_2);                                                                     
+	    break;                                                                                                   
+	case 3:                                                                                                    
+	    output.addNoArgInstruction(ISTORE_3);                                                                     
+	    break;                                                                                                   
+	default:                                                                                                     
+	    output.addOneArgInstruction(ISTORE, offset);                                                              
+	    break;                                                                                                   
+	}             
     }
 
     /**

@@ -918,7 +918,7 @@ private JStatement statement(): {
 
 	<FOR> { line = token.beginLine; }
 	(
-		LOOKAHEAD( <LPAREN>  <COLON> expression() <RPAREN> statement() )
+		LOOKAHEAD( <LPAREN> type() <IDENTIFIER> <COLON> expression() <RPAREN> statement() )
 		<LPAREN>
 		type = type()
 		<IDENTIFIER> { name = token.image; }
