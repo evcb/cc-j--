@@ -995,29 +995,24 @@ private JStatement statement(): {
 		forStatement = statement()
 		{ statement = new JEnhancedForStatement(line, type, name, expr, forStatement); } |
 
-		LOOKAHEAD( <LPAREN> localVariableDeclarationStatement() [expression()]
+		LOOKAHEAD( <LPAREN> localVariableDeclarationStatement() | ([statementExpressionList()]
+		<SEMI>) [expression()]
 		<SEMI> statementExpressionList() <RPAREN> statement() )
 		<LPAREN>
-		forIntTemp = localVariableDeclarationStatement() {forInt = new ArrayList<JStatement>(); forInt.add(forIntTemp); }
+		(
+		LOOKAHEAD( localVariableDeclarationStatement() )
+		forIntTemp = localVariableDeclarationStatement() {forInt = new ArrayList<JStatement>(); forInt.add(forIntTemp); } | 
+		LOOKAHEAD( [statementExpressionList()] <SEMI> )
+		[forInt = statementExpressionList()]
+		<SEMI>
+		)
 		[expr = expression()]
 		<SEMI>
-		forUpdate = statementExpressionList()
-		<RPAREN>
-		forStatement = statement()
-		{ statement = new JBasicForStatement(line, forInt, expr, forUpdate, forStatement); } |
-
-		LOOKAHEAD( <LPAREN> statementExpressionList()
-		<SEMI> [expression()] <SEMI> statementExpressionList() <RPAREN> statement() )
-		<LPAREN>
-		forInt = statementExpressionList()
-		<SEMI>
-		[expr = expression()]
-		<SEMI>
-		forUpdate = statementExpressionList()
+		[forUpdate = statementExpressionList()]
 		<RPAREN>
 		forStatement = statement()
 		{ statement = new JBasicForStatement(line, forInt, expr, forUpdate, forStatement); }
-
+		
 	) |
 
         <WHILE> { line = token.beginLine; }
