@@ -3,7 +3,9 @@
 package jminusminus;
 
 import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -13,12 +15,12 @@ import java.util.Set;
  * <p>
  * Because scopes are lexically nested in Java (and so in j--), the environment
  * can be seen as a stack of contexts, each of which is a mapping from names to
- * their definitions ({@link IDefn}s). A Context keeps track of its (most 
- * closely) surrounding context, its surrounding class context, and its 
- * surrounding compilation unit context, and as well as a map from names to 
- * definitions in the level of scope that the Context represents. Contexts are 
+ * their definitions ({@link IDefn}s). A Context keeps track of its (most
+ * closely) surrounding context, its surrounding class context, and its
+ * surrounding compilation unit context, and as well as a map from names to
+ * definitions in the level of scope that the Context represents. Contexts are
  * created for the compilation unit (a {@link CompilationUnitContext}), a class
- * (a {@link ClassContext}), each method (a {@link MethodContext}), and each 
+ * (a {@link ClassContext}), each method (a {@link MethodContext}), and each
  * block (a LocalContext). If we were to add the for-statement to j--, we would
  * necessarily create a (local) context.
  * <p>
@@ -47,74 +49,80 @@ class Context {
     protected CompilationUnitContext compilationUnitContext;
 
     /**
-     * Map of (local variable, formal parameters, type) names to their
-     * definitions.
+     * Map of (local variable, formal parameters, type) names to their definitions.
      */
     protected Map<String, IDefn> entries;
 
+    /*
+     * Set of exceptions types that are declared a catch formal parameters, and
+     * therefore catched.
+     */
+    protected Set<Type> exceptions;
+
     /**
      * Constructs a Context.
-     * 
-     * @param surrounding
-     *            the surrounding context (scope).
-     * @param classContext
-     *            the surrounding class context.
-     * @param compilationUnitContext
-     *            the compilation unit context (for the whole source program or
-     *            file).
+     *
+     * @param surrounding            the surrounding context (scope).
+     * @param classContext           the surrounding class context.
+     * @param compilationUnitContext the compilation unit context (for the whole
+     *                               source program or file).
      */
 
-    protected Context(Context surrounding, ClassContext classContext,
-            CompilationUnitContext compilationUnitContext) {
+    protected Context(Context surrounding, ClassContext classContext, CompilationUnitContext compilationUnitContext) {
         this.surroundingContext = surrounding;
         this.classContext = classContext;
         this.compilationUnitContext = compilationUnitContext;
         this.entries = new HashMap<String, IDefn>();
+        this.exceptions = new HashSet<Type>();
     }
 
     /**
      * Adds an entry to the symbol table, binding a name to its definition in the
      * current context.
-     * 
-     * @param line
-     *            the line number of the entry.
-     * @param name
-     *            the name being declared.
-     * @param definition
-     *            and its definition.
+     *
+     * @param line       the line number of the entry.
+     * @param name       the name being declared.
+     * @param definition and its definition.
      */
 
     public void addEntry(int line, String name, IDefn definition) {
         if (entries.containsKey(name)) {
-            JAST.compilationUnit.reportSemanticError(line, "redefining name: "
-                    + name);
+            JAST.compilationUnit.reportSemanticError(line, "redefining name: " + name);
         } else {
             entries.put(name, definition);
         }
     }
 
+    public void addExceptionType(Type t) {
+        exceptions.add(t);
+    }
+
+    public boolean catchesException(Type t) {
+        for (Type exception : exceptions)
+            if (exception.isJavaAssignableFrom(t))
+                return true;
+
+        return this.surroundingContext.catchesException(t);
+    }
+
     /**
      * Returns the definition for a name in the environment. If it's not found in
      * this context, we look for it in the surrounding context(s).
-     * 
-     * @param name
-     *            the name whose definition we're looking for.
+     *
+     * @param name the name whose definition we're looking for.
      * @return the definition; {@code null}, if not found.
      */
 
     public IDefn lookup(String name) {
         IDefn iDefn = (IDefn) entries.get(name);
-        return iDefn != null ? iDefn
-                : surroundingContext != null ? surroundingContext.lookup(name)
-                        : null;
+        return iDefn != null ? iDefn : surroundingContext != null ? surroundingContext.lookup(name) : null;
     }
 
     /**
-     * Returns the definition for a type name in the environment. For now, we
-     * look for types only in the {@code CompilationUnitContext}.
-     * 
-     * @param name
-     *            the name of the type whose definition we're looking for.
+     * Returns the definition for a type name in the environment. For now, we look
+     * for types only in the {@code CompilationUnitContext}.
+     *
+     * @param name the name of the type whose definition we're looking for.
      * @return the definition; {@code null}, if not found.
      */
 
@@ -125,11 +133,9 @@ class Context {
 
     /**
      * Adds the type to the environment.
-     * 
-     * @param line
-     *            line number of type declaration.
-     * @param type
-     *            the type we are declaring.
+     *
+     * @param line line number of type declaration.
+     * @param type the type we are declaring.
      */
 
     public void addType(int line, Type type) {
@@ -143,7 +149,7 @@ class Context {
     /**
      * Returns the type that defines this context (used principally for checking
      * acessibility).
-     * 
+     *
      * @return the type that defines this context.
      */
 
@@ -153,7 +159,7 @@ class Context {
 
     /**
      * Returns the surrounding context (scope) in the stack of contexts.
-     * 
+     *
      * @return the surrounding context.
      */
 
@@ -163,7 +169,7 @@ class Context {
 
     /**
      * Returns the surrounding class context.
-     * 
+     *
      * @return the surrounding class context.
      */
 
@@ -174,7 +180,7 @@ class Context {
     /**
      * Returns the surrounding compilation unit context. This is where imported
      * types and other types defined in the compilation unit are declared.
-     * 
+     *
      * @return the compilation unit context.
      */
 
@@ -185,7 +191,7 @@ class Context {
     /**
      * Returns the closest surrounding method context. Returns null if we're not
      * within a method.
-     * 
+     *
      * @return the method context.
      */
 
@@ -199,7 +205,7 @@ class Context {
 
     /**
      * Returns the names declared in this context.
-     * 
+     *
      * @return the set of declared names.
      */
 
@@ -209,9 +215,8 @@ class Context {
 
     /**
      * Writes the contents of this context to STDOUT.
-     * 
-     * @param p
-     *            for pretty printing with indentation.
+     *
+     * @param p for pretty printing with indentation.
      */
 
     public void writeToStdOut(PrettyPrinter p) {
@@ -228,8 +233,7 @@ class Context {
 class CompilationUnitContext extends Context {
 
     /**
-     * Constructs a new compilation unit context. There are no surrounding
-     * contexts.
+     * Constructs a new compilation unit context. There are no surrounding contexts.
      */
 
     public CompilationUnitContext() {
@@ -260,7 +264,7 @@ class CompilationUnitContext extends Context {
 }
 
 /**
- * Represents the context (scope, environment, symbol table) for a type, for 
+ * Represents the context (scope, environment, symbol table) for a type, for
  * example a class, in j--. It also keeps track of its surrounding context(s)
  * and the type whose context it represents.
  */
@@ -269,25 +273,34 @@ class ClassContext extends Context {
 
     /** AST node of the type that this class represents. */
     private JAST definition;
+    private ArrayList<JConstructorDeclaration> constructors;
 
     /**
      * Constructs a class context.
-     * 
-     * @param definition
-     *            the AST node of the type that this class represents.
-     * @param surrounding
-     *            the surrounding context(s).
+     *
+     * @param definition  the AST node of the type that this class represents.
+     * @param surrounding the surrounding context(s).
      */
 
     public ClassContext(JAST definition, Context surrounding) {
         super(surrounding, null, surrounding.compilationUnitContext());
         classContext = this;
         this.definition = definition;
+        constructors = new ArrayList<>();
+    }
+
+    // explicit constructor
+    public void addConstructor(JConstructorDeclaration c) {
+        constructors.add(c);
+    }
+
+    public ArrayList<JConstructorDeclaration> getConstructors() {
+        return constructors;
     }
 
     /**
      * Returns the AST node of the type defined by this class.
-     * 
+     *
      * @return the AST of the type defined by this class.
      */
 
@@ -297,14 +310,12 @@ class ClassContext extends Context {
 
 }
 
-
-
 /**
  * A local context is a context (scope) in which local variables (including
  * formal parameters) can be declared. Local variables are allocated at fixed
  * offsets from the base of the current method's stack frame; this is done
- * during analysis. The definitions for local variables record these offsets. The
- * offsets are used in code generation.
+ * during analysis. The definitions for local variables record these offsets.
+ * The offsets are used in code generation.
  */
 
 class LocalContext extends Context {
@@ -314,23 +325,19 @@ class LocalContext extends Context {
 
     /**
      * Constructs a local context. A local context is constructed for each block.
-     * 
-     * @param surrounding
-     *            the surrounding context.
+     *
+     * @param surrounding the surrounding context.
      */
 
     public LocalContext(Context surrounding) {
-        super(surrounding, surrounding.classContext(), surrounding
-                .compilationUnitContext());
-        offset = (surrounding instanceof LocalContext) ? ((LocalContext) surrounding)
-                .offset()
-                : 0;
+        super(surrounding, surrounding.classContext(), surrounding.compilationUnitContext());
+        offset = (surrounding instanceof LocalContext) ? ((LocalContext) surrounding).offset() : 0;
     }
 
     /**
-     * The "next" offset. A simple getter. Not to be used for allocating new
-     * offsets (the {@code nextOffset} method is used for that).
-     * 
+     * The "next" offset. A simple getter. Not to be used for allocating new offsets
+     * (the {@code nextOffset} method is used for that).
+     *
      * @return the next available offset.
      */
 
@@ -340,7 +347,7 @@ class LocalContext extends Context {
 
     /**
      * Allocates a new offset (for example, for a parameter or local variable).
-     * 
+     *
      * @return the next allocated offset.
      */
 
@@ -361,8 +368,7 @@ class LocalContext extends Context {
             for (String key : names()) {
                 IDefn defn = entries.get(key);
                 if (defn instanceof LocalVariableDefn) {
-                    p.printf("<Entry name=\"%s\" " + "offset=\"%d\"/>\n", key,
-                            ((LocalVariableDefn) defn).offset());
+                    p.printf("<Entry name=\"%s\" " + "offset=\"%d\"/>\n", key, ((LocalVariableDefn) defn).offset());
                 }
             }
             p.indentLeft();
@@ -388,34 +394,65 @@ class MethodContext extends LocalContext {
     /** Return type of this method. */
     private Type methodReturnType;
 
+    private boolean isConstructor;
+
     /** Does (non-void) method have at least one return? */
     private boolean hasReturnStatement = false;
 
+    ArrayList<Type> thrownTypes;
+
     /**
      * Constructs a method context.
-     * 
-     * @param surrounding
-     *            the surrounding (class) context.
-     * @param isStatic
-     *            is this method static?
-     * @param methodReturnType
-     *            return type of this method.
+     *
+     * @param surrounding      the surrounding (class) context.
+     * @param isStatic         is this method static?
+     * @param methodReturnType return type of this method.
      */
 
-    public MethodContext(Context surrounding, boolean isStatic,
-            Type methodReturnType) {
+    public MethodContext(Context surrounding, boolean isStatic, Type methodReturnType, ArrayList<Type> thrownTypes,
+            boolean isConstructor) {
         super(surrounding);
         this.isStatic = isStatic;
+        this.thrownTypes = thrownTypes;
         this.methodReturnType = methodReturnType;
         offset = 0;
+        this.isConstructor = isConstructor;
+    }
+
+    public void setThrownTypes(ArrayList<Type> thrownTypes) {
+        this.thrownTypes = thrownTypes;
+    }
+
+    public void addThownType(Type t) {
+        if (thrownTypes == null)
+            thrownTypes = new ArrayList<>();
+
+        thrownTypes.add(t);
+    }
+
+    public boolean throwsType(Type t) {
+        if (thrownTypes != null)
+            for (Type exception : exceptions)
+                if (exception.isJavaAssignableFrom(t))
+                    return true;
+
+        return false;
+    }
+
+    /**
+     * Is this method a constructor ?
+     *
+     * @return true or false.
+     */
+    public boolean isConstructor() {
+        return isConstructor;
     }
 
     /**
      * Is this method static?
-     * 
+     *
      * @return true or false.
      */
-
     public boolean isStatic() {
         return isStatic;
     }
@@ -423,27 +460,24 @@ class MethodContext extends LocalContext {
     /**
      * Records fact that (non-void) method has at least one return.
      */
-
     public void confirmMethodHasReturn() {
         hasReturnStatement = true;
     }
 
     /**
      * Does this (non-void) method have at least one return?
-     * 
+     *
      * @return true or false.
      */
-
     public boolean methodHasReturn() {
         return hasReturnStatement;
     }
 
     /**
      * Returns the return type of this method.
-     * 
+     *
      * @return the return type of this method.
      */
-
     public Type methodReturnType() {
         return methodReturnType;
     }
@@ -451,7 +485,6 @@ class MethodContext extends LocalContext {
     /**
      * {@inheritDoc}
      */
-
     public void writeToStdOut(PrettyPrinter p) {
         p.println("<MethodContext>");
         p.indentRight();
@@ -459,5 +492,4 @@ class MethodContext extends LocalContext {
         p.indentLeft();
         p.println("</MethodContext>");
     }
-
 }

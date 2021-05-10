@@ -3,7 +3,7 @@
 package jminusminus;
 
 import java.util.ArrayList;
-
+import static jminusminus.CLConstants.*;
 /**
  * The AST node for a local variable declaration. Local variables are declared
  * by its {@code analyze} method, which also re-writes any initializations as 
@@ -67,6 +67,9 @@ class JVariableDeclaration extends JStatement {
             // declared
             // in preAnalyze())
             int offset = ((LocalContext) context).nextOffset();
+            if(decl.type()==Type.DOUBLE){
+                ((LocalContext) context).nextOffset();
+            }
             LocalVariableDefn defn = new LocalVariableDefn(decl.type().resolve(
                     context), offset);
 

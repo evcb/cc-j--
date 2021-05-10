@@ -17,8 +17,21 @@ classDeclaration ::= CLASS IDENTIFIER
 
 classBody ::= LCURLY {modifiers memberDecl} RCURLY
 
-memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // constructor
-             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionTypeList] (block | SEMI) // method
+initializationBlock ::+= [STATIC] RLY {block} RCURLY
+
+memberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionType {COMMA ExceptionType}] block // constructor
+             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionType {COMMA ExceptionType}] (block | SEMI) // method
+             | STATIC LCURL block RCURLY // field initializer
+             | type variableDeclarators SEMI // field
+
+interfaceDeclaration ::= INTERFACE IDENTIFIER
+                       {EXTENDS qualifiedIdentifier}
+                       interfaceBody
+
+interfaceBody ::= LCURLY {modifiers interfaceMemberDecl} RCURLY
+
+interfaceMemberDecl ::= IDENTIFIER formalParameters [THROWS ExceptionTypeList] block // constructor
+             | (VOID | type) IDENTIFIER formalParameters [THROWS ExceptionTypeList] (SEMI) // method
              | STATIC LCURL block RCURLY // field initializer
              | type variableDeclarators SEMI // field
 
@@ -31,13 +44,16 @@ statement ::= block
             | IF parExpression statement [ELSE statement]
             | WHILE parExpression statement
             | TryStatement
+            | THROW Expression SEMI
             | RETURN [expression] SEMI
             | RETURN expression SEMI
             | SEMI
             | statementExpression SEMI
 
-TryStatement ::= TRY Block CATCH catchFormalParameter BLOCK {CATCH catchFormalParameter BLOCK}
-               | TRY {CATCH catchFormalParameter BLOCK} FINALLY BLOCK
+TryStatement ::= TRY Block catchClause {catchClause}
+               | TRY {catchClause} FINALLY BLOCK
+
+catchClause ::= CATCH catchFormalParameter BLOCK
 
 catchFormalParameter ::= LPAREN [Variablemodifier] catchType {BOR catchType} identifier RPAREN
 
@@ -66,7 +82,7 @@ arguments ::= LPAREN [expression {COMMA expression}] RPAREN
 
 type ::= referenceType | basicType
 
-basicType ::= BOOLEAN | CHAR | INT
+basicType ::= BOOLEAN | CHAR | INT | DOUBLE
 
 referenceType ::= basicType LBRACK RBRACK {LBRACK RBRACK}
                 | qualifiedIdentifier {LBRACK RBRACK}
@@ -98,7 +114,7 @@ relationalExpression ::= shiftExpression       // level 5
                            | INSTANCEOF referenceType]
 
 shiftExpression ::= additiveExpression
-		    {(URSHIFT | SHL | SHR)  AdditiveExpression}
+		    {(URSHIFT | SHL | SHR)  additiveExpression}
 
 additiveExpression ::= multiplicativeExpression // level 3
                          {(PLUS | MINUS) multiplicativeExpression}
@@ -117,11 +133,7 @@ simpleUnaryExpression ::= LNOT unaryExpression
                           RPAREN simpleUnaryExpression
                         | postfixExpression
                         | UCOM simpleUnaryExpression
-<<<<<<< HEAD
-                        | postfixExpression
-=======
                         | prefixExpression
->>>>>>> 64704cf7be73641175de0c63897bb442a95ad155
 
 postfixExpression ::= primary {selector} {(INC | DEC)}
 

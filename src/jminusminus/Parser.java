@@ -3,10 +3,7 @@
 package jminusminus;
 
 import java.util.ArrayList;
-import java.util.Map.Entry;
 import java.util.jar.Attributes.Name;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 
 import static jminusminus.TokenKind.*;
 
@@ -474,6 +471,7 @@ public class Parser {
      * <pre>
      *   classDeclaration ::= CLASS IDENTIFIER
      *                        [EXTENDS qualifiedIdentifier]
+     *                        {IMPLEMENTS qualifiedIdentifier}
      *                        classBody
      * </pre>
      *
@@ -510,7 +508,8 @@ public class Parser {
      *
      * <pre>
      *   interfaceDeclaration ::= INTERFACE IDENTIFIER
-     *                        interfaceBody
+     *                            {IMPLEMENTS qualifiedIdentifier}
+     *                            interfaceBody
      * </pre>
      *
      *
@@ -527,7 +526,7 @@ public class Parser {
         if (have(EXTENDS)) {
             do {
                 superInterfaces.add(qualifiedIdentifier());
-            } while(have(COMMA));
+            } while (have(COMMA));
         }
         return new JInterfaceDeclaration(line, mods, name, superInterfaces, interfaceBody());
     }
@@ -546,20 +545,58 @@ public class Parser {
 
     private ArrayList<JMember> classBody() {
         ArrayList<JMember> members = new ArrayList<JMember>();
+        JBlock body = null;
+
         mustBe(LCURLY);
         while (!see(RCURLY) && !see(EOF)) {
-            members.add(memberDecl(modifiers()));
+            int line = scanner.token().line();
+
+            if (have(STATIC)) {
+                ArrayList<String> mods = modifiers();
+                mods.add("static");
+
+                // Static block
+                if (see(LCURLY)) {
+                    line = scanner.token().line();
+                    ArrayList<JStatement> statements = new ArrayList<JStatement>();
+
+                    // Parsing the block manually
+                    have(LCURLY);
+                    while (!see(RCURLY) && !see(EOF)) {
+                        if (seeLocalVariableDeclaration()) {
+                            members.add(memberDecl(mods));
+                        } else {
+                            statements.add(statement());
+                        }
+                    }
+                    have(RCURLY);
+                    body = new JBlock(line, statements);
+                    // Variables declared inside the block
+                    // are passed to the class to become fields
+                    members.add(new JInitializationBlock(line, true, body));
+                } else {
+                    // Normal static field declaration
+                    members.add(memberDecl(mods));
+                }
+                // IIB
+            } else if (see(LCURLY)) {
+                line = scanner.token().line();
+                body = block();
+                members.add(new JInitializationBlock(line, false, body));
+            } else {
+                members.add(memberDecl(modifiers()));
+            }
         }
         mustBe(RCURLY);
         return members;
     }
 
     private ArrayList<Type> throwsClause() {
-        ArrayList<Type> throwsTypes = new ArrayList();
+        ArrayList<Type> throwsTypes = new ArrayList<Type>();
 
         if (have(THROWS))
             do
-                throwsTypes.add(type());
+                throwsTypes.add(qualifiedIdentifier());
             while (have(COMMA));
 
         return throwsTypes;
@@ -570,8 +607,8 @@ public class Parser {
      *
      * <pre>
      *   interfaceBody ::= LCURLY
-     *                   {modifiers interfaceMemberDecl}
-     *                 RCURLY
+     *                      {modifiers interfaceMemberDecl}
+     *                     RCURLY
      * </pre>
      *
      * @return list of members in the interface body.
@@ -591,9 +628,7 @@ public class Parser {
      * Parse an interface member declaration.
      *
      * <pre>
-     *   memberDecl ::=  IDENTIFIER            // interface or class
-     *                     block
-     *                  | (VOID | type) IDENTIFIER  // method
+     *   memberDecl ::=  (VOID | type) IDENTIFIER  // method
      *                    formalParameters
      *                    (SEMI)
      *                | type variableDeclarators SEMI
@@ -688,9 +723,6 @@ public class Parser {
 
                 JBlock body = have(SEMI) ? null : block();
                 memberDecl = new JMethodDeclaration(line, mods, name, type, params, exceptionTypes, body);
-            } else if (see(LCURLY)) {
-                JBlock body = block();
-                memberDecl = new JInstanceInitializationBlock(line, mods, body);
             } else {
                 type = type();
                 if (seeIdentLParen()) {
@@ -761,7 +793,7 @@ public class Parser {
      *   statement ::= block
      *               | IF parExpression statement [ELSE statement]
      *               | WHILE parExpression statement
-     *               | FOR  {ForInit} ; [Expression] ; {ForUpdate} ) Statement 
+     *               | FOR  {ForInit} ; [Expression] ; {ForUpdate} ) Statement
      *               | TRY block CATCH ClassType block {CATCH ClassType block}
      *               | TRY block {CATCH ClassType block} FINALLY block
      *               | THROW expression SEMI
@@ -788,56 +820,55 @@ public class Parser {
             return new JWhileStatement(line, test, statement);
         } else if (have(TRY)) {
             return tryStatement();
-	} else if (have(FOR)) {
-	    mustBe(LPAREN);
+        } else if (have(FOR)) {
+            mustBe(LPAREN);
 
-	    scanner.recordPosition();
-	    scanner.next();
-	    scanner.next();
+            scanner.recordPosition();
+            scanner.next();
+            scanner.next();
 
-	    // Enchanced For-statement
-	    if (have(COLON)) {
-	    	scanner.returnToPosition();
-	    	Type type = type();
-	    	mustBe(IDENTIFIER);
-	    	String name = scanner.previousToken().image();
-		mustBe(COLON);
-	    	JExpression expression = expression();
-		mustBe(RPAREN);
-		JStatement statement = statement();
-	    	return new JEnhancedForStatement(line, type, name, expression, statement);
-	    }
-	    
-	    // Basic For-statement
-	    ArrayList<JStatement> forInt = null;
-	    JStatement forIntTemp = null;
-	    JExpression expression;
-	    ArrayList<JStatement> forUpdate;
+            // Enchanced For-statement
+            if (have(COLON)) {
+                scanner.returnToPosition();
+                Type type = type();
+                mustBe(IDENTIFIER);
+                String name = scanner.previousToken().image();
+                mustBe(COLON);
+                JExpression expression = expression();
+                mustBe(RPAREN);
+                JStatement statement = statement();
+                return new JEnhancedForStatement(line, type, name, expression, statement);
+            }
 
-	    scanner.returnToPosition();
-	    
-	    if (!see(SEMI)) {
-		if (seeLocalVariableDeclaration()) {
-		    forInt = new ArrayList<JStatement>();
-		    forIntTemp = localVariableDeclarationStatement();
-		    forInt.add(forIntTemp);
-		} else {
-		    forInt = statementExpressionList();
-		    mustBe(SEMI);
-		}
-	    }
-	    
-	    expression = !see(SEMI) ? expression() : null;
-	    mustBe(SEMI);
-	    forUpdate = !see(RPAREN) ? statementExpressionList() : null;
-	    mustBe(RPAREN);
-	    JStatement statement = statement();
-	   
-	    return new JBasicForStatement(line, forInt, expression, forUpdate, statement);
-	    
+            // Basic For-statement
+            ArrayList<JStatement> forInt = null;
+            JStatement forIntTemp = null;
+            JExpression expression;
+            ArrayList<JStatement> forUpdate;
+
+            scanner.returnToPosition();
+
+            if (!see(SEMI)) {
+                if (seeLocalVariableDeclaration()) {
+                    forInt = new ArrayList<JStatement>();
+                    forIntTemp = localVariableDeclarationStatement();
+                    forInt.add(forIntTemp);
+                } else {
+                    forInt = statementExpressionList();
+                    mustBe(SEMI);
+                }
+            }
+
+            expression = !see(SEMI) ? expression() : null;
+            mustBe(SEMI);
+            forUpdate = !see(RPAREN) ? statementExpressionList() : null;
+            mustBe(RPAREN);
+            JStatement statement = statement();
+
+            return new JBasicForStatement(line, forInt, expression, forUpdate, statement);
+
         } else if (have(THROW)) {
             JExpression expr = expression();
-
             mustBe(SEMI);
 
             return new JThrowStatement(line, expr);
@@ -893,9 +924,9 @@ public class Parser {
         int line = scanner.token().line();
         mustBe(LPAREN);
 
-        ArrayList<Type> catchTypes = new ArrayList();
+        ArrayList<TypeName> catchTypes = new ArrayList<TypeName>();
         do
-            catchTypes.add(type());
+            catchTypes.add(qualifiedIdentifier());
         while (have(BOR));
 
         mustBe(IDENTIFIER);
@@ -920,19 +951,19 @@ public class Parser {
         int line = scanner.token().line();
         JBlock tryPart = block();
 
-        ArrayList<Entry<JCatchFormalParameter, JBlock>> catchPart = new ArrayList();
+        ArrayList<JCatchClause> catchClauses = new ArrayList<>();
         while (have(CATCH))
-            catchPart.add(new SimpleEntry(catchFormalParameter(), block()));
+            catchClauses.add(new JCatchClause(line, catchFormalParameter(), block()));
 
         JBlock finallyPart = null;
-        if (catchPart.isEmpty()) {
+        if (catchClauses.isEmpty()) {
             mustBe(FINALLY);
 
             finallyPart = block();
         } else if (have(FINALLY))
             finallyPart = block();
 
-        return new JTryStatement(line, tryPart, catchPart, finallyPart);
+        return new JTryStatement(line, tryPart, catchClauses, finallyPart);
     }
 
     /**
@@ -1177,21 +1208,22 @@ public class Parser {
      * Parse a statement expression list.
      *
      * <pre>
-     *   statementExpressionList ::=  StatementExpression {, StatementExpression} 
+     *   statementExpressionList ::=  StatementExpression {, StatementExpression}
      * </pre>
      *
      * @return an AST for a statementExpressionList.
      */
 
     private ArrayList<JStatement> statementExpressionList() {
-	ArrayList<JStatement> statementExpressions = new ArrayList<JStatement>();
-	
+        ArrayList<JStatement> statementExpressions = new ArrayList<JStatement>();
+
         do {
             statementExpressions.add(statementExpression());
         } while (have(COMMA));
 
         return statementExpressions;
     }
+
     /**
      * Parse a statement expression.
      *
@@ -1276,7 +1308,7 @@ public class Parser {
             JExpression thenPart = conditionalExpression();
             mustBe(COLON);
             JExpression elsePart = conditionalExpression();
-            new JConditionalOperator(line, lhs, thenPart, elsePart);
+            new JTernaryOperator(line, lhs, thenPart, elsePart);
         }
         return lhs;
     }

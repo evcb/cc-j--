@@ -54,9 +54,7 @@ abstract class JUnaryExpression extends JExpression {
 /**
  * The AST node for a unary negation (-) expression.
  */
-
 class JNegateOp extends JUnaryExpression {
-
     /**
      * Constructs an AST node for a negation expression given its line number, and
      * the operand.
@@ -79,15 +77,13 @@ class JNegateOp extends JUnaryExpression {
 
     public JExpression analyze(Context context) {
         arg = arg.analyze(context);
-        //TODO: check these conditions
-        if(arg.type()==Type.INT){
-            type= Type.INT;
-        } else if(arg.type()==Type.DOUBLE){
-            type=Type.DOUBLE;
+        if (arg.type() == Type.INT) {
+            type = Type.INT;
+        } else if (arg.type() == Type.DOUBLE) {
+            type = Type.DOUBLE;
         } else {
-            type = Type.INT; //to not have nullpointer exeception
-            JAST.compilationUnit.reportSemanticError(line(),
-                    "Invalid operand types for -");
+            type = Type.INT; // to not have nullpointer exeception
+            JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for -");
         }
 
         return this;
@@ -103,9 +99,9 @@ class JNegateOp extends JUnaryExpression {
 
     public void codegen(CLEmitter output) {
         arg.codegen(output);
-        if(type==Type.INT){
+        if (type == Type.INT) {
             output.addNoArgInstruction(INEG);
-        } else if (type==Type.DOUBLE){
+        } else if (type == Type.DOUBLE) {
             output.addNoArgInstruction(DNEG);
         }
     }
@@ -114,6 +110,8 @@ class JNegateOp extends JUnaryExpression {
 
 /** The AST node for a unary int promotion (+) expression. */
 class JIntPromotionOp extends JUnaryExpression {
+    Type input;
+
     /**
      * Constructs an AST node for an int promotion expression given its line number,
      * and the operand.
@@ -135,7 +133,8 @@ class JIntPromotionOp extends JUnaryExpression {
      */
     public JExpression analyze(Context context) {
         arg = arg.analyze(context);
-        arg.type().mustMatchOneOf(line(), Type.CHAR, Type.INT);
+        arg.type().mustMatchOneOf(line(), Type.CHAR, Type.INT, Type.BOXED_INT, Type.BOXED_CHAR);
+        input = arg.type();
         type = Type.INT;
 
         return this;
@@ -150,6 +149,17 @@ class JIntPromotionOp extends JUnaryExpression {
      */
     public void codegen(CLEmitter output) {
         arg.codegen(output);
+
+        Conversions c = new Conversions();
+
+        if (input == Type.BOXED_INT)
+            c.get(Type.BOXED_INT, Type.INT).codegen(output); // unboxing
+        else if (input == Type.BOXED_CHAR || input == Type.CHAR) {
+            if (input == Type.BOXED_CHAR)
+                c.get(Type.BOXED_CHAR, Type.CHAR).codegen(output); // unboxing
+
+            c.get(Type.CHAR, Type.INT).codegen(output); // primitive widening
+        }
     }
 }
 
@@ -300,15 +310,13 @@ class JPostDecrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            //TODO: check these conditions
-            if(arg.type()==Type.INT){
-                type= Type.INT;
-            } else if(arg.type()==Type.DOUBLE){
-                type=Type.DOUBLE;
+            if (arg.type() == Type.INT) {
+                type = Type.INT;
+            } else if (arg.type() == Type.DOUBLE) {
+                type = Type.DOUBLE;
             } else {
-                type = Type.INT; //to not have null pointer exception
-                JAST.compilationUnit.reportSemanticError(line(),
-                        "Invalid operand types for expr--");
+                type = Type.INT; // to not have null pointer exception
+                JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for expr--");
             }
         }
         return this;
@@ -344,10 +352,10 @@ class JPostDecrementOp extends JUnaryExpression {
                 // Loading its original rvalue
                 ((JLhs) arg).codegenDuplicateRvalue(output);
             }
-            if(type==Type.INT){
+            if (type == Type.INT) {
                 output.addNoArgInstruction(ICONST_1);
                 output.addNoArgInstruction(ISUB);
-            } else if (type==Type.DOUBLE){
+            } else if (type == Type.DOUBLE) {
                 output.addNoArgInstruction(DCONST_1);
                 output.addNoArgInstruction(DSUB);
             }
@@ -390,15 +398,13 @@ class JPostIncrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            //TODO: check these conditions
-           if(arg.type()==Type.INT){
-                type= Type.INT;
-            } else if(arg.type()==Type.DOUBLE){
-                type=Type.DOUBLE;
+            if (arg.type() == Type.INT) {
+                type = Type.INT;
+            } else if (arg.type() == Type.DOUBLE) {
+                type = Type.DOUBLE;
             } else {
-               type = Type.INT; //otherwise gives null pointer exception
-               JAST.compilationUnit.reportSemanticError(line(),
-                       "Invalid operand type for expr++");
+                type = Type.INT; // otherwise gives null pointer exception
+                JAST.compilationUnit.reportSemanticError(line(), "Invalid operand type for expr++");
             }
 
         }
@@ -467,15 +473,13 @@ class JPreIncrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            //TODO: check these conditions
-            if(arg.type()==Type.INT){
-                type= Type.INT;
-            } else if(arg.type()==Type.DOUBLE){
-                type=Type.DOUBLE;
+            if (arg.type() == Type.INT) {
+                type = Type.INT;
+            } else if (arg.type() == Type.DOUBLE) {
+                type = Type.DOUBLE;
             } else {
-                type = Type.INT; //so it doesn't give null pointer exception
-                JAST.compilationUnit.reportSemanticError(line(),
-                        "Invalid operand types for ++expr");
+                type = Type.INT; // so it doesn't give null pointer exception
+                JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for ++expr");
             }
         }
         return this;
@@ -511,10 +515,10 @@ class JPreIncrementOp extends JUnaryExpression {
                 // Loading its original rvalue
                 ((JLhs) arg).codegenDuplicateRvalue(output);
             }
-            if(type==Type.INT){
+            if (type == Type.INT) {
                 output.addNoArgInstruction(ICONST_1);
                 output.addNoArgInstruction(IADD);
-            } else if (type==Type.DOUBLE){
+            } else if (type == Type.DOUBLE) {
                 output.addNoArgInstruction(DCONST_1);
                 output.addNoArgInstruction(DADD);
             }
@@ -590,5 +594,3 @@ class JPreDecrementOp extends JUnaryExpression {
     }
 
 }
-
-

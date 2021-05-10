@@ -13,7 +13,8 @@ class JCatchFormalParameter extends JAST {
     private String name;
 
     /** Parameter class types. */
-    private ArrayList<Type> types;
+    private ArrayList<TypeName> types;
+    private ArrayList<Type> resolvedTypes;
 
     /**
      * Constructs an AST node for a formal parameter declaration given its line
@@ -23,10 +24,11 @@ class JCatchFormalParameter extends JAST {
      * @param types parameter types.
      * @param name  parameter name.
      */
-    public JCatchFormalParameter(int line, ArrayList<Type> types, String name) {
+    public JCatchFormalParameter(int line, ArrayList<TypeName> types, String name) {
         super(line);
         this.types = types;
         this.name = name;
+        resolvedTypes = new ArrayList();
     }
 
     /**
@@ -43,18 +45,8 @@ class JCatchFormalParameter extends JAST {
      *
      * @return the parameter's types.
      */
-    public ArrayList<Type> types() {
-        return types;
-    }
-
-    /**
-     * Sets the type to the specified type.
-     *
-     * @param newType the new type.
-     * @return return the new type.
-     */
-    public ArrayList<Type> setTypes(ArrayList<Type> newTypes) {
-        return types = newTypes;
+    public ArrayList<Type> resolvedTypes() {
+        return resolvedTypes;
     }
 
     /**
@@ -64,7 +56,13 @@ class JCatchFormalParameter extends JAST {
      * @return the analyzed (and possibly rewritten) AST subtree.
      */
     public JAST analyze(Context context) {
-        // Nothing to do
+        for (TypeName t : types)
+            resolvedTypes.add(t.resolve(context));
+
+        for (Type t : resolvedTypes)
+            if (!Throwable.class.isAssignableFrom(t.classRep()))
+                JAST.compilationUnit.reportSemanticError(line(), "catch formal parameters must be Throwable");
+
         return this;
     }
 

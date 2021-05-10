@@ -1,37 +1,47 @@
 package pass;
 
+import java.lang.Exception;
+import java.lang.Error;
+
 public class Try {
 	private void throwing() throws Exception, Error {
 		throw new Exception();
 	}
 
-	public boolean try_throw_exception() {
+	public int try_throw_exception() {
 		try {
 			throwing();
+
+			return 0;
 		} catch (Exception e) {
+			return 1;
 		} finally {
 		}
-
-		return true;
 	}
 
-	public boolean try_throw_error() {
+	public int try_throw_error() {
 		try {
 			throw new Error();
 
+			return 0;
 		} catch (Error e) {
+			return 1;
 		} catch (Exception e) {
+			return 0;
 		}
 
-		return true;
+		return 0;
 	}
 
-	public boolean try_nothrow() {
+	public int try_nothrow() {
 		try {
 			throw new Exception();
+
+			return 0;
 		} catch (Error | Exception e) {
+			return 1;
 		}
 
-		return true;
+		return 0;
 	}
 }

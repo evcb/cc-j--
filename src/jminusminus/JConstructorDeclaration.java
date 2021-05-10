@@ -12,7 +12,7 @@ import static jminusminus.CLConstants.*;
  * @see JMethodDeclaration
  */
 
-class JConstructorDeclaration extends JMethodDeclaration implements JMember {
+class JConstructorDeclaration extends JMethodDeclaration {
 
     /** Does this constructor invoke this(...) or super(...)? */
     private boolean invokesConstructor;
@@ -53,9 +53,6 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
             JAST.compilationUnit.reportSemanticError(line(), "Constructor cannot be declared abstract");
         }
 
-        if (isThrow)
-            ; // ensure that all types are or subclass Throwable + other checks
-
         if (body.statements().size() > 0 && body.statements().get(0) instanceof JStatementExpression) {
             JStatementExpression first = (JStatementExpression) body.statements().get(0);
             if (first.expr instanceof JSuperConstruction) {
@@ -79,7 +76,8 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
     public JAST analyze(Context context) {
         // Record the defining class declaration.
         definingClass = (JClassDeclaration) (context.classContext().definition());
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType);
+
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes, true);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -91,18 +89,28 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
         // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
             int currentOffest = this.context.nextOffset();
-            if(param.type()== Type.DOUBLE){
-                //increase the offset because a double occupies 2 words
+            if (param.type() == Type.DOUBLE) {
+                // increase the offset because a double occupies 2 words
                 this.context.nextOffset();
             }
-            //we give the offset upon entering the method
+            // we give the offset upon entering the method
             LocalVariableDefn defn = new LocalVariableDefn(param.type(), currentOffest);
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }
 
-        if (isThrow)
-            ; // ensure that all types are or subclass Throwable + other checks
+        if (exceptionTypes != null) {
+            int j = exceptionTypes.size(), i = 0;
+
+            while (i < j) {
+                if (Throwable.class.isAssignableFrom(exceptionTypes.get(i).classRep()))
+                    this.context.addThownType(exceptionTypes.get(i));
+                else
+                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+
+                i++;
+            }
+        }
 
         if (body != null) {
             body = body.analyze(this.context);
@@ -181,7 +189,7 @@ class JConstructorDeclaration extends JMethodDeclaration implements JMember {
             p.println("</FormalParameters>");
         }
 
-        if (isThrow) {
+        if (!exceptionTypes.isEmpty()) {
             p.println("<Throws>");
 
             p.indentRight();

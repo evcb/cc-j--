@@ -3,7 +3,6 @@
 package jminusminus;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import static jminusminus.CLConstants.*;
 
@@ -27,6 +26,7 @@ class JMethodDeclaration extends JAST implements JMember {
 
     /** The exception types. */
     protected ArrayList<Type> exceptionTypes;
+    protected ArrayList<String> exceptionTypesNames;
 
     /** Method body. */
     protected JBlock body;
@@ -47,7 +47,7 @@ class JMethodDeclaration extends JAST implements JMember {
     protected boolean isPrivate;
 
     /** Does this method throws ? */
-    protected boolean isThrow;
+    protected boolean isThrows;
 
     /**
      * Constructs an AST node for a method declaration given the line number, method
@@ -64,9 +64,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JMethodDeclaration(int line, ArrayList<String> mods, String name, Type returnType,
-            ArrayList<JFormalParameter> params, ArrayList<Type> exceptionTypes, JBlock body)
-
-    {
+            ArrayList<JFormalParameter> params, ArrayList<Type> exceptionTypes, JBlock body) {
         super(line);
         this.mods = mods;
         this.name = name;
@@ -77,13 +75,13 @@ class JMethodDeclaration extends JAST implements JMember {
         this.isAbstract = mods.contains("abstract");
         this.isStatic = mods.contains("static");
         this.isPrivate = mods.contains("private");
-        this.isThrow = !exceptionTypes.isEmpty();
+        isThrows = exceptionTypes == null || !exceptionTypes.isEmpty();
+        exceptionTypesNames = new ArrayList<>();
     }
 
     public JBlock getBody() {
         return body;
     }
-
 
     /**
      * Declares this method in the parent (class) context.
@@ -93,13 +91,15 @@ class JMethodDeclaration extends JAST implements JMember {
      *                partial class).
      */
 
-
-
     public void preAnalyze(Context context, CLEmitter partial) {
         // Resolve types of the formal parameters
         for (JFormalParameter param : params) {
             param.setType(param.type().resolve(context));
         }
+
+        if (exceptionTypes != null)
+            for (int i = 0; i < exceptionTypes.size(); i++)
+                exceptionTypes.set(i, exceptionTypes.get(i).resolve(context));
 
         // Resolve return type
         returnType = returnType.resolve(context);
@@ -142,7 +142,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public JAST analyze(Context context) {
-        MethodContext methodContext = new MethodContext(context, isStatic, returnType);
+        MethodContext methodContext = new MethodContext(context, isStatic, returnType, exceptionTypes, false);
         this.context = methodContext;
 
         if (!isStatic) {
@@ -154,23 +154,37 @@ class JMethodDeclaration extends JAST implements JMember {
         // to be always initialized, via a function call.
         for (JFormalParameter param : params) {
             int currentOffset = this.context.nextOffset();
-            if(param.type()==Type.DOUBLE){
-                //adding an offset because double occupies two words
+            if (param.type() == Type.DOUBLE) {
+                // adding an offset because double occupies two words
                 this.context.nextOffset();
             }
             LocalVariableDefn defn = new LocalVariableDefn(param.type(), currentOffset);
             defn.initialize();
             this.context.addEntry(param.line(), param.name(), defn);
         }
-        if (body != null) {
-            body = body.analyze(this.context);
-            if (returnType != Type.VOID && !methodContext.methodHasReturn()) {
-                JAST.compilationUnit.reportSemanticError(line(), "Non-void method must have a return statement");
+
+        if (exceptionTypes != null) {
+            int j = exceptionTypes.size(), i = 0;
+
+            while (i < j) {
+                if (Throwable.class.isAssignableFrom(exceptionTypes.get(i).classRep()))
+                    this.context.addThownType(exceptionTypes.get(i));
+                else
+                    JAST.compilationUnit.reportSemanticError(line(), "must be Throwable or a subclass");
+
+                i++;
             }
         }
+
+        if (body != null) {
+            body = body.analyze(this.context);
+
+            if (returnType != Type.VOID && !methodContext.methodHasReturn())
+                JAST.compilationUnit.reportSemanticError(line(), "Non-void method must have a return statement");
+        }
+
         return this;
     }
-    
 
     /**
      * Adds this method declaration to the partial class.
@@ -181,9 +195,12 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void partialCodegen(Context context, CLEmitter partial) {
+        for (Type t : exceptionTypes)
+            exceptionTypesNames.add(t.jvmName());
+
         // Generate a method with an empty body; need a return to
         // make the class verifier happy.
-        partial.addMethod(mods, name, descriptor, null, false);
+        partial.addMethod(mods, name, descriptor, exceptionTypesNames, false);
 
         // Add implicit RETURN
         if (returnType == Type.VOID) {
@@ -191,10 +208,10 @@ class JMethodDeclaration extends JAST implements JMember {
         } else if (returnType == Type.INT || returnType == Type.BOOLEAN || returnType == Type.CHAR) {
             partial.addNoArgInstruction(ICONST_0);
             partial.addNoArgInstruction(IRETURN);
-        } else if(returnType == Type.DOUBLE) {
+        } else if (returnType == Type.DOUBLE) {
             partial.addNoArgInstruction(DCONST_0);
             partial.addNoArgInstruction(DRETURN);
-        }else {
+        } else {
             // A reference type.
             partial.addNoArgInstruction(ACONST_NULL);
             partial.addNoArgInstruction(ARETURN);
@@ -209,7 +226,7 @@ class JMethodDeclaration extends JAST implements JMember {
      */
 
     public void codegen(CLEmitter output) {
-        output.addMethod(mods, name, descriptor, null, false);
+        output.addMethod(mods, name, descriptor, exceptionTypesNames, false);
         if (body != null) {
             body.codegen(output);
         }
@@ -250,7 +267,7 @@ class JMethodDeclaration extends JAST implements JMember {
             p.println("</FormalParameters>");
         }
 
-        if (isThrow) {
+        if (!exceptionTypes.isEmpty()) {
             p.println("<Throws>");
 
             p.indentRight();
@@ -272,24 +289,28 @@ class JMethodDeclaration extends JAST implements JMember {
         p.println("</JMethodDeclaration>");
     }
 
-    public void makeAbstractAndPublic(){
-
-        if(!mods.contains(TokenKind.PUBLIC.image())) {
-            isPrivate=false;
+    /**
+     * Adds the modifiers to make this method suitable for an interface
+     *
+     */
+    public void makeAbstractAndPublic() {
+        if (!mods.contains(TokenKind.PUBLIC.image())) {
+            isPrivate = false;
             mods.add(TokenKind.PUBLIC.image());
         }
-        if(!mods.contains(TokenKind.ABSTRACT.image())){
-            isAbstract=true;
+        if (!mods.contains(TokenKind.ABSTRACT.image())) {
+            isAbstract = true;
             mods.add(TokenKind.ABSTRACT.image());
         }
     }
 
-    public void checkForForbiddenModifiers(){
-        if(mods.contains(TokenKind.STATIC.image()) || mods.contains(TokenKind.FINAL.image())){
+    /**
+     * Checks that the method that is in an interface doesn't have unsuitable
+     * modifiers.
+     *
+     */
+    public void checkForForbiddenModifiers() {
+        if (mods.contains(TokenKind.STATIC.image()) || mods.contains(TokenKind.FINAL.image()))
             JAST.compilationUnit.reportSemanticError(line(), "An interface’s method can't be declared static or final");
-        }
     }
-
-
-   
 }

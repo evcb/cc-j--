@@ -17,16 +17,12 @@ public class UnaryPlusTest extends TestCase {
 	}
 
 	public void testUnaryPlus() {
-		int i0 = 20;
-		char c0 = 20;
-		Assert.assertEquals(i0, unaryPlus.promote(c0));
+		char c = 20;
+		// Assert.assertEquals(20, unaryPlus.promoteChar(c));
 
-		int i1 = 0;
-		char c1 = 0;
-		Assert.assertEquals(i1, unaryPlus.promote(c1));
+		Assert.assertEquals(0, unaryPlus.promoteInteger(Integer.valueOf(0)));
 
-		int i2 = 5;
-		char c2 = 5;
-		Assert.assertEquals(i2, unaryPlus.promote(c2));
+		char c1 = 5;
+		Assert.assertEquals(5, unaryPlus.promoteCharacter(Character.valueOf(c1)));
 	}
 }
