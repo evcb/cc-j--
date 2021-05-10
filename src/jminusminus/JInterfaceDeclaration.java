@@ -252,7 +252,7 @@ public class JInterfaceDeclaration extends JAST implements JTypeDecl{
      */
     @Override
     public void writeToStdOut(PrettyPrinter p) {
-        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\"");
+        p.printf("<JInterfaceDeclaration line=\"%d\" name=\"%s\"" + " super=\"%s\">\n", line(), name, superType.toString());
         p.indentRight();
         if (context != null) {
             context.writeToStdOut(p);
