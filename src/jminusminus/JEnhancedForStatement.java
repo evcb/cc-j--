@@ -58,9 +58,6 @@ class JEnhancedForStatement extends JStatement {
      */
 
     public JStatement analyze(Context context) {
-	//System.out.println("Creating iterator, line " + line + " name " + name);
-	//iteratorVar = new JVariable(line, name);
-
 	// Set up and allocate space for internal variables
 	offsetCnt = ((LocalContext) context).nextOffset();                                                               
 	LocalVariableDefn defnCnt = new LocalVariableDefn(Type.INT, offsetCnt);
@@ -68,8 +65,6 @@ class JEnhancedForStatement extends JStatement {
 	offsetArrLen = ((LocalContext) context).nextOffset();   
 	LocalVariableDefn defnArrLen = new LocalVariableDefn(Type.INT, offsetArrLen);
 	context.addEntry(line, "#arrLen", defnArrLen);
-	
-	//ArrayList<JStatement> init = new ArrayList<JStatement>();
     
 	//May have to take into account the type used so that we just don't set
 	// it to an integer value... 
@@ -80,16 +75,11 @@ class JEnhancedForStatement extends JStatement {
 	ArrayList<String> mods = new ArrayList<String>();
 	
 	varDecs = new JVariableDeclaration(line, mods, decs);
-	//iterator = new JVariable(line, name);
 
-	//this.context.addEntry(line, name, new LocalVariableDefn(type, this.context.nextOffset(), null ));
-	
-	System.out.println("Analyzing iterator...");
 	varDecs = (JVariableDeclaration) varDecs.analyze(context);
 	iterator = new JVariable(line, name);
 	iterator = (JVariable) iterator.analyze(context);	
-	//iterator = (JVariableDeclarator) iterator.analyze(context);	
-	System.out.println("Iterator analysed!");
+
 	expression = (JExpression) expression.analyze(context);
 	if (!expression.type().isArray()) {
 	    JAST.compilationUnit.reportSemanticError(line(),

@@ -1827,6 +1827,10 @@ private JExpression shiftExpression(): {
     try {
         lhs = additiveExpression() { line = lhs.line(); }
         (
+	    <URSHIFT>	
+	    rhs = additiveExpression()
+            { lhs = new JUShiftOp(line, lhs, rhs); } |
+
             <SHL>
             rhs = additiveExpression()
             { lhs = new JShiftLeftOp(line, lhs, rhs); } |
