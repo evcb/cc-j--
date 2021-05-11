@@ -559,8 +559,14 @@ class JPreDecrementOp extends JUnaryExpression {
             type = Type.ANY;
         } else {
             arg = (JExpression) arg.analyze(context);
-            arg.type().mustMatchExpected(line(), Type.INT);
-            type = Type.INT;
+            if (arg.type() == Type.INT) {
+                type = Type.INT;
+            } else if (arg.type() == Type.DOUBLE) {
+                type = Type.DOUBLE;
+            } else {
+                type = Type.INT; // so it doesn't give null pointer exception
+                JAST.compilationUnit.reportSemanticError(line(), "Invalid operand types for --expr");
+            }
         }
         return this;
     }
