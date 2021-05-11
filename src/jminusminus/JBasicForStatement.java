@@ -20,6 +20,8 @@ class JBasicForStatement extends JStatement {
 
     /** For-loop body */
     private JStatement statement;
+
+    private LocalContext context;
     
     /**
      * Constructs an AST node for a basic-statement given its line number, the 
@@ -55,14 +57,28 @@ class JBasicForStatement extends JStatement {
      */
 
     public JStatement analyze(Context context) {
-        // condition = (JExpression) condition.analyze(context);
-        // condition.type().mustMatchExpected(line(), Type.BOOLEAN);
-        // thenPart = (JStatement) thenPart.analyze(context);
-        // if (elsePart != null) {
-        //     elsePart = (JStatement) elsePart.analyze(context);
-        // }
-        // return this;
+	// Create local context for for-loop
+	this.context = new LocalContext(context);
 
+	// Analyse forInt
+	for (int i = 0; i < forInt.size(); i++) {
+	    forInt.set(i, (JStatement) forInt.get(i).analyze(this.context));
+	}
+
+	// Analyse condition (must be boolean return type)
+	if (expression != null) {
+	    expression = (JExpression) expression.analyze(this.context);
+	    expression.type().mustMatchExpected(line(), Type.BOOLEAN);
+	}
+	
+	// Analyse forUpdate
+	for (int i = 0; i < forUpdate.size(); i++) {
+	    forUpdate.set(i, (JStatement) forUpdate.get(i).analyze(this.context));
+	}
+
+	// Analyse for-loop body
+	statement = (JStatement) statement.analyze(this.context);
+	
 	return this;
     }
 
@@ -77,18 +93,31 @@ class JBasicForStatement extends JStatement {
      */
 
     public void codegen(CLEmitter output) {
-        // String elseLabel = output.createLabel();
-        // String endLabel = output.createLabel();
-        // condition.codegen(output, elseLabel, false);
-        // thenPart.codegen(output);
-        // if (elsePart != null) {
-        //     output.addBranchInstruction(GOTO, endLabel);
-        // }
-        // output.addLabel(elseLabel);
-        // if (elsePart != null) {
-        //     elsePart.codegen(output);
-        //     output.addLabel(endLabel);
-        // }
+	String loopLabel = output.createLabel();
+	String endLabel = output.createLabel();
+	
+	for (JStatement s : forInt) {
+	    s.codegen(output);
+	}
+
+	output.addLabel(loopLabel);
+	if (expression != null) {
+	    expression.codegen(output, endLabel, false);
+	}
+	    
+	// Evaluate loop body
+	statement.codegen(output);
+
+	// If statement has been excecuted correctly
+	// evaluate the forUpdate statements...
+	for (JStatement s : forUpdate) {
+	    s.codegen(output);
+	}
+
+	// ...and perform another iteration.
+	output.addBranchInstruction(GOTO, loopLabel);
+	output.addLabel(endLabel);
+	
     }
 
     /**
